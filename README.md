@@ -4,11 +4,11 @@ A template-based approach to setting up and replicating NixOS configurations qui
 
 ## Introduction
 
-Returning to Linux as my daily operating system, I wanted a stable, secure, and easily replicable setup—one that would get me from a blank hard drive to a fully configured workstation, complete with my personal settings, in the shortest time possible.
+Returning to Linux as my daily operating system, I wanted a stable, secure, and easily replicable setup-one that would get me from a blank hard drive to a fully configured workstation, complete with my personal settings, in the shortest time possible.
 
 I also wanted an operating system that would facilitate company-wide client management, allowing for exact environment replication (except for user-specific data). For me, the answer was **NixOS**.
 
-Initially, in early 2023, I started exploring NixOS but set it aside due to lack of time, switching to Fedora KDE (which I loved and could configure in under an hour from scratch). By the end of 2024, eager to invest time in developing dotfiles for a completely customized and replicable graphical environment, I decided to go one step further. Instead of just revisiting my desktop environment, I wanted to rebuild my entire OS configuration—so I returned to NixOS.
+Initially, in early 2023, I started exploring NixOS but set it aside due to lack of time, switching to Fedora KDE (which I loved and could configure in under an hour from scratch). By the end of 2024, eager to invest time in developing dotfiles for a completely customized and replicable graphical environment, I decided to go one step further. Instead of just revisiting my desktop environment, I wanted to rebuild my entire OS configuration, so I returned to NixOS.
 
 I spent countless hours reading the official manual, watching YouTube videos, and studying other users’ configuration files on GitHub (all sources are listed in the [Sources](#sources) section). Then I chose to write all configuration files from scratch, structuring folders and files to meet my needs while keeping the principle of **“Keep It Simple”** and **“Less Is More”** in mind.
 
