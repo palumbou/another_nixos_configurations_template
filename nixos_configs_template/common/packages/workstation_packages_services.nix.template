@@ -1,0 +1,20 @@
+{ config, pkgs, ... }:
+{
+  # Add workstation packages
+  environment.systemPackages = with pkgs; [
+    gimp    # Image editor
+    vscode  # Visual Studio Code editor
+  ];
+
+  # Enable OBS Studio
+  programs.obs-studio = {
+    enable = true;
+  };
+
+  # Enable virtualization
+  programs.virt-manager.enable = true;
+  virtualisation = {
+    libvirtd.enable = true;               # Enable libvirtd service
+    spiceUSBRedirection.enable = true;    # Enable USB redirection for SPICE
+  };
+}

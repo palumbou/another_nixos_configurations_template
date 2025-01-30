@@ -1,0 +1,60 @@
+/* 
+  Syncthing is a free and open source peer-to-peer file synchronization application 
+  and can be enabled as an option in NixOS with full configuration from here.
+
+  A practical use of configuring Syncthing via NixOS is to have the program 
+  up and running immediately; if synced with a server and shared folders, 
+  they will already be synchronized.
+
+  For more details, see:
+  - https://nixos.wiki/wiki/Syncthing
+  - https://wiki.nixos.org/wiki/Syncthing
+  - https://search.nixos.org/options?channel=24.11&from=0&size=50&sort=relevance&type=packages&query=syncthing
+*/
+
+{ config, ... }:
+{
+  services.syncthing = {
+    enable = true; # Enables the Syncthing service.
+    configDir = ""; # Directory for Syncthing configuration files.
+    dataDir = ""; # Directory where Syncthing stores its synced data.
+    guiAddress = ""; # Sets the web interface to run on this address and port.
+    overrideDevices = false; # Keeps manually added devices persistent across configuration changes.
+    overrideFolders = false; # Keeps manually added folders persistent across configuration changes.
+    systemService = true; # Runs Syncthing as a system-wide service.
+    settings = {
+      gui = {
+        enabled = true; # Enables the Syncthing web interface.
+        address = ""; # Sets the address for the web interface.
+        tls = true; # Enables HTTPS for secure access to the web interface.
+        theme = "black"; # Sets the web interface theme to "black".
+      };
+      options = {
+        listenAddresses = [ "" ]; # Listens for connections on this address.
+        globalAnnounceEnabled = true; # Enables global device discovery.
+        localAnnounceEnabled = true; # Enables local device discovery.
+        natEnabled = true; # Enables NAT traversal.
+        relaysEnabled = true; # Enables relay servers for device communication.
+        startBrowser = false; # Prevents automatically opening the web interface in a browser.
+        urAccepted = 0; # Indicates acceptance of usage reporting settings (0 = the user has not made a choice).
+      };
+      #devices = {
+      #  "NAME DEVICE" = {
+      #    id = ""; # Unique ID for the device.
+      #    name = ""; # Name of the connected device.
+      #    addresses = [ "" ]; # Address to reach this device.
+      #    compression = ""; # Compresses only metadata for this device.
+      #    paused = false; # Ensures the device is not paused.
+      #    autoAcceptFolders = false; # Prevents auto-accepting shared folders from this device.
+      #  };
+      #};
+    };
+  };
+
+  # Prevents creating the default "Sync" folder in the user's home directory during the first sync.
+  systemd.services.syncthing.environment.STNODEFAULTFOLDER = "true";
+
+  # Uncomment the following lines to configure the firewall:
+  # networking.firewall.allowedTCPPorts = [ 8384 22000 ]; # Opens required TCP ports for Syncthing.
+  # networking.firewall.allowedUDPPorts = [ 22000 21027 ]; # Opens required UDP ports for Syncthing.
+}

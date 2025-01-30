@@ -1,0 +1,32 @@
+{ config, ... }:
+{
+  # Set your time zone.
+  time.timeZone = "${TIMEZONE}";
+
+  # Select internationalisation properties.
+  i18n.defaultLocale = "${DEFAULT_LOCALE}";
+  i18n.extraLocaleSettings = {
+    LC_ADDRESS = "${DEFAULT_LOCALE}";
+    LC_IDENTIFICATION = "${DEFAULT_LOCALE}";
+    LC_MEASUREMENT = "${DEFAULT_LOCALE}";
+    LC_MONETARY = "${DEFAULT_LOCALE}";
+    LC_NAME = "${DEFAULT_LOCALE}";
+    LC_NUMERIC = "${DEFAULT_LOCALE}";
+    LC_PAPER = "${DEFAULT_LOCALE}";
+    LC_TELEPHONE = "${DEFAULT_LOCALE}";
+    LC_TIME = "${DEFAULT_LOCALE}";
+  };
+
+  # Configure keymap in X11
+  services.xserver.xkb = {
+    layout = "${KEY_LAYOUT}";
+    variant = "";
+  };
+
+  # Configure console keymap
+  console.keyMap = "${CONSOLE_KEY_LAYOUT}";
+
+  # Before changing this value read the documentation for this option
+  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
+  system.stateVersion = "${NIXOS_VERSION}"; # Did you read the comment?
+}

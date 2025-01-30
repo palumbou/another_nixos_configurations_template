@@ -1,0 +1,73 @@
+{ config, pkgs, ... }:
+{
+  # Allow unfree packages
+  nixpkgs.config.allowUnfree = true;
+
+  # List packages installed in system profile. To search, run:
+  # $ nix search wget
+  environment.systemPackages = with pkgs; [
+    btop       # A resource monitor with a fancy terminal interface.
+    bzip2      # A compression tool for creating and extracting .bz2 files.
+    coreutils  # Core command-line utilities like ls, cp, and mv.
+    curl       # A tool to transfer data from or to a server using various protocols.
+    dnsutils   # A set of DNS tools like nslookup and dig.
+    easyeffects # An audio processing app with effects and equalizers.
+    ethtool    # Utility for configuring network interface parameters.
+    fastfetch  # A system information tool for displaying system specs.
+    ffmpeg     # A powerful multimedia framework for audio/video processing.
+    file       # Identifies file types by analyzing their content.
+    gawk       # GNU implementation of the AWK programming language.
+    git        # A distributed version control system for source code.
+    gnupg      # Tools for encrypting and signing data and communications.
+    gnused     # GNU implementation of sed for stream editing text files.
+    gnutar     # GNU tar, an archiving utility.
+    gzip       # A file compression utility using the .gz format.
+    iproute2   # Tools for network configuration and monitoring.
+    jq         # A lightweight and flexible JSON processor.
+    lm_sensors # Tools to monitor hardware sensors like temperature and voltage.
+    nano       # A simple, easy-to-use text editor for the terminal.
+    nmap       # A network scanning tool for security and discovery.
+    p7zip      # A tool for creating and extracting .7z files.
+    pciutils   # Tools for inspecting PCI devices on the system.
+    rsync      # A file transfer tool with synchronization and incremental copy.
+    screen     # A terminal multiplexer for managing multiple terminal sessions.
+    sysstat    # Tools for performance monitoring, like iostat and sar.
+    tree       # Displays a directory structure in a tree-like format.
+    unzip      # Extracts .zip archives.
+    usbutils   # Utilities for managing USB devices.
+    vim        # A powerful and versatile text editor.
+    wget       # A tool for non-interactive downloading of files from the web.
+    which      # Locates a command's executable path in the system.
+    xz         # A file compression tool using the .xz format.
+    zip        # Creates compressed .zip archives.
+    zstd       # A fast compression algorithm with high compression ratios.
+  ];
+
+  # Enable firmware updates
+  services.fwupd.enable = true;
+
+  # Enable CUPS to print documents.
+  services.printing.enable = true;
+
+  # Enable touchpad support (enabled default in most desktopManager).
+  # services.xserver.libinput.enable = true;
+
+  # Some programs need SUID wrappers, can be configured further or are
+  # started in user sessions.
+  # programs.mtr.enable = true;
+  # programs.gnupg.agent = {
+  #   enable = true;
+  #   enableSSHSupport = true;
+  # };
+
+  # List services that you want to enable:
+  services.openssh = {
+    enable = true;
+    ports = [22];
+    settings = {
+      PasswordAuthentication = true;
+      KbdInteractiveAuthentication = false;
+      PermitRootLogin = "yes";
+    };
+  };
+}

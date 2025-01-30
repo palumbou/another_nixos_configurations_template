@@ -1,0 +1,50 @@
+{ config, pkgs, ... }:
+{
+  # Disable the X server
+  services.xserver.enable = false;
+
+  # Enable portals (for screenshots, screen sharing, etc.)
+  xdg.portal.enable = true;
+  xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-wlr ];
+
+  # Enable SDDM
+  services.displayManager.sddm = {
+    enable = true;
+    autoNumlock = true;
+    wayland = {
+      enable = true;
+    };
+  };
+
+  # Enable Hyprland
+  programs.hyprland = {
+    enable = true;
+    xwayland.enable = true;
+  };
+
+  # Enable sound with PipeWire
+  hardware.pulseaudio.enable = false;
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+    # If you want to use JACK applications, uncomment this
+    # jack.enable = true;
+
+    # Enables media-session, a lightweight session manager for PipeWire,
+    # used to handle audio routing and device management.
+    media-session.enable = true;
+  };
+
+  # Add system packages
+  environment.systemPackages = with pkgs; [
+    dolphin # File manager for KDE, providing a graphical interface for file management
+    kitty # Modern, hackable, featureful, OpenGL based terminal emulator
+    (nerdfonts.override { fonts = [ "${FONT}" ]; }) # Customizes Nerd Fonts package to include the "${FONT}" font for use in terminals and text editors
+    waybar # Highly customizable status bar for Wayland compositors like Sway
+    wofi # A minimalist launcher and menu for Wayland, similar to dmenu
+  ];
+
+}
