@@ -13,12 +13,6 @@
   services.displayManager.sddm.enable = true;
   services.desktopManager.plasma6.enable = true;
 
-  # Configure keymap in X11
-  services.xserver.xkb = {
-    layout = "${KEY_LAYOUT}";
-    variant = "";
-  };
-
   # Enable sound with pipewire.
   hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
