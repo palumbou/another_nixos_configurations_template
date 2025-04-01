@@ -1,5 +1,7 @@
 # Users Folder
 
+> **Available languages**: [English (current)](README.md) | [Italiano](README.it.md)
+
 The **`users`** folder contains user configurations that can be included in a chosen host’s `configuration.nix` file.  For **each user**, create a subfolder named after the user. Inside it, include:
 
 - **`<USERNAME>.nix`** – The user configuration file  
@@ -28,6 +30,7 @@ This file defines a **basic Linux user** with:
 - A home directory at `"/home/<USERNAME>"`, which will contain subfolders like `Documents`, `Download`, `Images`, and `Videos`  
 - Membership in the **`wheel`** group for administrator privileges  
 - A few **shell aliases** configured
+- **Security restrictions** specifying which commands can be executed with **`sudo`**
 
 > **WARNING**: if you plan to create multiple users, **each user’s UID and GID must be unique**.  
 > Make sure to change the default UID/GID values to avoid conflicts.
@@ -35,20 +38,19 @@ This file defines a **basic Linux user** with:
 Additionally:
 
 - **Common desktop software** can be installed automatically (each package has an explanatory comment).  
-- **Dotfiles** can be copied into `~/.config` of the user (see the [dotfiles folder](#dotfiles-folder) below).  
+- **Dotfiles** can be copied into `~/.config` of the user (read the [dotfiles folder](#dotfiles-folder) below).
 - If you use **Syncthing**, two lines can be uncommented to run Syncthing as this user (with the same UID and GID).  
 - If you install **Virtual Machine Manager**, you can add the user to its group for managing virtual machines.
 
 For **home folder creation**, we use **tmpfiles** (a systemd component) to create persistent directories. Though tmpfiles is often used for temporary files and folders, you can specify a “persistent” mode by setting the `age` argument to “-”.
 
 For more information on **tmpfiles**, see:  
-- [https://www.freedesktop.org/software/systemd/man/latest/tmpfiles.d.html](https://www.freedesktop.org/software/systemd/man/latest/tmpfiles.d.html)  
-- [https://www.freedesktop.org/software/systemd/man/latest/systemd-tmpfiles-setup.service.html](https://www.freedesktop.org/software/systemd/man/latest/systemd-tmpfiles-setup.service.html)
+- [https://www.freedesktop.org/software/systemd/man/latest/tmpfiles.d.html](https://www.freedesktop.org/software/systemd/man/latest/tmpfiles-setup.service.html](https://www.freedesktop.org/software/systemd/man/latest/systemd-tmpfiles-setup.service.html)
 
 > **Note**: in `user.nix`, make sure to change the variables:
 > - `${USER}` to the actual username  
-> - `${DICTIONARY}` to the correct dictionary locale (e.g., `en-US`)  
-> - `${BASEURL}` to the absolute path of the **parent folder** of `nixos_configs`
+> - `${DICTIONARY}` with the chosen dictionary (e.g., `en-US`)  
+> - `${BASEPATHUSER}` to the absolute path of the **parent folder** of `nixos_configs`
 
 ---
 

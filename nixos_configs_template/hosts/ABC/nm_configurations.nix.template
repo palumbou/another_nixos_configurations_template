@@ -3,14 +3,14 @@
   environment.etc = {
     # Configuration for the WiFi connection "HomeWiFi"
     "NetworkManager/system-connections/HomeWiFi.nmconnection" = {
-      source = "${BASEURL}/nixos_configs/common/network/nmconnection_files/HomeWiFi.nmconnection";
+      source = "${BASEPATHNM}/nixos_configs/common/network/nmconnection_files/HomeWiFi.nmconnection";
       mode = "0600";
       user = "root";
       group = "root";
     };
     # Configuration for the WiFi connection "OfficeWiFi"
     "NetworkManager/system-connections/OfficeWiFi.nmconnection" = {
-      source = "${BASEURL}/nixos_configs/common/network/nmconnection_files/OfficeWiFi.nmconnection";
+      source = "${BASEPATHNM}/nixos_configs/common/network/nmconnection_files/OfficeWiFi.nmconnection";
       mode = "0600";
       user = "root";
       group = "root";

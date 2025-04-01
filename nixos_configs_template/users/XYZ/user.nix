@@ -35,7 +35,7 @@
     # Packages installed specifically for this user.
     packages = with pkgs; [
       firefox             # Firefox browser.
-      ghostty             # Fast, native, feature-rich terminal emulator pushing modern features.
+      #ghostty             # Fast, native, feature-rich terminal emulator pushing modern features.
       hunspell            # Spell checker.
       hunspellDicts.${DICTIONARY} # Dictionary for Hunspell.
       libreoffice-qt6     # LibreOffice with Qt6 integration.
@@ -97,7 +97,7 @@
     "dotfiles" = {
       "/home/${USER}/.config" = {
         "C+" = {
-          argument = "${BASEURL}/nixos_configs/users/${USER}/dotfiles/";
+          argument = "${BASEPATHUSER}/nixos_configs/users/${USER}/dotfiles/";
           user = "${USER}";
           group = "${USER}";
           mode = "0755";
@@ -119,6 +119,18 @@
   environment.variables = {
     HISTSIZE = "3000"; # Sets the maximum number of history entries in memory.
     HISTFILESIZE = "3000"; # Sets the maximum number of history entries in the history file.
+  };
+
+  # The "security.sudo" section configures sudo
+  security.sudo = {
+    # Allows adding raw configuration directly into the sudoers file
+    # Sets a secure_path for the "${USER}" user to limits which binaries can be executed with sudo
+    # It helps ensure that only trusted commands can be executed with sudo
+    extraConfig = with pkgs; ''
+      Defaults:${USER} secure_path="${lib.makeBinPath [
+        systemd
+      ]}:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin"
+    '';
   };
 
   # Configuration for Syncthing.

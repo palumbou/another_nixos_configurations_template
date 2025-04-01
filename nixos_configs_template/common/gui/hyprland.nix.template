@@ -35,16 +35,34 @@
 
     # Enables media-session, a lightweight session manager for PipeWire,
     # used to handle audio routing and device management.
-    media-session.enable = true;
+    wireplumber.enable = true;
   };
 
   # Add system packages
   environment.systemPackages = with pkgs; [
+    catppuccin-cursors.mochaDark #https://github.com/catppuccin/cursors
     dolphin # File manager for KDE, providing a graphical interface for file management
+    greetd.tuigreet # Minimal and flexible login manager daemon
     kitty # Modern, hackable, featureful, OpenGL based terminal emulator
-    (nerdfonts.override { fonts = [ "${FONT}" ]; }) # Customizes Nerd Fonts package to include the "${FONT}" font for use in terminals and text editors
+    hyprpaper # A lightweight wallpaper manager for Hyprland that sets your desktop background
     waybar # Highly customizable status bar for Wayland compositors like Sway
     wofi # A minimalist launcher and menu for Wayland, similar to dmenu
   ];
 
+  # Add system font
+  fonts.packages = with pkgs; [
+    (nerdfonts.override { fonts = [ "${FONT}" ]; }) # Customizes Nerd Fonts package to include the "${FONT}" font for use in terminals and text editors
+  ];
+
+  services.greetd = {
+    enable = true;
+    package = pkgs.greetd;  # Specifica esplicitamente il pacchetto
+    settings = {
+      terminal.vt = 1;      # Virtual terminal da usare
+      default_session = {
+        command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --cmd Hyprland --asterisks";
+        user = "greeter";
+      };
+    };
+  };
 }

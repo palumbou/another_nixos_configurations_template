@@ -5,24 +5,29 @@
     [
       ./hardware-configuration.nix                              # Hardware configuration
       #./nm_configurations.nix                                   # Network Manager configurations
-      #../../common/gui/gnome.nix                               # Gnome GUI configuration
-      #../../common/gui/hyprland.nix                            # Hyprland GUI configuration
+      #../../common/gui/gnome.nix                                # Gnome GUI configuration
+      #../../common/gui/hyprland.nix                             # Hyprland GUI configuration
       ../../common/gui/kde.nix                                  # KDE GUI configuration
       ../../common/network/default_network.nix                  # Default network settings
       ../../common/packages/default_packages_services.nix       # Default packages and services
-      #../../common/packages/extra_packages_services.nix        # Extra packages and services
+      #../../common/packages/extra_packages_services.nix         # Extra packages and services
       #../../common/packages/grub.nix                            # GRUB bootloader settings
       #../../common/packages/syncthing.nix                       # Syncthing configuration
-      #../../common/packages/workstation_packages_services.nix  # Workstation packages and services
-      ../../common/system.nix                                   # System settings
-      ../../users/XYZ/user.nix                                   # User-specific settings
+      #../../common/packages/workstation_packages_services.nix   # Workstation packages and services
+      ../../common/config/system.nix                            # System settings
+      ../../users/XYZ/user.nix                                  # User-specific settings
     ];
 
   # Bootloader configuration
+  #boot.loader.systemd-boot.enable = true;
+  #boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.grub.enable = true;
   boot.loader.grub.device = "/dev/disk/by-id/wwn-0x500001234567890a";
   boot.loader.grub.useOSProber = false;
 
   # Set the hostname
   networking.hostName = "${HOSTNAME}"; # Define your hostname.
+
+  # Enable syncing for the specified folders in Syncthing
+  services.syncthing.settings.folders.NAME FOLDER.enable = true;
 }

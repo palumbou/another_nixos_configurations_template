@@ -15,46 +15,54 @@
 { config, ... }:
 {
   services.syncthing = {
-    enable = true; # Enables the Syncthing service.
-    configDir = ""; # Directory for Syncthing configuration files.
-    dataDir = ""; # Directory where Syncthing stores its synced data.
-    guiAddress = ""; # Sets the web interface to run on this address and port.
-    overrideDevices = false; # Keeps manually added devices persistent across configuration changes.
-    overrideFolders = false; # Keeps manually added folders persistent across configuration changes.
-    systemService = true; # Runs Syncthing as a system-wide service.
+    enable = true; # Enables the Syncthing service
+    configDir = ""; # Directory for Syncthing configuration files
+    dataDir = ""; # Directory where Syncthing stores its synced data
+    guiAddress = ""; # Sets the web interface to run on this address and port
+    overrideDevices = false; # Keeps manually added devices persistent across configuration changes
+    overrideFolders = false; # Keeps manually added folders persistent across configuration changes
+    systemService = true; # Runs Syncthing as a system-wide service
     settings = {
       gui = {
-        enabled = true; # Enables the Syncthing web interface.
-        address = ""; # Sets the address for the web interface.
-        tls = true; # Enables HTTPS for secure access to the web interface.
-        theme = "black"; # Sets the web interface theme to "black".
+        enabled = true; # Enables the Syncthing web interface
+        address = ""; # Sets the address for the web interface
+        tls = true; # Enables HTTPS for secure access to the web interface
+        theme = "black"; # Sets the web interface theme to "black"
       };
       options = {
-        listenAddresses = [ "" ]; # Listens for connections on this address.
-        globalAnnounceEnabled = true; # Enables global device discovery.
-        localAnnounceEnabled = true; # Enables local device discovery.
-        natEnabled = true; # Enables NAT traversal.
-        relaysEnabled = true; # Enables relay servers for device communication.
-        startBrowser = false; # Prevents automatically opening the web interface in a browser.
-        urAccepted = 0; # Indicates acceptance of usage reporting settings (0 = the user has not made a choice).
+        listenAddresses = [ "" ]; # Listens for connections on this address
+        globalAnnounceEnabled = true; # Enables global device discovery
+        localAnnounceEnabled = true; # Enables local device discovery
+        natEnabled = true; # Enables NAT traversal
+        relaysEnabled = true; # Enables relay servers for device communication
+        startBrowser = false; # Prevents automatically opening the web interface in a browser
+        urAccepted = 0; # Indicates acceptance of usage reporting settings (0 = the user has not made a choice)
       };
       #devices = {
       #  "NAME DEVICE" = {
-      #    id = ""; # Unique ID for the device.
-      #    name = ""; # Name of the connected device.
-      #    addresses = [ "" ]; # Address to reach this device.
-      #    compression = ""; # Compresses only metadata for this device.
-      #    paused = false; # Ensures the device is not paused.
-      #    autoAcceptFolders = false; # Prevents auto-accepting shared folders from this device.
+      #    id = ""; # Unique ID for the device
+      #    name = ""; # Name of the connected device
+      #    addresses = [ "" ]; # Address to reach this device
+      #    compression = ""; # Compresses only metadata for this device
+      #    paused = false; # Ensures the device is not paused
+      #    autoAcceptFolders = false; # Prevents auto-accepting shared folders from this device
       #  };
       #};
-    };
+      #folders = {
+      #  "NAME FOLDER" = { # Unique label for the folder "NAME FOLDER"
+      #    label = "NAME FOLDER"; # Unique label for the folder
+      #    id = "ID FOLDER"; # The ID of the folder. Must be the same on all devices
+      #    path = "FOLDER PATH"; # The filesystem path where the folder resides
+      #    type = "sendreceive"; # Defines the syncing mode ("sendreceive", "sendonly", "receiveonly", "receiveencrypted")
+      #    devices = [ "DEVICE1" ]; # The list of remote devices to sync with
+      #  };
+      #};
   };
 
-  # Prevents creating the default "Sync" folder in the user's home directory during the first sync.
+  # Prevents creating the default "Sync" folder in the user's home directory during the first sync
   systemd.services.syncthing.environment.STNODEFAULTFOLDER = "true";
 
   # Uncomment the following lines to configure the firewall:
-  # networking.firewall.allowedTCPPorts = [ 8384 22000 ]; # Opens required TCP ports for Syncthing.
-  # networking.firewall.allowedUDPPorts = [ 22000 21027 ]; # Opens required UDP ports for Syncthing.
+  # networking.firewall.allowedTCPPorts = [ 8384 22000 ]; # Opens required TCP ports for Syncthing
+  # networking.firewall.allowedUDPPorts = [ 22000 21027 ]; # Opens required UDP ports for Syncthing
 }

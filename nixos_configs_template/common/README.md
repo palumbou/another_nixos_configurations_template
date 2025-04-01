@@ -1,11 +1,16 @@
 # Common Folder
 
+> **Available languages**: [English (current)](README.md) | [Italiano](README.it.md)
+
 This folder contains NixOS configuration files that are **common** to all host and user combinations. It includes three subfolders `gui`, `packages`, and `network` and a `system.nix` file.
 
 ## Folder Structure
 
 ```bash
 common/
+├── config/
+│   ├── sudo.nix
+│   ├── system.nix
 ├── gui/
 │   ├── gnome.nix
 │   ├── hyprland.nix
@@ -25,10 +30,11 @@ common/
 
 ---
 
-### `system.nix` File
+### `config` Folder
+This folder stores **Operating System-related** configurations:
 
-The **`system.nix`** file contains settings related to localization and the specific version of NixOS you’re using.  
-You’ll typically import this file in each host’s `configuration.nix` to ensure consistent locale and system-wide settings across all hosts.
+- **`sudo.nix`** for enabling and managing sudo, such as adding custom rules that allow users in the **`wheel`** group (administrators) to execute specific system commands **without requiring a password** (NOPASSWD option).
+- **`system.nix`** file contains settings related to localization and the specific version of NixOS you’re using. You’ll typically import this file in each host’s `configuration.nix` to ensure consistent locale and system-wide settings across all hosts.
 
 ---
 
@@ -61,7 +67,7 @@ This folder includes configurations for packages and services. Each file has its
 - **`kde_packages.nix`**  
   Additional programs enhancing the KDE Plasma environment. This file is automatically imported if you choose KDE in `gui/kde.nix`.
 - **`syncthing.nix`**  
-  Configuration for **Syncthing**. Read the file for the changes to be reported.
+  Configuration for **Syncthing**. Read the file for more information.
 - **`workstation_packages_services.nix`**  
   Packages and services potentially useful for all users on a workstation host.
 

@@ -1,10 +1,13 @@
 # Hosts Folder
 
+> **Available languages**: [English (current)](README.md) | [Italiano](README.it.md)
+
 The **`hosts`** folder contains configurations for each of your machines (hosts). Each host resides in its own subfolder named after that host, and typically includes:
 
-- **`configuration.nix`** – Base configuration file  
-- **`hardware-configuration.nix`** – Hardware-specific configuration  
-- **`nm_configurations.nix`** (optional) – NetworkManager connections to import during the build
+- **`configuration.nix`** - Base configuration file  
+- **`hardware-configuration.nix`** - Hardware-specific configuration  
+- **`nm_configurations.nix`** (optional) - NetworkManager connections to import during the build
+- **`single-disk-ext4-bios.nix`** (optional) - A `Disko` configuration template files
 
 ## Folder Structure
 
@@ -12,6 +15,7 @@ The **`hosts`** folder contains configurations for each of your machines (hosts)
 hosts/
 └── ABC/
     ├── configuration.nix
+    ├── dotfiles/
     ├── hardware-configuration.nix
     └── nm_configurations.nix
 ```
@@ -37,6 +41,17 @@ The **`ABC`** folder is a sample. Copy it, rename it to match your actual hostna
     
         networking.hostName = "nixos"; # Replace with your own hostname
 
+4. **Enable selected Syncthing folders** specified for the host. 
+
+    Optional: if you use Syncthing to sync folders between your computers, you can use this option to enable the synchronization of specific folders during the system build.
+
+    Replace "NAME FOLDER" with the name of the folder you want to sync.
+
+        services.syncthing.settings.folders.NAME FOLDER.enable = true;
+
+  - **Use one option per folder:** add more lines for all folders you want to enable.
+  - **Note:** the corresponding folder configurations must be specified in the Syncthing configuration file (`../common/packages/syncthing.nix`).
+
 ---
 
 ## `hardware-configuration.nix` File
@@ -60,13 +75,15 @@ If you need to import `.nmconnection` files at build time (e.g., WiFi or VPN set
 
         {
           environment.etc."NetworkManager/system-connections/HomeWiFi.nmconnection" = {
-            source = "${BASEURL}/nixos_configs/common/network/nmconnection_files/HomeWiFi.nmconnection";
+            source = "${BASEPATHNM}/nixos_configs/common/network/nmconnection_files/HomeWiFi.nmconnection";
             mode = "0600";
+            user = "root";
+            group = "root";
           };
         }
 
-Replace `${BASEURL}` with your actual path to `nixos_configs` and `HomeWiFi.nmconnection` with your file name.
-If a file is declared but not found, you’ll see a warning during the build, but it will not fail.
+Replace `${BASEPATHNM}` with your actual path to `nixos_configs` and `HomeWiFi.nmconnection` with your file name.
+If a file is declared but not found, you'll see a warning during the build, but it will not fail.
 
 > **Note:** you can also manage WiFi through [`networking.wireless.networks`](https://search.nixos.org/options?channel=24.11&from=0&size=50&sort=relevance&type=packages&query=networking.wireless.networks.), but that approach enables `wpa_supplicant` and disables WiFi control in NetworkManager.
 
@@ -74,7 +91,7 @@ If a file is declared but not found, you’ll see a warning during the build, bu
 
 ## Summary
 
-1. **Copy the `ABC` folder**, rename it to your host’s name.  
+1. **Copy the `ABC` folder**, rename it to your host's name.  
 2. **Edit** `configuration.nix`, `hardware-configuration.nix`, and optionally `nm_configurations.nix`.  
 3. **Uncomment** what you need and set correct identifiers (bootloader device, hostname, etc.).
 
