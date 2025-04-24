@@ -6,6 +6,7 @@ This folder contains configurations for different graphical user interfaces (GUI
 
 ## Available Files
 
+- **`gnome.nix`** - Configuration for the GNOME desktop environment
 - **`hyprland.nix`** - Configuration for the Hyprland Wayland-based desktop environment
 - **`kde.nix`** - Configuration for the KDE Plasma desktop environment
 
@@ -14,6 +15,12 @@ This folder contains configurations for different graphical user interfaces (GUI
 To use one of these desktop environments, import the corresponding file in your host's `configuration.nix` file:
 
 ```nix
+# For GNOME
+imports = [
+  # ...other imports...
+  ../common/gui/gnome.nix
+];
+
 # For KDE Plasma
 imports = [
   # ...other imports...

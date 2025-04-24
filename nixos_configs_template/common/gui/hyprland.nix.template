@@ -44,6 +44,8 @@
     dolphin # File manager for KDE, providing a graphical interface for file management
     greetd.tuigreet # Minimal and flexible login manager daemon
     kitty # Modern, hackable, featureful, OpenGL based terminal emulator
+    hypridle # A tool to automatically lock your screen after a period of inactivity 
+    hyprlock # A simple screen locker for Hyprland
     hyprpaper # A lightweight wallpaper manager for Hyprland that sets your desktop background
     waybar # Highly customizable status bar for Wayland compositors like Sway
     wofi # A minimalist launcher and menu for Wayland, similar to dmenu

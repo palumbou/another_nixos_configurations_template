@@ -55,6 +55,16 @@ La cartella **`ABC`** è un esempio. Copiala, rinominala per farla corrispondere
 
 ---
 
+## Dotfiles specifici per host
+
+La cartella **`dotfiles`** è **opzionale** e può essere utilizzata per copiare configurazioni (dotfiles, per esempio: impostazioni del monitor in Hyprland) relative allo specifico host nella cartella `~/.config` dell'utente durante la fase di build.
+
+Questa operazione viene gestita tramite **tmpfiles**, e la procedura precisa è definita nel file di configurazione dell'utente (sezione `"dotfiles-host"`). Verrà utilizzato l'**hostname della macchina** per individuare la cartella specifica all'interno di `hosts` contenente i dotfiles da copiare.
+
+Per ulteriori informazioni, fare riferimento alla sezione [Cartella dotfiles](../users/README.it.md#dotfiles) nel file README della cartella `users`.
+
+---
+
 ## File `hardware-configuration.nix`
 
 Questo file contiene le impostazioni specifiche dell’hardware per l’host.  

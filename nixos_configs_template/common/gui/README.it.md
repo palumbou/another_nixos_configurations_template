@@ -6,6 +6,7 @@ Questa cartella contiene configurazioni per diverse interfacce grafiche utente (
 
 ## File Disponibili
 
+- **`gnome.nix`** - Configurazione per l'ambiente desktop GNOME
 - **`hyprland.nix`** - Configurazione per l'ambiente desktop basato su Wayland Hyprland
 - **`kde.nix`** - Configurazione per l'ambiente desktop KDE Plasma
 
@@ -14,6 +15,12 @@ Questa cartella contiene configurazioni per diverse interfacce grafiche utente (
 Per utilizzare uno di questi ambienti desktop, importa il file corrispondente nel file `configuration.nix` del tuo host:
 
 ```nix
+# Per GNOME
+imports = [
+  # ...altri import...
+  ../common/gui/gnome.nix
+];
+
 # Per KDE Plasma
 imports = [
   # ...altri import...

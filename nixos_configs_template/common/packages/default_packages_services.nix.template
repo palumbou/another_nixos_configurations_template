@@ -38,6 +38,7 @@
     vim        # A powerful and versatile text editor.
     wget       # A tool for non-interactive downloading of files from the web.
     which      # Locates a command's executable path in the system.
+    whois      # A tool for querying domain name registration information.
     xz         # A file compression tool using the .xz format.
     zip        # Creates compressed .zip archives.
     zstd       # A fast compression algorithm with high compression ratios.
@@ -59,6 +60,9 @@
   #   enable = true;
   #   enableSSHSupport = true;
   # };
+
+  # Enable dynamic linker compatibility for non-Nix binaries (e.g., VS Code Remote SSH)
+  programs.nix-ld.enable = true;
 
   # List services that you want to enable:
   services.openssh = {

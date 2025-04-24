@@ -107,6 +107,19 @@
     };
   };
 
+    # Copy dotfiles for host-specific customizations into the user's .config directory
+    "dotfiles-host" = {
+      "/home/${USER}/.config" = {
+        "C" = {
+          argument = "${BASEPATHUSER}/nixos_config/hosts/${config.networking.hostName}/dotfiles/";
+          user = "${USER}";
+          group = "${USER}";
+          mode = "0755";
+          age = "-";
+        };
+      };
+    };
+
   # Defines shell aliases for convenience.
   environment.shellAliases = {
     l = "ls -l -a -h --color=auto"; # Lists all files with details and colored output.

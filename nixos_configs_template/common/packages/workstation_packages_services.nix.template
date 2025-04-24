@@ -2,7 +2,6 @@
 {
   # Add workstation packages
   environment.systemPackages = with pkgs; [
-    code-cursor # AI-powered code editor built on vscode
     gimp    # Image editor
     vscode  # Visual Studio Code editor
   ];

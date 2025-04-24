@@ -6,31 +6,24 @@ Questa cartella contiene file di configurazione per diversi gruppi di pacchetti 
 
 ## File Disponibili
 
-- **`desktop.nix`** - Pacchetti generici per ambienti desktop
-- **`development.nix`** - Strumenti di sviluppo, IDE, compilatori, ecc.
-- **`firmware.nix`** - Driver e firmware per vari dispositivi
-- **`fonts.nix`** - Font e configurazioni correlate
-- **`gnome.nix`** - Pacchetti specifici per l'ambiente GNOME
-- **`impresarial.nix`** - Software per uso aziendale
-- **`management.nix`** - Strumenti di gestione del sistema
-- **`multimedia.nix`** - Lettori audio/video, editor multimediali, ecc.
-- **`network.nix`** - Strumenti di rete, browser, client email, ecc.
-- **`printing.nix`** - CUPS e altri pacchetti per la stampa
-- **`reading.nix`** - Lettori PDF e altri lettori di documenti
-- **`ssh.nix`** - Configurazione SSH client/server
-- **`system.nix`** - Pacchetti di sistema essenziali
+- **`default_packages_services.nix`** - Pacchetti e servizi essenziali predefiniti per la funzionalità di base del sistema
+- **`extra_packages_services.nix`** - Pacchetti e servizi aggiuntivi per funzionalità estese
+- **`grub.nix`** - Configurazione del bootloader GRUB (deve essere importato quando si utilizza GRUB come bootloader)
+- **`kde_packages.nix`** - Pacchetti specifici per l'ambiente KDE Plasma (già importato nel file ../gui/kde.nix)
+- **`syncthing.nix`** - Configurazione per il servizio di sincronizzazione file Syncthing
+- **`workstation_packages_services.nix`** - Pacchetti e servizi adattati per le configurazioni workstation
 
 ## Utilizzo
 
-Importa i file desiderati nel file `configuration.nix` del tuo host specifico:
+Importa i file desiderati nel file `configuration.nix` specifico del tuo host:
 
 ```nix
 imports = [
   # ...altri import...
-  ../common/packages/desktop.nix
-  ../common/packages/development.nix
-  ../common/packages/multimedia.nix
-  # ...altri pacchetti secondo le tue necessità...
+  ../common/packages/default_packages_services.nix
+  ../common/packages/workstation_packages_services.nix
+  ../common/packages/syncthing.nix
+  # ...altri pacchetti secondo necessità...
 ];
 ```
 
@@ -40,28 +33,24 @@ Ogni file è progettato per essere modulare e includere un insieme coerente di p
 
 - Modificare i file esistenti per aggiungere o rimuovere pacchetti
 - Creare nuovi file per gruppi di pacchetti specifici per il tuo caso d'uso
-- Utilizzare condizioni per installare pacchetti solo in determinati host
+- Utilizzare condizioni per installare pacchetti solo su determinati host
 
 ### Esempio di Modifica
 
-Se desideri personalizzare il file `multimedia.nix` per aggiungere un nuovo pacchetto:
+Se desideri personalizzare il file `workstation_packages_services.nix` per aggiungere un nuovo pacchetto:
 
 ```nix
-# Nel file multimedia.nix
+# Nel file workstation_packages_services.nix
 { config, pkgs, ... }:
-
 {
-  # Pacchetti multimediali
+  # Aggiungi pacchetti per workstation
   environment.systemPackages = with pkgs; [
-    # I pacchetti esistenti
-    vlc
-    mpv
-    audacity
+    gimp        # Editor di immagini
     # Aggiungi il tuo nuovo pacchetto
-    obs-studio
+    vscode      # Editor Visual Studio Code
   ];
 
-  # Altre configurazioni relative ai multimedia
+  # Altre configurazioni relative alla workstation
 }
 ```
 

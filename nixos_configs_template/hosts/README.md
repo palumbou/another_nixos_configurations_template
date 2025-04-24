@@ -54,6 +54,16 @@ The **`ABC`** folder is a sample. Copy it, rename it to match your actual hostna
 
 ---
 
+## Host-specific Dotfiles
+
+The **`dotfiles`** folder is **optional** and can be used to copy host-specific configuration files (dotfiles, example: monitor settings in Hyprland) into the user’s `~/.config` directory during the build process.
+
+This copying is also handled via **tmpfiles**, and the exact operation is defined in the user's configuration file (see the `"dotfiles-host"` section). The hostname of the machine is used to determine which host-specific configuration folder within `hosts` will be copied.
+
+For additional details, please refer to the [Dotfiles Folder](../users/README.md#dotfiles) section in the **users folder README**.
+
+---
+
 ## `hardware-configuration.nix` File
 
 This file holds hardware-specific settings for the host.  
