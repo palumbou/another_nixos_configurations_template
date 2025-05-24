@@ -2,7 +2,7 @@
 {
   imports =
     [
-      ./themes/plymouth/plymouth_catppucin.nix
+      ./themes/plymouth/plymouth_breeze-plymouth.nix
       #./themes/plymouth/plymouth_nixos-bgrt.nix
       #./themes/plymouth/plymouth_plymouth-themes.nix
     ];
