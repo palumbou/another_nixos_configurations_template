@@ -31,6 +31,7 @@ Below is the directory structure I’ve planned, along with the files included. 
 ```bash
 nixos_configs/                    # Parent folder
 └── common/                       # Configuration files and subfolders common to all hosts/users
+    ├── config/                   # Operating system-related configurations
     ├── gui/                      # GUI-related configuration
     │   └── themes/               # Themes for various software (GRUB, Hyprland, Plymouth)
     ├── packages/                 # Configuration for software packages to install
@@ -58,8 +59,9 @@ Inside `nixos_configs`, there are three subfolders:
 
 #### `common`
 
-The **`common`** folder contains NixOS configuration files that are shared by all hosts and users. Inside it, there are three subfolders:
+The **`common`** folder contains NixOS configuration files that are shared by all hosts and users. Inside it, there are four subfolders:
 
+- **`config`** – Contains operating system-related configurations such as boot parameters with LUKS encryption, Plymouth boot splash, sudo rules, and system settings.
 - **`gui`** – Contains possible GUI configurations (currently Hyprland and KDE), from which you can choose, and a `themes` subfolder with themes for various software.  
 - **`packages`** – Specifies which packages to install and which services to enable.  
 - **`network`** – Network-related configurations. Inside this folder is another subfolder, `nmconnection_files`, which holds the Network Manager connection files.
