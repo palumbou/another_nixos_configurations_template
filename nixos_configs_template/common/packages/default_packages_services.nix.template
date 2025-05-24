@@ -67,7 +67,7 @@
   # List services that you want to enable:
   services.openssh = {
     enable = true;
-    ports = [22];
+    ports = [${SSH_PORT}];
     settings = {
       PasswordAuthentication = true;
       KbdInteractiveAuthentication = false;

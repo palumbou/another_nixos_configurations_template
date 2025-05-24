@@ -1,6 +1,11 @@
 { config, pkgs, ... }:
 {
-  # Disable the X server
+  imports =
+    [
+      ./themes/hyprland/hyprland_catppuccin.nix
+    ];
+
+   # Disable the X server
   services.xserver.enable = false;
 
   # Enable portals (for screenshots, screen sharing, etc.)
@@ -40,15 +45,21 @@
 
   # Add system packages
   environment.systemPackages = with pkgs; [
-    catppuccin-cursors.mochaDark #https://github.com/catppuccin/cursors
+    cliphist # Clipboard manager for Wayland
     dolphin # File manager for KDE, providing a graphical interface for file management
+    dunst # Lightweight notification daemon for X11 and Wayland
     greetd.tuigreet # Minimal and flexible login manager daemon
     kitty # Modern, hackable, featureful, OpenGL based terminal emulator
-    hypridle # A tool to automatically lock your screen after a period of inactivity 
+    hyprcursor # Cursor theme for Hyprlandc
+    hypridle # A tool to automatically lock your screen after a period of inactivity
     hyprlock # A simple screen locker for Hyprland
     hyprpaper # A lightweight wallpaper manager for Hyprland that sets your desktop background
+    hyprpicker # A tool to pick colors from the screen and set them as wallpaper
+    hyprshot # A screenshot tool for Hyprland, allowing you to capture your screen
     waybar # Highly customizable status bar for Wayland compositors like Sway
+    wl-clipboard # Command-line clipboard utilities for Wayland
     wofi # A minimalist launcher and menu for Wayland, similar to dmenu
+    xdg-desktop-portal-hyprland # A portal implementation for Hyprland, allowing applications to interact with the desktop environment
   ];
 
   # Add system font

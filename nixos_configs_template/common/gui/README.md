@@ -1,14 +1,24 @@
 # GUI
 
-This folder contains configurations for different graphical user interfaces (GUIs) that can be used in your NixOS hosts.
-
 > **Language versions**: [English (current)](README.md) | [Italiano](README.it.md)
+
+This folder contains configurations for different graphical user interfaces (GUIs) that can be used in your NixOS hosts.
 
 ## Available Files
 
 - **`gnome.nix`** - Configuration for the GNOME desktop environment
 - **`hyprland.nix`** - Configuration for the Hyprland Wayland-based desktop environment
 - **`kde.nix`** - Configuration for the KDE Plasma desktop environment
+
+## Themes
+
+This folder also contains a **`themes`** directory with various themes for software considered in the configuration files, organized by application:
+
+- **`grub`** - Themes for the GRUB bootloader
+- **`hyprland`** - Themes for the Hyprland window manager
+- **`plymouth`** - Themes for the Plymouth boot splash screen
+
+To use these themes, they need to be enabled individually in their respective installation files. See the [README.md](./themes/README.md) in the **`themes`** folder for more details.
 
 ## Usage
 

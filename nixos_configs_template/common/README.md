@@ -10,27 +10,36 @@ This folder contains NixOS configuration files that are **common** to all host a
 common/
 ├── config/
 │   ├── sudo.nix
-│   ├── system.nix
+│   └── system.nix.template
 ├── gui/
-│   ├── gnome.nix
-│   ├── hyprland.nix
-│   └── kde.nix
+│   ├── gnome.nix.template
+│   ├── hyprland.nix.template
+│   ├── kde.nix.template
+│   └── themes/
+│       ├── grub/
+│       │   └── grub_catppuccin.nix
+│       ├── hyprland/
+│       │   └── hyprland_catppuccin.nix
+│       └── plymouth/
+│           ├── plymouth_breeze-plymouth.nix
+│           ├── plymouth_nixos-bgrt.nix
+│           └── plymouth_plymouth-themes.nix
 ├── network/
-│   ├── nmconnection_files/
-│   └── default_network.nix.template
-├── packages/
-│   ├── default_packages_services.nix.template
-│   ├── extra_packages_services.nix.template
-│   ├── grub.nix.template
-│   ├── kde_packages.nix.template
-│   ├── syncthing.nix
-│   └── workstation_packages_services.nix.template
-└── system.nix.template
+│   ├── default_network.nix
+│   └── nmconnection_files/
+└── packages/
+    ├── default_packages_services.nix.template
+    ├── extra_packages_services.nix
+    ├── grub.nix
+    ├── kde_packages.nix
+    ├── syncthing.nix.template
+    └── workstation_packages_services.nix
 ```
 
 ---
 
 ### `config` Folder
+
 This folder stores **Operating System-related** configurations:
 
 - **`sudo.nix`** for enabling and managing sudo, such as adding custom rules that allow users in the **`wheel`** group (administrators) to execute specific system commands **without requiring a password** (NOPASSWD option).
@@ -45,12 +54,13 @@ This folder stores configurations for the graphical environments you can choose 
 - **`gnome.nix`** – Gnome  
 - **`hyprland.nix`** – Hyprland  
 - **`kde.nix`** – KDE Plasma (version 6)
+- **`themes/`** - A subfolder containing themes for various software (GRUB, Hyprland, Plymouth, ...)
 
 The Gnome and KDE configurations are drawn from NixOS installations, while the Hyprland configuration is custom, including base packages for a functional setup (display manager, file manager, terminal, status bar, and launcher). All files also enable audio with PipeWire.
 
 > **Note**: Make sure to change the variables
 > - in **`gnome.nix`** and **`kde.nix`**, replace `${KEY_LAYOUT}` with the desired [ISO 639 code](https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes) for your keyboard layout
-> - in **`hyprland.nix`**, replace `${FONT}` with your preferred font
+> - in **`hyprland.nix`**, replace `${FONT}` with your preferred font and select the desired theme
 
 ---
 

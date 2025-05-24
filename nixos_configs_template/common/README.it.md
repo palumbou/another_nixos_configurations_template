@@ -10,27 +10,36 @@ Questa cartella contiene file di configurazione NixOS che sono **comuni** a tutt
 common/
 ├── config/
 │   ├── sudo.nix
-│   ├── system.nix
+│   └── system.nix.template
 ├── gui/
-│   ├── gnome.nix
-│   ├── hyprland.nix
-│   └── kde.nix
+│   ├── gnome.nix.template
+│   ├── hyprland.nix.template
+│   ├── kde.nix.template
+│   └── themes/
+│       ├── grub/
+│       │   └── grub_catppuccin.nix
+│       ├── hyprland/
+│       │   └── hyprland_catppuccin.nix
+│       └── plymouth/
+│           ├── plymouth_breeze-plymouth.nix
+│           ├── plymouth_nixos-bgrt.nix
+│           └── plymouth_plymouth-themes.nix
 ├── network/
-│   ├── nmconnection_files/
-│   └── default_network.nix.template
-├── packages/
-│   ├── default_packages_services.nix.template
-│   ├── extra_packages_services.nix.template
-│   ├── grub.nix.template
-│   ├── kde_packages.nix.template
-│   ├── syncthing.nix
-│   └── workstation_packages_services.nix.template
-└── system.nix.template
+│   ├── default_network.nix
+│   └── nmconnection_files/
+└── packages/
+    ├── default_packages_services.nix.template
+    ├── extra_packages_services.nix
+    ├── grub.nix
+    ├── kde_packages.nix
+    ├── syncthing.nix.template
+    └── workstation_packages_services.nix
 ```
 
 ---
 
 ### Cartella `config`
+
 Questa cartella archivia configurazioni **relative al Sistema Operativo**:
 
 - **`sudo.nix`** per abilitare e gestire sudo, come l’aggiunta di regole personalizzate che consentono agli utenti nel gruppo **`wheel`** (amministratori) di eseguire specifici comandi di sistema **senza richiedere password** (opzione NOPASSWD).
@@ -45,12 +54,13 @@ Questa cartella archivia le configurazioni per gli ambienti grafici che puoi sce
 - **`gnome.nix`** – Gnome  
 - **`hyprland.nix`** – Hyprland  
 - **`kde.nix`** – KDE Plasma (versione 6)
+- **`themes/`** - Una sottocartella contenente temi per vari software (GRUB, Hyprland, Plymouth, ...)
 
 Le configurazioni di Gnome e KDE provengono dalle installazioni di NixOS, mentre la configurazione Hyprland è personalizzata, includendo pacchetti di base per un setup funzionale (display manager, file manager, terminale, barra di stato e launcher). Tutti i file abilitano anche l’audio con PipeWire.
 
 > **Nota**: Assicurati di modificare le variabili  
 > - in **`gnome.nix`** e **`kde.nix`**, sostituisci `${KEY_LAYOUT}` con il codice [ISO 639](https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes) desiderato per il layout della tastiera  
-> - in **`hyprland.nix`**, sostituisci `${FONT}` con il tuo font preferito
+> - in **`hyprland.nix`**, sostituisci `${FONT}` con il tuo font preferito e seleziona il tema desiderato
 
 ---
 

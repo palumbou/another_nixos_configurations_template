@@ -1,8 +1,0 @@
-{ pkgs, ... }:
-{
-  # Configure GRUB bootloader
-  boot.loader.grub = {
-    # Set the theme for GRUB
-    theme = pkgs.catppuccin-grub;
-  };
-}

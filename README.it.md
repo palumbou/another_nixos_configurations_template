@@ -32,6 +32,7 @@ Di seguito è riportata la struttura delle directory pianificata, insieme ai fil
 nixos_configs/                    # Cartella principale
 └── common/                       # File di configurazione e sottocartelle comuni a tutti gli host/utenti
     ├── gui/                      # Configurazioni relative all'interfaccia grafica
+    │   └── themes/               # Temi per vari software (GRUB, Hyprland, Plymouth)
     ├── packages/                 # Configurazioni per i pacchetti software da installare
     └── network/                  # Configurazioni relative alla rete
     │   └── nmconnection_files/   # File di connessione di NetworkManager
@@ -59,7 +60,7 @@ All'interno di `nixos_configs`, ci sono tre sottocartelle principali:
 
 La cartella **`common`** contiene file di configurazione di NixOS condivisi da tutti gli host e utenti. Al suo interno ci sono tre sottocartelle:
 
-- **`gui`** – Contiene configurazioni per le interfacce grafiche (attualmente Hyprland e KDE), tra cui puoi scegliere.  
+- **`gui`** – Contiene configurazioni per le interfacce grafiche (attualmente Hyprland e KDE), tra cui puoi scegliere, e una sottocartella `themes` con temi per vari software.  
 - **`packages`** – Specifica quali pacchetti installare e quali servizi abilitare.  
 - **`network`** – Configurazioni relative alla rete. All'interno di questa cartella c'è un'altra sottocartella, `nmconnection_files`, che contiene i file di connessione di NetworkManager.
 
