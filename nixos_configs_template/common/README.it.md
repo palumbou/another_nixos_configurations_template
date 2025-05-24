@@ -9,6 +9,7 @@ Questa cartella contiene file di configurazione NixOS che sono **comuni** a tutt
 ```bash
 common/
 ├── config/
+│   ├── boot_luks.nix
 │   ├── sudo.nix
 │   └── system.nix.template
 ├── gui/
@@ -22,6 +23,7 @@ common/
 │       │   └── hyprland_catppuccin.nix
 │       └── plymouth/
 │           ├── plymouth_breeze-plymouth.nix
+│           ├── plymouth_catppucin.nix
 │           ├── plymouth_nixos-bgrt.nix
 │           └── plymouth_plymouth-themes.nix
 ├── network/
@@ -42,6 +44,7 @@ common/
 
 Questa cartella archivia configurazioni **relative al Sistema Operativo**:
 
+- **`boot_luks.nix`** per configurare i parametri di boot con supporto alla crittografia LUKS e le impostazioni di Plymouth per la schermata di avvio.
 - **`sudo.nix`** per abilitare e gestire sudo, come l’aggiunta di regole personalizzate che consentono agli utenti nel gruppo **`wheel`** (amministratori) di eseguire specifici comandi di sistema **senza richiedere password** (opzione NOPASSWD).
 - **`system.nix`** contiene impostazioni relative alla localizzazione e alla versione specifica di NixOS che stai utilizzando. In genere importerai questo file nel `configuration.nix` di ciascun host per garantire impostazioni coerenti a livello di locale e di sistema su tutti gli host.
 

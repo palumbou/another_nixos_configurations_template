@@ -19,6 +19,18 @@ Ho deciso di trasformare le mie configurazioni in un template leggibile e riccam
 
 ---
 
+## Informazioni sui Branch
+
+Questo repository mantiene diversi branch per diverse versioni di NixOS:
+
+- **`master`** - Contiene configurazioni per **NixOS 25.05**
+- **`25.05`** - Contiene configurazioni per **NixOS 25.05** (mergiato nel master)
+- **`24.11`** - Contiene configurazioni per **NixOS 24.11**
+
+Scegli il branch appropriato in base alla tua versione di NixOS. Il branch master è sempre allineato con l'ultima versione supportata di NixOS.
+
+---
+
 ## Spiegazione delle Scelte
 
 Nel 2023, ho commesso l'errore di iniziare subito con **Flakes** e **Home Manager**, pensando di dover includere tutto fin dall'inizio. Questa complessità mi ha portato ad abbandonare il progetto. Nel 2024, ho quasi ripetuto lo stesso errore finché non ho letto [questo aggiornamento](https://github.com/Misterio77/nix-starter-configs/issues/86) da [Misterio77’s nix-starter-configs](https://github.com/Misterio77/nix-starter-configs). È stato uno dei tanti spunti che suggerivano di introdurre Flakes e Home Manager solo se realmente necessari, e non subito.
@@ -31,6 +43,7 @@ Di seguito è riportata la struttura delle directory pianificata, insieme ai fil
 ```bash
 nixos_configs/                    # Cartella principale
 └── common/                       # File di configurazione e sottocartelle comuni a tutti gli host/utenti
+    ├── config/                   # Configurazioni relative al sistema operativo
     ├── gui/                      # Configurazioni relative all'interfaccia grafica
     │   └── themes/               # Temi per vari software (GRUB, Hyprland, Plymouth)
     ├── packages/                 # Configurazioni per i pacchetti software da installare
@@ -58,8 +71,9 @@ All'interno di `nixos_configs`, ci sono tre sottocartelle principali:
 
 #### `common`
 
-La cartella **`common`** contiene file di configurazione di NixOS condivisi da tutti gli host e utenti. Al suo interno ci sono tre sottocartelle:
+La cartella **`common`** contiene file di configurazione di NixOS condivisi da tutti gli host e utenti. Al suo interno ci sono quattro sottocartelle:
 
+- **`config`** – Contiene configurazioni relative al sistema operativo come parametri di boot con crittografia LUKS, schermata di avvio Plymouth, regole sudo e impostazioni di sistema.
 - **`gui`** – Contiene configurazioni per le interfacce grafiche (attualmente Hyprland e KDE), tra cui puoi scegliere, e una sottocartella `themes` con temi per vari software.  
 - **`packages`** – Specifica quali pacchetti installare e quali servizi abilitare.  
 - **`network`** – Configurazioni relative alla rete. All'interno di questa cartella c'è un'altra sottocartella, `nmconnection_files`, che contiene i file di connessione di NetworkManager.

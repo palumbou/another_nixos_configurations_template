@@ -6,6 +6,7 @@ This folder contains core system configuration files that define fundamental sys
 
 ## Available Files
 
+- **`boot_luks.nix`** - Configuration for LUKS encryption boot and Plymouth boot splash settings
 - **`sudo.nix`** - Configuration for sudo privileges and user permissions
 - **`system.nix`** - Core system settings including locale, time zone, and basic system behaviors
 
@@ -16,6 +17,7 @@ Import these configuration files in your host-specific `configuration.nix` file:
 ```nix
 imports = [
   # ...other imports...
+  ../common/config/boot_luks.nix
   ../common/config/sudo.nix
   ../common/config/system.nix
   # ...other configurations as needed...
@@ -26,6 +28,7 @@ imports = [
 
 The configuration files in this directory define foundational system settings. You can:
 
+- Modify `boot_luks.nix` to customize encrypted boot settings and Plymouth configuration
 - Modify `sudo.nix` to adjust user privilege levels and security policies
 - Update `system.nix` to change locale settings, time zones, or core system behaviors
 - Reference host-specific variables to customize settings per machine
@@ -58,7 +61,7 @@ If you want to customize the system settings in `system.nix`:
   };
   
   # Add your custom system settings here
-  system.stateVersion = "24.11"; # DO NOT CHANGE THIS
+  system.stateVersion = "25.05"; # DO NOT CHANGE THIS
 }
 ```
 

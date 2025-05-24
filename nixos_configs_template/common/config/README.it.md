@@ -6,6 +6,7 @@ Questa cartella contiene file di configurazione di base del sistema che definisc
 
 ## File Disponibili
 
+- **`boot_luks.nix`** - Configurazione per il boot con crittografia LUKS e impostazioni Plymouth per la schermata di avvio
 - **`sudo.nix`** - Configurazione per i privilegi sudo e le autorizzazioni degli utenti
 - **`system.nix`** - Impostazioni di base del sistema, inclusi locale, fuso orario e comportamenti fondamentali
 
@@ -16,6 +17,7 @@ Importa questi file di configurazione nel file `configuration.nix` specifico del
 ```nix
 imports = [
   # ...altri import...
+  ../common/config/boot_luks.nix
   ../common/config/sudo.nix
   ../common/config/system.nix
   # ...altre configurazioni secondo necessità...
@@ -26,6 +28,7 @@ imports = [
 
 I file di configurazione in questa directory definiscono le impostazioni fondamentali del sistema. Puoi:
 
+- Modificare `boot_luks.nix` per personalizzare le impostazioni di boot crittografato e la configurazione di Plymouth
 - Modificare `sudo.nix` per regolare i livelli di privilegio degli utenti e le politiche di sicurezza
 - Aggiornare `system.nix` per cambiare le impostazioni locali, i fusi orari o i comportamenti di base del sistema
 - Fare riferimento a variabili specifiche dell'host per personalizzare le impostazioni per ogni macchina
@@ -58,7 +61,7 @@ Se desideri personalizzare le impostazioni di sistema in `system.nix`:
   };
   
   # Aggiungi qui le tue impostazioni di sistema personalizzate
-  system.stateVersion = "24.11"; # NON MODIFICARE QUESTO VALORE
+  system.stateVersion = "25.05"; # NON MODIFICARE QUESTO VALORE
 }
 ```
 
