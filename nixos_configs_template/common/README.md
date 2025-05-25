@@ -9,6 +9,7 @@ This folder contains NixOS configuration files that are **common** to all host a
 ```bash
 common/
 ├── config/
+│   ├── boot_luks.nix
 │   ├── sudo.nix
 │   └── system.nix.template
 ├── gui/
@@ -22,6 +23,7 @@ common/
 │       │   └── hyprland_catppuccin.nix
 │       └── plymouth/
 │           ├── plymouth_breeze-plymouth.nix
+│           ├── plymouth_catppucin.nix
 │           ├── plymouth_nixos-bgrt.nix
 │           └── plymouth_plymouth-themes.nix
 ├── network/
@@ -42,6 +44,7 @@ common/
 
 This folder stores **Operating System-related** configurations:
 
+- **`boot_luks.nix`** for configuring boot parameters with LUKS encryption support and Plymouth boot splash settings.
 - **`sudo.nix`** for enabling and managing sudo, such as adding custom rules that allow users in the **`wheel`** group (administrators) to execute specific system commands **without requiring a password** (NOPASSWD option).
 - **`system.nix`** file contains settings related to localization and the specific version of NixOS you’re using. You’ll typically import this file in each host’s `configuration.nix` to ensure consistent locale and system-wide settings across all hosts.
 

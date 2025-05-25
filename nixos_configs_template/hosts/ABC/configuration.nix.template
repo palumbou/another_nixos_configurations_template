@@ -5,6 +5,8 @@
     [
       ./hardware-configuration.nix                              # Hardware configuration
       #./nm_configurations.nix                                   # Network Manager configurations
+      ../../common/config/boot_luks.nix                         # Boot configuration with Plymouth and LUKS encryption
+      ../../common/config/system.nix                            # System settings
       #../../common/gui/gnome.nix                                # Gnome GUI configuration
       #../../common/gui/hyprland.nix                             # Hyprland GUI configuration
       ../../common/gui/kde.nix                                  # KDE GUI configuration
@@ -14,7 +16,6 @@
       #../../common/packages/grub.nix                            # GRUB bootloader settings
       #../../common/packages/syncthing.nix                       # Syncthing configuration
       #../../common/packages/workstation_packages_services.nix   # Workstation packages and services
-      ../../common/config/system.nix                            # System settings
       ../../users/XYZ/user.nix                                  # User-specific settings
     ];
 

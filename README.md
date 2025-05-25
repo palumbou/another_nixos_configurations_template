@@ -19,6 +19,18 @@ I decided to turn my configs into a readable, heavily commented template that an
 
 ---
 
+## Branch Information
+
+This repository maintains different branches for different NixOS versions:
+
+- **`master`** - Contains configurations for **NixOS 25.05**
+- **`25.05`** - Contsains configurations for **NixOS 25.05** (merged into master)
+- **`24.11`** - Contains configurations for **NixOS 24.11**
+
+Choose the appropriate branch based on your NixOS version. The master branch is always aligned with the latest supported NixOS version.
+
+---
+
 ## Explanation of Choices
 
 In 2023, I made the mistake of jumping straight into **Flakes** and **Home Manager**, thinking I needed to include everything from the get-go. This complexity led me to abandon the project. In 2024, I nearly repeated the same mistake until I read [this update](https://github.com/Misterio77/nix-starter-configs/issues/86) from [Misterio77’s nix-starter-configs](https://github.com/Misterio77/nix-starter-configs). It was one of many insights suggesting that Flakes and Home Manager might be introduced later if really necessary, rather than right away.
@@ -31,6 +43,7 @@ Below is the directory structure I’ve planned, along with the files included. 
 ```bash
 nixos_configs/                    # Parent folder
 └── common/                       # Configuration files and subfolders common to all hosts/users
+    ├── config/                   # Operating system-related configurations
     ├── gui/                      # GUI-related configuration
     │   └── themes/               # Themes for various software (GRUB, Hyprland, Plymouth)
     ├── packages/                 # Configuration for software packages to install
@@ -58,8 +71,9 @@ Inside `nixos_configs`, there are three subfolders:
 
 #### `common`
 
-The **`common`** folder contains NixOS configuration files that are shared by all hosts and users. Inside it, there are three subfolders:
+The **`common`** folder contains NixOS configuration files that are shared by all hosts and users. Inside it, there are four subfolders:
 
+- **`config`** – Contains operating system-related configurations such as boot parameters with LUKS encryption, Plymouth boot splash, sudo rules, and system settings.
 - **`gui`** – Contains possible GUI configurations (currently Hyprland and KDE), from which you can choose, and a `themes` subfolder with themes for various software.  
 - **`packages`** – Specifies which packages to install and which services to enable.  
 - **`network`** – Network-related configurations. Inside this folder is another subfolder, `nmconnection_files`, which holds the Network Manager connection files.

@@ -28,7 +28,7 @@
   };
 
   # Enable sound with PipeWire
-  hardware.pulseaudio.enable = false;
+  services.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
@@ -40,13 +40,13 @@
 
     # Enables media-session, a lightweight session manager for PipeWire,
     # used to handle audio routing and device management.
-    wireplumber.enable = true;
+    media-session.enable = true;
   };
 
   # Add system packages
   environment.systemPackages = with pkgs; [
     cliphist # Clipboard manager for Wayland
-    dolphin # File manager for KDE, providing a graphical interface for file management
+    kdePackages.dolphin # File manager for KDE, providing a graphical interface for file management
     dunst # Lightweight notification daemon for X11 and Wayland
     greetd.tuigreet # Minimal and flexible login manager daemon
     kitty # Modern, hackable, featureful, OpenGL based terminal emulator
@@ -64,7 +64,7 @@
 
   # Add system font
   fonts.packages = with pkgs; [
-    (nerdfonts.override { fonts = [ "${FONT}" ]; }) # Customizes Nerd Fonts package to include the "${FONT}" font for use in terminals and text editors
+    ${FONT} # Uses the font package specified in the env.conf FONT variable (e.g., nerd-fonts.code-new-roman)
   ];
 
   services.greetd = {
