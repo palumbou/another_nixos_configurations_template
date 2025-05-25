@@ -2,10 +2,10 @@
 {
   imports =
     [
-      #./themes/plymouth/plymouth_breeze-plymouth.nix
-      ./themes/plymouth/plymouth_catppucin.nix
-      #./themes/plymouth/plymouth_nixos-bgrt.nix
-      #./themes/plymouth/plymouth_plymouth-themes.nix
+      #../gui/themes/plymouth/plymouth_breeze-plymouth.nix
+      ../gui/themes/plymouth/plymouth_catppucin.nix
+      #../gui/themes/plymouth/plymouth_nixos-bgrt.nix
+      #../gui/themes/plymouth/plymouth_plymouth-themes.nix
     ];
 
   # Boot configuration with LUKS (Linux Unified Key Setup) encryption support
