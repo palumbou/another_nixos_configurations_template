@@ -39,7 +39,6 @@ Additionally:
 
 - **Common desktop software** can be installed automatically (each package has an explanatory comment).  
 - **Dotfiles** can be copied into `~/.config` of the user (read the [dotfiles folder](#dotfiles-folder) below).  
-- **Host-specific dotfiles** can be copied into the user's `~/.config` directory (read the [Host-specific Dotfiles](../hosts/README.md#host-specific-dotfiles) in the README file of the `hosts` directory).  
 - If you use **Syncthing**, two lines can be uncommented to run Syncthing as this user (with the same UID and GID).  
 - If you install **Virtual Machine Manager**, you can add the user to its group for managing virtual machines.
 

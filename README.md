@@ -135,10 +135,6 @@ This project is still a **work in progress**; the next steps (see [To-Do](#to-do
 - **Secure Boot Activation with Lanzaboote**  
   Enable Secure Boot using the community tool [Lanzaboote](https://github.com/nix-community/lanzaboote).
 
-- ~~**Host-Specific Dotfiles Import**  
-  Enable dotfiles import for each host, not only per user.~~
-  ✅ *Completed: import of host-specific dotfiles added to the user's configuration file in April 2025.*
-
 - **Import KDE Profile**  
   Automatically import the KDE profile during the build, rather than requiring a manual import.
 

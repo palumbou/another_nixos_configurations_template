@@ -65,7 +65,7 @@
         };
       };
       # Create the ~/Download directory
-      "/home/${USER}/Download" = {
+      "/home/${USER}/Downloads" = {
         d = {
           user = "${USER}";
           group = "${USER}";
@@ -106,19 +106,6 @@
       };
     };
   };
-
-    # Copy dotfiles for host-specific customizations into the user's .config directory
-    "dotfiles-host" = {
-      "/home/${USER}/.config" = {
-        "C" = {
-          argument = "${BASEPATHUSER}/nixos_config/hosts/${config.networking.hostName}/dotfiles/";
-          user = "${USER}";
-          group = "${USER}";
-          mode = "0755";
-          age = "-";
-        };
-      };
-    };
 
   # Defines shell aliases for convenience.
   environment.shellAliases = {

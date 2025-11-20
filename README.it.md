@@ -135,10 +135,6 @@ Questo progetto è ancora un **work in progress**: i prossimi passaggi (vedi [To
 - **Attivazione Secure Boot con Lanzaboote**  
   Abilitare il Secure Boot utilizzando il tool della community [Lanzaboote](https://github.com/nix-community/lanzaboote).
 
-- ~~**Personalizzazione GUI specifica per Host**  
-  Consentire l'importazione di dotfiles specifici per ciascun host, non solo per utente.~~
-  ✅ *Completato: importazione dei dotfiles specifici per host aggiunta al file di configurazione utente a Aprile 2025.*
-
 - **Importazione del Profilo KDE**  
   Importare automaticamente il profilo KDE durante la build, senza doverlo importare manualmente.
 

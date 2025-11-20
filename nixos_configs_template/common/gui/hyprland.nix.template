@@ -5,7 +5,7 @@
       ./themes/hyprland/hyprland_catppuccin.nix
     ];
 
-   # Disable the X server
+  # Disable the X server
   services.xserver.enable = false;
 
   # Enable portals (for screenshots, screen sharing, etc.)
@@ -40,14 +40,13 @@
 
     # Enables media-session, a lightweight session manager for PipeWire,
     # used to handle audio routing and device management.
-    media-session.enable = true;
+    wireplumber.enable = true;
   };
 
   # Add system packages
   environment.systemPackages = with pkgs; [
+    brightnessctl # CLI tool to control screen and keyboard brightness
     cliphist # Clipboard manager for Wayland
-    kdePackages.dolphin # File manager for KDE, providing a graphical interface for file management
-    dunst # Lightweight notification daemon for X11 and Wayland
     greetd.tuigreet # Minimal and flexible login manager daemon
     kitty # Modern, hackable, featureful, OpenGL based terminal emulator
     hyprcursor # Cursor theme for Hyprlandc
@@ -56,16 +55,26 @@
     hyprpaper # A lightweight wallpaper manager for Hyprland that sets your desktop background
     hyprpicker # A tool to pick colors from the screen and set them as wallpaper
     hyprshot # A screenshot tool for Hyprland, allowing you to capture your screen
+    libnotify # Library for sending desktop notifications (provides notify-send command)
+    networkmanagerapplet # NetworkManager applet (nm-applet) for system tray network management
+    oh-my-posh # A prompt theme engine for various shells, providing a customizable prompt
+    playerctl # CLI tool to control media players via MPRIS (for Waybar media controls)
+    pwvucontrol # PipeWire Volume Control - Native GUI for PipeWire audio management
+    swaynotificationcenter # Notification daemon with a notification center for Wayland
     waybar # Highly customizable status bar for Wayland compositors like Sway
     wl-clipboard # Command-line clipboard utilities for Wayland
     wofi # A minimalist launcher and menu for Wayland, similar to dmenu
     xdg-desktop-portal-hyprland # A portal implementation for Hyprland, allowing applications to interact with the desktop environment
+    xournalpp # Note-taking application with PDF annotation support
   ];
 
   # Add system font
   fonts.packages = with pkgs; [
-    ${FONT} # Uses the font package specified in the env.conf FONT variable (e.g., nerd-fonts.code-new-roman)
+    nerd-fonts.code-new-roman # Customizes Nerd Fonts package to include the "CodeNewRoman" font for use in terminals and text editors
   ];
+
+  # Enable GVFS for on-demand SMB/network mounting (asks for credentials when needed)
+  services.gvfs.enable = true;
 
   services.greetd = {
     enable = true;

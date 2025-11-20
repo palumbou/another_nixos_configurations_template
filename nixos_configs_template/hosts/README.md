@@ -15,7 +15,6 @@ The **`hosts`** folder contains configurations for each of your machines (hosts)
 hosts/
 └── ABC/
     ├── configuration.nix
-    ├── dotfiles/
     ├── hardware-configuration.nix
     └── nm_configurations.nix
 ```
@@ -51,16 +50,6 @@ The **`ABC`** folder is a sample. Copy it, rename it to match your actual hostna
 
   - **Use one option per folder:** add more lines for all folders you want to enable.
   - **Note:** the corresponding folder configurations must be specified in the Syncthing configuration file (`../common/packages/syncthing.nix`).
-
----
-
-## Host-specific Dotfiles
-
-The **`dotfiles`** folder is **optional** and can be used to copy host-specific configuration files (dotfiles, example: monitor settings in Hyprland) into the user’s `~/.config` directory during the build process.
-
-This copying is also handled via **tmpfiles**, and the exact operation is defined in the user's configuration file (see the `"dotfiles-host"` section). The hostname of the machine is used to determine which host-specific configuration folder within `hosts` will be copied.
-
-For additional details, please refer to the [Dotfiles Folder](../users/README.md#dotfiles) section in the **users folder README**.
 
 ---
 
