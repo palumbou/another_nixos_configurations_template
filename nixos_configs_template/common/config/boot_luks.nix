@@ -22,7 +22,7 @@
     # Kernel boot parameters
     kernelParams = [
       # "quiet"  # Uncomment to suppress most kernel messages
-      "splash"   # Show splash screen during boot
+      "splash"  # Show splash screen during boot
       "intremap=on"  # Enable interrupt remapping for better hardware compatibility
       "boot.shell_on_fail"  # Drop to shell if boot fails
       "udev.log_priority=3"  # Reduce udev logging verbosity

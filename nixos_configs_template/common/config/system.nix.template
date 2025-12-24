@@ -3,6 +3,7 @@
   imports =
     [
       ./sudo.nix
+      ./os_optimization.nix
     ];
 
   # Set your time zone.

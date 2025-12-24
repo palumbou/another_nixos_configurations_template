@@ -6,9 +6,11 @@ This folder contains core system configuration files that define fundamental sys
 
 ## Available Files
 
+- **`battery_management.nix`** - Configuration for TLP battery management and power saving features, including battery charge thresholds, CPU scaling governors, and energy performance policies for both AC and battery modes
 - **`boot_luks.nix`** - Configuration for LUKS encryption boot and Plymouth boot splash settings
-- **`sudo.nix`** - Configuration for sudo privileges and user permissions
-- **`system.nix`** - Core system settings including locale, time zone, and basic system behaviors
+- **`os_optimization.nix`** - System optimization settings including automatic garbage collection, Nix store optimization, systemd journal limits, SSD TRIM support, and zram configuration (automatically imported by `system.nix`)
+- **`sudo.nix`** - Configuration for sudo privileges and user permissions (automatically imported by `system.nix`)
+- **`system.nix`** - Core system settings including locale, time zone, basic system behaviors, and imports both `sudo.nix` and `os_optimization.nix`
 
 ## Usage
 
@@ -17,19 +19,23 @@ Import these configuration files in your host-specific `configuration.nix` file:
 ```nix
 imports = [
   # ...other imports...
-  ../common/config/boot_luks.nix
-  ../common/config/sudo.nix
-  ../common/config/system.nix
+  ../common/config/boot_luks.nix  # Optional: only if using LUKS encryption
+  ../common/config/battery_management.nix  # Optional: only for laptops
+  ../common/config/system.nix  # Required: imports sudo.nix and os_optimization.nix automatically
   # ...other configurations as needed...
 ];
 ```
+
+> **Note**: You don't need to import `sudo.nix` and `os_optimization.nix` separately, as they are automatically imported by `system.nix`.
 
 ## Customization
 
 The configuration files in this directory define foundational system settings. You can:
 
+- Modify `battery_management.nix` to adjust TLP battery thresholds and power management policies
 - Modify `boot_luks.nix` to customize encrypted boot settings and Plymouth configuration
-- Modify `sudo.nix` to adjust user privilege levels and security policies
+- Modify `sudo.nix` to adjust user privilege levels and security policies (note: imported automatically by `system.nix`)
+- Modify `os_optimization.nix` to tune Nix garbage collection, store optimization, and system resource management (note: imported automatically by `system.nix`)
 - Update `system.nix` to change locale settings, time zones, or core system behaviors
 - Reference host-specific variables to customize settings per machine
 

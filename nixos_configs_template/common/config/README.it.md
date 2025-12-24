@@ -6,9 +6,11 @@ Questa cartella contiene file di configurazione di base del sistema che definisc
 
 ## File Disponibili
 
+- **`battery_management.nix`** - Configurazione per la gestione della batteria TLP e funzionalità di risparmio energetico, incluse soglie di carica della batteria, regolatori di frequenza CPU e politiche di prestazione energetiche per le modalità AC e batteria
 - **`boot_luks.nix`** - Configurazione per il boot con crittografia LUKS e impostazioni Plymouth per la schermata di avvio
-- **`sudo.nix`** - Configurazione per i privilegi sudo e le autorizzazioni degli utenti
-- **`system.nix`** - Impostazioni di base del sistema, inclusi locale, fuso orario e comportamenti fondamentali
+- **`os_optimization.nix`** - Impostazioni di ottimizzazione del sistema incluse garbage collection automatica, ottimizzazione del Nix store, limiti del journal di systemd, supporto TRIM per SSD e configurazione zram (importato automaticamente da `system.nix`)
+- **`sudo.nix`** - Configurazione per i privilegi sudo e le autorizzazioni degli utenti (importato automaticamente da `system.nix`)
+- **`system.nix`** - Impostazioni di base del sistema inclusi locale, fuso orario, comportamenti fondamentali del sistema e importa sia `sudo.nix` che `os_optimization.nix`
 
 ## Utilizzo
 
@@ -17,19 +19,23 @@ Importa questi file di configurazione nel file `configuration.nix` specifico del
 ```nix
 imports = [
   # ...altri import...
-  ../common/config/boot_luks.nix
-  ../common/config/sudo.nix
-  ../common/config/system.nix
+  ../common/config/boot_luks.nix  # Opzionale: solo se si usa la crittografia LUKS
+  ../common/config/battery_management.nix  # Opzionale: solo per laptop
+  ../common/config/system.nix  # Richiesto: importa automaticamente sudo.nix e os_optimization.nix
   # ...altre configurazioni secondo necessità...
 ];
 ```
+
+> **Nota**: Non è necessario importare `sudo.nix` e `os_optimization.nix` separatamente, poiché vengono importati automaticamente da `system.nix`.
 
 ## Personalizzazione
 
 I file di configurazione in questa directory definiscono le impostazioni fondamentali del sistema. Puoi:
 
+- Modificare `battery_management.nix` per regolare le soglie della batteria TLP e le politiche di gestione dell'energia
 - Modificare `boot_luks.nix` per personalizzare le impostazioni di boot crittografato e la configurazione di Plymouth
-- Modificare `sudo.nix` per regolare i livelli di privilegio degli utenti e le politiche di sicurezza
+- Modificare `sudo.nix` per regolare i livelli di privilegio degli utenti e le politiche di sicurezza (nota: importato automaticamente da `system.nix`)
+- Modificare `os_optimization.nix` per ottimizzare la garbage collection di Nix, l'ottimizzazione dello store e la gestione delle risorse di sistema (nota: importato automaticamente da `system.nix`)
 - Aggiornare `system.nix` per cambiare le impostazioni locali, i fusi orari o i comportamenti di base del sistema
 - Fare riferimento a variabili specifiche dell'host per personalizzare le impostazioni per ogni macchina
 

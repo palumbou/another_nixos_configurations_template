@@ -11,6 +11,7 @@ common/
 ├── config/
 │   ├── battery_management.nix
 │   ├── boot_luks.nix
+│   ├── os_optimization.nix
 │   ├── sudo.nix
 │   └── system.nix.template
 ├── gui/
@@ -48,8 +49,9 @@ This folder stores **Operating System-related** configurations:
 
 - **`battery_management.nix`** for configuring TLP battery management and power saving features. It includes battery charge thresholds, CPU scaling governors, and energy performance policies for both AC and battery modes.
 - **`boot_luks.nix`** for configuring boot parameters with LUKS encryption support and Plymouth boot splash settings.
-- **`sudo.nix`** for enabling and managing sudo, such as adding custom rules that allow users in the **`wheel`** group (administrators) to execute specific system commands **without requiring a password** (NOPASSWD option).
-- **`system.nix`** file contains settings related to localization and the specific version of NixOS you're using. You'll typically import this file in each host's `configuration.nix` to ensure consistent locale and system-wide settings across all hosts.
+- **`os_optimization.nix`** for system optimization settings including automatic Nix garbage collection, Nix store optimization, systemd journal limits, SSD TRIM support, and zram configuration. This file is automatically imported by `system.nix`.
+- **`sudo.nix`** for enabling and managing sudo, such as adding custom rules that allow users in the **`wheel`** group (administrators) to execute specific system commands **without requiring a password** (NOPASSWD option). This file is automatically imported by `system.nix`.
+- **`system.nix`** file contains settings related to localization and the specific version of NixOS you're using. It automatically imports `sudo.nix` and `os_optimization.nix`. You'll typically import this file in each host's `configuration.nix` to ensure consistent locale and system-wide settings across all hosts.
 
 ---
 

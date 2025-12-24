@@ -11,6 +11,7 @@ common/
 ├── config/
 │   ├── battery_management.nix
 │   ├── boot_luks.nix
+│   ├── os_optimization.nix
 │   ├── sudo.nix
 │   └── system.nix.template
 ├── gui/
@@ -48,8 +49,9 @@ Questa cartella archivia configurazioni **relative al Sistema Operativo**:
 
 - **`battery_management.nix`** per configurare la gestione della batteria TLP e le funzionalità di risparmio energetico. Include soglie di carica della batteria, regolatori di frequenza CPU e politiche di prestazione energetiche per le modalità AC e batteria.
 - **`boot_luks.nix`** per configurare i parametri di boot con supporto alla crittografia LUKS e le impostazioni di Plymouth per la schermata di avvio.
-- **`sudo.nix`** per abilitare e gestire sudo, come l'aggiunta di regole personalizzate che consentono agli utenti nel gruppo **`wheel`** (amministratori) di eseguire specifici comandi di sistema **senza richiedere password** (opzione NOPASSWD).
-- **`system.nix`** contiene impostazioni relative alla localizzazione e alla versione specifica di NixOS che stai utilizzando. In genere importerai questo file nel `configuration.nix` di ciascun host per garantire impostazioni coerenti a livello di locale e di sistema su tutti gli host.
+- **`os_optimization.nix`** per le impostazioni di ottimizzazione del sistema incluse garbage collection automatica di Nix, ottimizzazione del Nix store, limiti del journal di systemd, supporto TRIM per SSD e configurazione zram. Questo file viene importato automaticamente da `system.nix`.
+- **`sudo.nix`** per abilitare e gestire sudo, come l'aggiunta di regole personalizzate che consentono agli utenti nel gruppo **`wheel`** (amministratori) di eseguire specifici comandi di sistema **senza richiedere password** (opzione NOPASSWD). Questo file viene importato automaticamente da `system.nix`.
+- **`system.nix`** contiene impostazioni relative alla localizzazione e alla versione specifica di NixOS che stai utilizzando. Importa automaticamente `sudo.nix` e `os_optimization.nix`. In genere importerai questo file nel `configuration.nix` di ciascun host per garantire impostazioni coerenti a livello di locale e di sistema su tutti gli host.
 
 ---
 
