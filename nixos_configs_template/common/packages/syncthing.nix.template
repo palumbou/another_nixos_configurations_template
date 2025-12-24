@@ -9,7 +9,7 @@
   For more details, see:
   - https://nixos.wiki/wiki/Syncthing
   - https://wiki.nixos.org/wiki/Syncthing
-  - https://search.nixos.org/options?channel=24.11&from=0&size=50&sort=relevance&type=packages&query=syncthing
+  - https://search.nixos.org/options?channel=25.11&from=0&size=50&sort=relevance&type=packages&query=syncthing
 */
 
 { config, ... }:

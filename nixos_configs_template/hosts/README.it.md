@@ -85,7 +85,7 @@ Se hai bisogno di importare file `.nmconnection` in fase di build (ad esempio, i
 Sostituisci `${BASEPATHNM}` con il percorso effettivo a `nixos_configs` e `HomeWiFi.nmconnection` con il nome del tuo file.  
 Se un file viene dichiarato ma non trovato, vedrai un avviso durante la build, ma non ci sarà un errore bloccante.
 
-> **Nota**: puoi anche gestire il WiFi tramite [`networking.wireless.networks`](https://search.nixos.org/options?channel=24.11&from=0&size=50&sort=relevance&type=packages&query=networking.wireless.networks.), ma questo approccio abilita `wpa_supplicant` e disabilita il controllo WiFi in NetworkManager.
+> **Nota**: puoi anche gestire il WiFi tramite [`networking.wireless.networks`](https://search.nixos.org/options?channel=25.11&from=0&size=50&sort=relevance&type=packages&query=networking.wireless.networks.), ma questo approccio abilita `wpa_supplicant` e disabilita il controllo WiFi in NetworkManager.
 
 ---
 

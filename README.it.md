@@ -24,7 +24,8 @@ Ho deciso di trasformare le mie configurazioni in un template leggibile e riccam
 Questo repository mantiene diversi branch per diverse versioni di NixOS:
 
 - **`master`** - Contiene configurazioni per **NixOS 25.05**
-- **`25.05`** - Contiene configurazioni per **NixOS 25.05** (mergiato nel master)
+- **`25.11`** - Contiene configurazioni per **NixOS 25.11** (allineato con master)
+- **`25.05`** - Contiene configurazioni per **NixOS 25.05**
 - **`24.11`** - Contiene configurazioni per **NixOS 24.11**
 
 Scegli il branch appropriato in base alla tua versione di NixOS. Il branch master è sempre allineato con l'ultima versione supportata di NixOS.

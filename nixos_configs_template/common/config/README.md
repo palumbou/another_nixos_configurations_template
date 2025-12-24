@@ -67,7 +67,7 @@ If you want to customize the system settings in `system.nix`:
   };
   
   # Add your custom system settings here
-  system.stateVersion = "25.05"; # DO NOT CHANGE THIS
+  system.stateVersion = "25.11"; # DO NOT CHANGE THIS
 }
 ```
 

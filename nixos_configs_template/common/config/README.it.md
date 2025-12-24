@@ -67,7 +67,7 @@ Se desideri personalizzare le impostazioni di sistema in `system.nix`:
   };
   
   # Aggiungi qui le tue impostazioni di sistema personalizzate
-  system.stateVersion = "25.05"; # NON MODIFICARE QUESTO VALORE
+  system.stateVersion = "25.11"; # NON MODIFICARE QUESTO VALORE
 }
 ```
 

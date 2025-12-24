@@ -24,7 +24,8 @@ I decided to turn my configs into a readable, heavily commented template that an
 This repository maintains different branches for different NixOS versions:
 
 - **`master`** - Contains configurations for **NixOS 25.05**
-- **`25.05`** - Contsains configurations for **NixOS 25.05** (merged into master)
+- **`25.11`** - Contains configurations for **NixOS 25.11** (aligned with master)
+- **`25.05`** - Contains configurations for **NixOS 25.05**
 - **`24.11`** - Contains configurations for **NixOS 24.11**
 
 Choose the appropriate branch based on your NixOS version. The master branch is always aligned with the latest supported NixOS version.
