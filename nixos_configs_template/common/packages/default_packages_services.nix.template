@@ -6,42 +6,50 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-    btop       # A resource monitor with a fancy terminal interface.
-    bzip2      # A compression tool for creating and extracting .bz2 files.
-    coreutils  # Core command-line utilities like ls, cp, and mv.
-    curl       # A tool to transfer data from or to a server using various protocols.
-    dnsutils   # A set of DNS tools like nslookup and dig.
-    easyeffects # An audio processing app with effects and equalizers.
-    ethtool    # Utility for configuring network interface parameters.
-    fastfetch  # A system information tool for displaying system specs.
-    ffmpeg     # A powerful multimedia framework for audio/video processing.
-    file       # Identifies file types by analyzing their content.
-    gawk       # GNU implementation of the AWK programming language.
-    git        # A distributed version control system for source code.
-    gnupg      # Tools for encrypting and signing data and communications.
-    gnused     # GNU implementation of sed for stream editing text files.
-    gnutar     # GNU tar, an archiving utility.
-    gzip       # A file compression utility using the .gz format.
-    iproute2   # Tools for network configuration and monitoring.
-    jq         # A lightweight and flexible JSON processor.
-    lm_sensors # Tools to monitor hardware sensors like temperature and voltage.
-    nano       # A simple, easy-to-use text editor for the terminal.
-    nmap       # A network scanning tool for security and discovery.
-    p7zip      # A tool for creating and extracting .7z files.
-    pciutils   # Tools for inspecting PCI devices on the system.
-    rsync      # A file transfer tool with synchronization and incremental copy.
-    screen     # A terminal multiplexer for managing multiple terminal sessions.
-    sysstat    # Tools for performance monitoring, like iostat and sar.
-    tree       # Displays a directory structure in a tree-like format.
-    unzip      # Extracts .zip archives.
-    usbutils   # Utilities for managing USB devices.
-    vim        # A powerful and versatile text editor.
-    wget       # A tool for non-interactive downloading of files from the web.
-    which      # Locates a command's executable path in the system.
-    whois      # A tool for querying domain name registration information.
-    xz         # A file compression tool using the .xz format.
-    zip        # Creates compressed .zip archives.
-    zstd       # A fast compression algorithm with high compression ratios.
+    btop       # A resource monitor with a fancy terminal interface
+    bzip2      # A compression tool for creating and extracting .bz2 files
+    busybox    # Lightweight collection of standard Unix utilities (base versions, fallback)
+    coreutils  # Core command-line utilities like ls, cp, and mv (GNU, avanzate)
+    curl       # A tool to transfer data from or to a server using various protocols
+    dnsutils   # A set of DNS tools like nslookup and dig
+    dosfstools # Utilities for creating and checking MS-DOS FAT filesystems
+    e2fsprogs  # Utilities for managing ext2/ext3/ext4 filesystems
+    ethtool    # Utility for configuring network interface parameters
+    exfatprogs # Tools for creating and checking exFAT filesystems
+    fastfetch  # A system information tool for displaying system specs
+    ffmpeg     # A powerful multimedia framework for audio/video processing
+    file       # Identifies file types by analyzing their content (GNU, avanzate)
+    gawk       # GNU implementation of the AWK programming language
+    gcc        # The GNU Compiler Collection for compiling C, C++, and other languages
+    git        # A distributed version control system for source code
+    gnupg      # Tools for encrypting and signing data and communications
+    gnused     # GNU implementation of sed for stream editing text files (avanzate)
+    gnutar     # GNU tar, an archiving utility (avanzate)
+    gptfdisk   # A partitioning tool for GPT disks
+    gzip       # A file compression utility using the .gz format (GNU, avanzate)
+    inetutils  # GNU network utilities (telnet, hostname, ftp, ecc.)
+    iproute2   # Tools for network configuration and monitoring
+    jq         # A lightweight and flexible JSON processor
+    lm_sensors # Tools to monitor hardware sensors like temperature and voltage
+    nano       # A simple, easy-to-use text editor for the terminal
+    nmap       # A network scanning tool for security and discovery
+    ntfs3g     # A driver for reading and writing NTFS filesystems
+    parted     # A partitioning tool for managing disk partitions
+    p7zip      # A tool for creating and extracting .7z files
+    pciutils   # Tools for inspecting PCI devices on the system
+    rsync      # A file transfer tool with synchronization and incremental copy
+    screen     # A terminal multiplexer for managing multiple terminal sessions
+    sysstat    # Tools for performance monitoring, like iostat and sar
+    tree       # Displays a directory structure in a tree-like format (GNU, avanzate)
+    unzip      # Extracts .zip archives (GNU, avanzate)
+    usbutils   # Utilities for managing USB devices
+    vim        # A powerful and versatile text editor
+    wget       # A tool for non-interactive downloading of files from the web (GNU, avanzate)
+    which      # Locates a command's executable path in the system (GNU, avanzate)
+    whois      # A tool for querying domain name registration information
+    xz         # A file compression tool using the .xz format (GNU, avanzate)
+    zip        # Creates compressed .zip archives (GNU, avanzate)
+    zstd       # A fast compression algorithm with high compression ratios
   ];
 
   # Enable firmware updates

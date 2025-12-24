@@ -39,7 +39,6 @@ Inoltre:
 
 - **Software desktop più comuni** può essere installato automaticamente (ogni pacchetto ha un commento esplicativo).  
 - I **dotfiles** possono essere copiati nella cartella `~/.config` dell’utente (leggi [Cartella dotfiles](#dotfiles-folder) qui sotto).
-- È possibile avere **dotfiles specifici per host** che possono essere copiati nella cartella `~/.config` dell’utente (leggi [Cartella dotfiles](../hosts/README.it.md#dotfiles-specifici-per-host) nel file README della cartella `hosts`).  
 - Se utilizzi **Syncthing**, puoi decommentare due righe per eseguire Syncthing come questo utente (con lo stesso UID e GID).  
 - Se installi **Virtual Machine Manager**, puoi aggiungere l’utente al suo gruppo per gestire le macchine virtuali.
 

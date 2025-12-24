@@ -18,15 +18,16 @@
     uid = 1000; # Sets the user ID.
     group = "${USER}"; # Primary group for the user.
     extraGroups = [ # Additional groups the user belongs to.
-      "networkmanager" # Allows managing network connections.
-      "wheel"          # Grants sudo/root access.
-      "libvirtd"       # Allows managing virtual machines.
       "audio"          # Access to audio devices.
-      "video"          # Access to video devices.
-      "plugdev"        # Access to plug-and-play devices like USB.
+      #"docker"         # Allows managing Docker containers.
       "input"          # Access to input devices like keyboards and mice.
       #"kvm"            # Access to KVM virtualization.
+      "libvirt"       # Allows managing virtual machines.
+      "networkmanager" # Allows managing network connections.
+      "plugdev"        # Access to plug-and-play devices like USB.
       #"qemu-libvirtd"  # Access to QEMU virtual machines.
+      "video"          # Access to video devices.
+      "wheel"          # Grants sudo/root access.
     ];
 
     home = "/home/${USER}"; # Sets the home directory for the user.
@@ -34,6 +35,8 @@
 
     # Packages installed specifically for this user.
     packages = with pkgs; [
+      ansible             # IT automation tool
+      easyeffects         # An audio processing app with effects and equalizers.
       firefox             # Firefox browser.
       #ghostty             # Fast, native, feature-rich terminal emulator pushing modern features.
       hunspell            # Spell checker.
@@ -65,7 +68,7 @@
         };
       };
       # Create the ~/Download directory
-      "/home/${USER}/Download" = {
+      "/home/${USER}/Downloads" = {
         d = {
           user = "${USER}";
           group = "${USER}";
@@ -107,19 +110,6 @@
     };
   };
 
-    # Copy dotfiles for host-specific customizations into the user's .config directory
-    "dotfiles-host" = {
-      "/home/${USER}/.config" = {
-        "C" = {
-          argument = "${BASEPATHUSER}/nixos_config/hosts/${config.networking.hostName}/dotfiles/";
-          user = "${USER}";
-          group = "${USER}";
-          mode = "0755";
-          age = "-";
-        };
-      };
-    };
-
   # Defines shell aliases for convenience.
   environment.shellAliases = {
     l = "ls -l -a -h --color=auto"; # Lists all files with details and colored output.
@@ -149,7 +139,4 @@
   # Configuration for Syncthing.
   #services.syncthing.user = "${USER}"; # Specifies the user for Syncthing.
   #services.syncthing.group = "${USER}"; # Specifies the group for Syncthing.
-
-  # Configuration for Virtual Machine Manager.
-  #users.groups.libvirtd.members = ["${USER}"]; # Adds the user to the libvirtd group to manage virtual machines.
 }

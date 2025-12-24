@@ -3,8 +3,8 @@
   imports =
     [
       #../gui/themes/plymouth/plymouth_breeze-plymouth.nix
-      ../gui/themes/plymouth/plymouth_catppucin.nix
-      #../gui/themes/plymouth/plymouth_nixos-bgrt.nix
+      #../gui/themes/plymouth/plymouth_catppucin.nix
+      ../gui/themes/plymouth/plymouth_nixos-bgrt.nix
       #../gui/themes/plymouth/plymouth_plymouth-themes.nix
     ];
 

@@ -29,7 +29,10 @@
   };
 
   # Configure console keymap
-  console.keyMap = "${CONSOLE_KEY_LAYOUT}";
+  console = {
+    useXkbConfig = true;
+    earlySetup = true;
+  };
 
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).

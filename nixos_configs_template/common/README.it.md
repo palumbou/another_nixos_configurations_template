@@ -9,13 +9,14 @@ Questa cartella contiene file di configurazione NixOS che sono **comuni** a tutt
 ```bash
 common/
 ├── config/
+│   ├── battery_management.nix
 │   ├── boot_luks.nix
 │   ├── sudo.nix
 │   └── system.nix.template
 ├── gui/
-│   ├── gnome.nix.template
+│   ├── gnome.nix
 │   ├── hyprland.nix.template
-│   ├── kde.nix.template
+│   ├── kde.nix
 │   └── themes/
 │       ├── grub/
 │       │   └── grub_catppuccin.nix
@@ -27,6 +28,7 @@ common/
 │           ├── plymouth_nixos-bgrt.nix
 │           └── plymouth_plymouth-themes.nix
 ├── network/
+│   ├── default_bluetooth.nix
 │   ├── default_network.nix
 │   └── nmconnection_files/
 └── packages/
@@ -44,8 +46,9 @@ common/
 
 Questa cartella archivia configurazioni **relative al Sistema Operativo**:
 
+- **`battery_management.nix`** per configurare la gestione della batteria TLP e le funzionalità di risparmio energetico. Include soglie di carica della batteria, regolatori di frequenza CPU e politiche di prestazione energetiche per le modalità AC e batteria.
 - **`boot_luks.nix`** per configurare i parametri di boot con supporto alla crittografia LUKS e le impostazioni di Plymouth per la schermata di avvio.
-- **`sudo.nix`** per abilitare e gestire sudo, come l’aggiunta di regole personalizzate che consentono agli utenti nel gruppo **`wheel`** (amministratori) di eseguire specifici comandi di sistema **senza richiedere password** (opzione NOPASSWD).
+- **`sudo.nix`** per abilitare e gestire sudo, come l'aggiunta di regole personalizzate che consentono agli utenti nel gruppo **`wheel`** (amministratori) di eseguire specifici comandi di sistema **senza richiedere password** (opzione NOPASSWD).
 - **`system.nix`** contiene impostazioni relative alla localizzazione e alla versione specifica di NixOS che stai utilizzando. In genere importerai questo file nel `configuration.nix` di ciascun host per garantire impostazioni coerenti a livello di locale e di sistema su tutti gli host.
 
 ---
@@ -92,11 +95,13 @@ Questa cartella include configurazioni per pacchetti e servizi. Ogni file ha il 
 
 Questa cartella contiene configurazioni **relative alla rete**:
 
+- **`default_bluetooth.nix`**  
+  Configurazione di base per il supporto Bluetooth con blueman come gestore bluetooth.
 - **`default_network.nix`**  
   Configurazione di base per NetworkManager.
 - **`nmconnection_files`**  
   Una sottocartella per archiviare i file `.nmconnection` che definiscono WiFi, VPN o altre connessioni di rete gestite da NetworkManager.
 
-Se vuoi importare le configurazioni di NetworkManager durante la build (ad es. WiFi, VPN, ecc.), posiziona i file `.nmconnection` qui. Quindi dichiarali nel file `nm_configurations.nix` di ogni host.  
+Se vuoi importare le configurazioni di NetworkManager durante la build (ad es. WiFi, VPN, ecc.), posiziona i file `.nmconnection` qui, quindi dichiarali nel file `nm_configurations.nix` di ogni host.  
 Tali file possono essere copiati direttamente dal tuo sistema (solitamente in `/etc/NetworkManager/system-connections`) o generati da uno script (attualmente in sviluppo).  
 Se un file `.nmconnection` viene dichiarato ma non si trova in questa cartella, riceverai un avviso durante la build (anche se non causerà un errore).
