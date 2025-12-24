@@ -9,8 +9,14 @@
   services.xserver.enable = false;
 
   # Enable portals (for screenshots, screen sharing, etc.)
-  xdg.portal.enable = true;
-  xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-wlr ];
+  xdg.portal = {
+    enable = true;
+    extraPortals = with pkgs; [
+      xdg-desktop-portal-hyprland
+      xdg-desktop-portal-gtk
+    ];
+    config.common.default = [ "hyprland" "gtk" ];
+  };
 
   # Enable SDDM
   services.displayManager.sddm = {
@@ -49,29 +55,73 @@
     cliphist # Clipboard manager for Wayland
     greetd.tuigreet # Minimal and flexible login manager daemon
     kitty # Modern, hackable, featureful, OpenGL based terminal emulator
-    hyprcursor # Cursor theme for Hyprlandc
+    hyprcursor # Cursor theme for Hyprland
     hypridle # A tool to automatically lock your screen after a period of inactivity
     hyprlock # A simple screen locker for Hyprland
     hyprpaper # A lightweight wallpaper manager for Hyprland that sets your desktop background
     hyprpicker # A tool to pick colors from the screen and set them as wallpaper
     hyprshot # A screenshot tool for Hyprland, allowing you to capture your screen
+    imv # Image viewer for Wayland
     libnotify # Library for sending desktop notifications (provides notify-send command)
     networkmanagerapplet # NetworkManager applet (nm-applet) for system tray network management
     oh-my-posh # A prompt theme engine for various shells, providing a customizable prompt
     playerctl # CLI tool to control media players via MPRIS (for Waybar media controls)
     pwvucontrol # PipeWire Volume Control - Native GUI for PipeWire audio management
+    qalculate-gtk # A powerful calculator with a GTK+ interface    
     swaynotificationcenter # Notification daemon with a notification center for Wayland
+    trash-cli # Command-line interface for managing the trash (recycle bin)
     waybar # Highly customizable status bar for Wayland compositors like Sway
     wl-clipboard # Command-line clipboard utilities for Wayland
     wofi # A minimalist launcher and menu for Wayland, similar to dmenu
+    xdg-desktop-portal # A portal implementation for X11 and Wayland, allowing applications to interact with the desktop environment
     xdg-desktop-portal-hyprland # A portal implementation for Hyprland, allowing applications to interact with the desktop environment
+    xdg-utils # Utilities for desktop integration (open URLs, files, etc.)  
     xournalpp # Note-taking application with PDF annotation support
   ];
 
-  # Add system font
-  fonts.packages = with pkgs; [
-    nerd-fonts.code-new-roman # Customizes Nerd Fonts package to include the "CodeNewRoman" font for use in terminals and text editors
-  ];
+  # Add system fonts and configure fontconfig
+  fonts = {
+    # Default NixOS fonts
+    enableDefaultPackages = true;
+
+    packages = with pkgs; [
+      corefonts # Microsoft Core Fonts (Arial, Times New Roman, Verdana, etc.)
+      dejavu_fonts # DejaVu font family (DejaVu Sans, Serif, Mono)
+      liberation_ttf # Liberation font family (Liberation Sans, Serif, Mono)
+      noto-fonts # Noto "base" fonts, basic Noto Sans/Serif family
+      noto-fonts-cjk-sans # Noto "base" fonts, CJK support (Chinese / Japanese / Korean)
+      noto-fonts-emoji # Noto "base" fonts, colored emoji font
+      ${FONT} # Uses the font package specified in the env.conf FONT variable (e.g., nerd-fonts.code-new-roman)
+    ];
+
+    fontconfig = {
+      # Set default font families for different categories
+      defaultFonts = {
+        serif = [
+          "Times New Roman"   # From corefonts, best web/Office compatibility
+          "Liberation Serif"  # Free compatible alternative, same metrics as Times
+          "Noto Serif"        # Modern fallback with full Unicode support
+          "DejaVu Serif"      # Additional fallback, excellent Unicode coverage
+        ];
+        sansSerif = [
+          "Arial"             # From corefonts, widest compatibility
+          "Liberation Sans"   # Popular free replacement, metric-compatible with Arial
+          "Noto Sans"         # Modern, clean UI font, highly readable
+          "DejaVu Sans"       # Solid fallback, broad Unicode support
+        ];
+        monospace = [
+          "CodeNewRoman Nerd Font Mono"  # Preferred monospace, ideal for terminal & code editors
+          "Courier New"                  # From corefonts, classic monospace compatibility
+          "Liberation Mono"              # Free replacement for Courier New
+          "Noto Sans Mono"               # Modern monospace with good readability
+          "DejaVu Sans Mono"             # Fallback with excellent Unicode coverage
+        ];
+        emoji = [
+          "Noto Color Emoji"
+        ];
+      };
+    };
+  };
 
   # Enable GVFS for on-demand SMB/network mounting (asks for credentials when needed)
   services.gvfs.enable = true;
@@ -87,4 +137,7 @@
       };
     };
   };
+
+  # Enable Bluetooth support with Blueman (GUI Bluetooth manager)
+  services.blueman.enable = true;
 }

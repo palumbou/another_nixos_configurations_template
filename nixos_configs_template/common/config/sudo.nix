@@ -14,6 +14,11 @@
           options = [ "NOPASSWD" ];
         }
         {
+          # Allows hibernating the system without requiring a password
+          command = "${pkgs.systemd}/bin/systemctl hibernate";
+          options = [ "NOPASSWD" ];
+        }
+        {
           # Allows rebooting the system without requiring a password
           command = "${pkgs.systemd}/bin/reboot";
           options = [ "NOPASSWD" ];
@@ -21,6 +26,16 @@
         {
           # Allows powering off the system without requiring a password
           command = "${pkgs.systemd}/bin/poweroff";
+          options = [ "NOPASSWD" ];
+        }
+        {
+          # Allows mount the system without requiring a password
+          command = "${pkgs.util-linux}/bin/mount";
+          options = [ "NOPASSWD" ];
+        }
+        {
+          # Allows unmount the system without requiring a password
+          command = "${pkgs.util-linux}/bin/umount";
           options = [ "NOPASSWD" ];
         }
       ];

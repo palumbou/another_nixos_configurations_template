@@ -5,6 +5,7 @@
     [
       ./hardware-configuration.nix                              # Hardware configuration
       #./nm_configurations.nix                                   # Network Manager configurations
+      #../../common/config/battery_management.nix               # Battery management settings
       ../../common/config/boot_luks.nix                         # Boot configuration with Plymouth and LUKS encryption
       ../../common/config/system.nix                            # System settings
       #../../common/gui/gnome.nix                                # Gnome GUI configuration

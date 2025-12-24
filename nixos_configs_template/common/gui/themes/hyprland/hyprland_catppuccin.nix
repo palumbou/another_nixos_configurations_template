@@ -7,16 +7,22 @@
     
     # GTK Theme - Mocha with all accents
     (catppuccin-gtk.override {
-      accents = [ "lavender" "blue" "pink" "mauve" ]; # Available accent colors
+      accents = [ "lavender" ]; # Available accent colors
       size = "standard"; # compact or standard
       variant = "mocha"; # latte, frappe, macchiato, or mocha
     })
-    
-    # Qt Theme (Kvantum)
-    catppuccin-kvantum # Kvantum theme with Catppuccin themes
-    libsForQt5.qtstyleplugin-kvantum # Kvantum style plugin for Qt5
-    kdePackages.qtstyleplugin-kvantum # Kvantum style plugin for Qt6
-    
+
+    # GTK Theme Manager
+    nwg-look # GUI tool to manage GTK themes
+    glib # Provides gsettings command for GTK configuration
+
+    # Qt Theme - qt6ct for Qt6 configuration
+    qt6ct # Qt6 Configuration Tool
+    libsForQt5.qt5ct # Qt5 Configuration Tool (for Qt5 apps)
+
+    # Qt Catppuccin Theme
+    catppuccin-qt5ct # Catppuccin theme for qt5ct and qt6ct
+
     # Icons - Papirus theme (used by GTK apps like VS Code)
     papirus-icon-theme # Papirus icon theme
   ];
@@ -28,6 +34,5 @@
   qt = {
     enable = true;
     platformTheme = "qt5ct";
-    style = "kvantum";
   };
 }
