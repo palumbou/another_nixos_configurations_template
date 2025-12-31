@@ -114,7 +114,11 @@ Farai riferimento alla configurazione di un utente nel file `configuration.nix` 
 
 ## Utilizzo
 
-Fai riferimento al file [`HOWTO.md`](HOWTO.it.md) per sapere come utilizzare i file di configurazione.
+Fai riferimento al file [`HOWTO.it.md`](HOWTO.it.md) per imparare come utilizzare i file di configurazione.
+
+### Aggiornamento di NixOS
+
+Per istruzioni dettagliate sull'aggiornamento del tuo sistema NixOS a una versione più recente (sia aggiornamenti minor che major), incluse informazioni importanti sulla variabile `stateVersion`, consulta il file [`UPGRADE_SYSTEM.it.md`](UPGRADE_SYSTEM.it.md).
 
 ---
 

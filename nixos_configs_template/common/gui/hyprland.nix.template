@@ -53,7 +53,7 @@
   environment.systemPackages = with pkgs; [
     brightnessctl # CLI tool to control screen and keyboard brightness
     cliphist # Clipboard manager for Wayland
-    greetd.tuigreet # Minimal and flexible login manager daemon
+    tuigreet # Minimal and flexible login manager daemon
     kitty # Modern, hackable, featureful, OpenGL based terminal emulator
     hyprcursor # Cursor theme for Hyprland
     hypridle # A tool to automatically lock your screen after a period of inactivity
@@ -67,7 +67,7 @@
     oh-my-posh # A prompt theme engine for various shells, providing a customizable prompt
     playerctl # CLI tool to control media players via MPRIS (for Waybar media controls)
     pwvucontrol # PipeWire Volume Control - Native GUI for PipeWire audio management
-    qalculate-gtk # A powerful calculator with a GTK+ interface    
+    qalculate-gtk # A powerful calculator with a GTK+ interface
     swaynotificationcenter # Notification daemon with a notification center for Wayland
     trash-cli # Command-line interface for managing the trash (recycle bin)
     waybar # Highly customizable status bar for Wayland compositors like Sway
@@ -75,7 +75,7 @@
     wofi # A minimalist launcher and menu for Wayland, similar to dmenu
     xdg-desktop-portal # A portal implementation for X11 and Wayland, allowing applications to interact with the desktop environment
     xdg-desktop-portal-hyprland # A portal implementation for Hyprland, allowing applications to interact with the desktop environment
-    xdg-utils # Utilities for desktop integration (open URLs, files, etc.)  
+    xdg-utils # Utilities for desktop integration (open URLs, files, etc.)
     xournalpp # Note-taking application with PDF annotation support
   ];
 
@@ -90,7 +90,7 @@
       liberation_ttf # Liberation font family (Liberation Sans, Serif, Mono)
       noto-fonts # Noto "base" fonts, basic Noto Sans/Serif family
       noto-fonts-cjk-sans # Noto "base" fonts, CJK support (Chinese / Japanese / Korean)
-      noto-fonts-emoji # Noto "base" fonts, colored emoji font
+      noto-fonts-color-emoji # Noto "base" fonts, colored emoji font
       ${FONT} # Uses the font package specified in the env.conf FONT variable (e.g., nerd-fonts.code-new-roman)
     ];
 
@@ -132,7 +132,7 @@
     settings = {
       terminal.vt = 1;      # Virtual terminal da usare
       default_session = {
-        command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --cmd Hyprland --asterisks";
+        command = "${pkgs.tuigreet}/bin/tuigreet --time --cmd Hyprland --asterisks";
         user = "greeter";
       };
     };

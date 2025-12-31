@@ -17,7 +17,7 @@
     glib # Provides gsettings command for GTK configuration
 
     # Qt Theme - qt6ct for Qt6 configuration
-    qt6ct # Qt6 Configuration Tool
+    qt6Packages.qt6ct # Qt6 Configuration Tool
     libsForQt5.qt5ct # Qt5 Configuration Tool (for Qt5 apps)
 
     # Qt Catppuccin Theme

@@ -1,8 +1,13 @@
 # This file configures the default network settings for NixOS
-{ config, ... }:
+{ config, pkgs, ... }:
 {
   # Enable NetworkManager
-  networking.networkmanager.enable = true;
+  networking.networkmanager = {
+    enable = true;
+    plugins = with pkgs; [
+      networkmanager-openvpn
+    ];
+  };
 
   # Enable the firewall
   networking.firewall.enable = true;

@@ -116,6 +116,10 @@ You’ll reference a user’s configuration in the chosen host’s `configuratio
 
 Refer to the [`HOWTO.md`](HOWTO.md) file to learn how to use the configuration files.
 
+### Upgrading NixOS
+
+For detailed instructions on upgrading your NixOS system to a newer version (both minor and major upgrades), including important information about the `stateVersion` variable, please refer to the [`UPGRADE_SYSTEM.md`](UPGRADE_SYSTEM.md) file.
+
 ---
 
 ## Additional Motivations
