@@ -22,7 +22,7 @@
       #"docker"         # Allows managing Docker containers.
       "input"          # Access to input devices like keyboards and mice.
       #"kvm"            # Access to KVM virtualization.
-      "libvirt"       # Allows managing virtual machines.
+      "libvirtd"       # Allows managing virtual machines.
       "networkmanager" # Allows managing network connections.
       "plugdev"        # Access to plug-and-play devices like USB.
       #"qemu-libvirtd"  # Access to QEMU virtual machines.

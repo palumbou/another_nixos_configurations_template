@@ -15,7 +15,10 @@
       xdg-desktop-portal-hyprland
       xdg-desktop-portal-gtk
     ];
-    config.common.default = [ "hyprland" "gtk" ];
+    config = {
+      common.default = [ "gtk" ];
+      hyprland.default = [ "hyprland" "gtk" ];
+    };
   };
 
   # Enable SDDM
@@ -32,6 +35,14 @@
     enable = true;
     xwayland.enable = true;
   };
+
+  # Enable polkit for authentication dialogs (required for virt-manager, mounting, etc.)
+  security.polkit.enable = true;
+  
+  # Auto-start polkit authentication agent with Hyprland
+  environment.etc."hyprland/hyprland.d/polkit.conf".text = ''
+    exec-once = ${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1
+  '';
 
   # Enable sound with PipeWire
   services.pulseaudio.enable = false;
@@ -66,6 +77,7 @@
     networkmanagerapplet # NetworkManager applet (nm-applet) for system tray network management
     oh-my-posh # A prompt theme engine for various shells, providing a customizable prompt
     playerctl # CLI tool to control media players via MPRIS (for Waybar media controls)
+    polkit_gnome # Polkit authentication agent for privilege escalation dialogs (virt-manager, mounting, etc.)
     pwvucontrol # PipeWire Volume Control - Native GUI for PipeWire audio management
     qalculate-gtk # A powerful calculator with a GTK+ interface
     swaynotificationcenter # Notification daemon with a notification center for Wayland

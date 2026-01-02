@@ -52,6 +52,17 @@ Each file contains both the packages required for the desktop environment and sp
 - Change default settings
 - Enable or disable specific features
 
+### Hyprland Specific Setup
+
+When using Hyprland, you need to manually add the following line to your `~/.config/hypr/hyprland.conf` file to enable the polkit authentication agent (required for virt-manager, mounting drives, and other privileged operations):
+
+```conf
+# Import NixOS system-wide configurations
+source = /etc/hyprland/hyprland.d/polkit.conf
+```
+
+Add this line near the beginning of your configuration file, after other `source` directives. The polkit agent will then start automatically when Hyprland launches.
+
 ### Usage Notes
 
 - **Avoid importing multiple GUI files simultaneously** in a single host to prevent conflicts.

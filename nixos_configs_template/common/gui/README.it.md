@@ -52,6 +52,17 @@ Ogni file contiene sia i pacchetti necessari per l'ambiente desktop che le confi
 - Modificare impostazioni di default
 - Abilitare o disabilitare funzionalità specifiche
 
+### Configurazione Specifica per Hyprland
+
+Quando usi Hyprland, devi aggiungere manualmente la seguente riga al tuo file `~/.config/hypr/hyprland.conf` per abilitare l'agente di autenticazione polkit (necessario per virt-manager, montaggio dischi e altre operazioni privilegiate):
+
+```conf
+# Importa configurazioni di sistema da NixOS
+source = /etc/hyprland/hyprland.d/polkit.conf
+```
+
+Aggiungi questa riga all'inizio del tuo file di configurazione, dopo le altre direttive `source`. L'agente polkit si avvierà automaticamente all'avvio di Hyprland.
+
 ### Note sull'Utilizzo
 
 - **Evita di importare più file GUI contemporaneamente** in un singolo host per prevenire conflitti.
