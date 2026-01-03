@@ -3,6 +3,7 @@
   # Add workstation packages
   environment.systemPackages = with pkgs; [
     darktable      # Photo editing software
+    davinci-resolve # Professional video editing software
     distrobox      # Containerized development environments
     docker-compose # Docker Compose
     gimp           # Image editor
@@ -17,7 +18,21 @@
   # Enable virtualization
   programs.virt-manager.enable = true;
   virtualisation = {
-    libvirtd.enable = true;               # Enable libvirtd service
+    libvirtd = {
+      enable = true;               # Enable libvirtd service
+      onBoot = "start";            # Start default network on boot
+      onShutdown = "shutdown";     # Shutdown VMs on host shutdown
+      
+      qemu = {
+        package = pkgs.qemu_kvm;   # Use KVM-enabled QEMU
+        runAsRoot = false;         # Run QEMU as regular user (more secure)
+        swtpm.enable = true;       # Enable TPM emulation for Windows 11 and secure boot
+        ovmf = {
+          enable = true;           # Enable UEFI support for VMs
+          packages = [ pkgs.OVMFFull.fd ]; # Full OVMF package with Secure Boot support
+        };
+      };
+    };
     spiceUSBRedirection.enable = true;    # Enable USB redirection for SPICE
   };
 
