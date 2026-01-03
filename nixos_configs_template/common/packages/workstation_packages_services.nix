@@ -32,6 +32,21 @@
     spiceUSBRedirection.enable = true;    # Enable USB redirection for SPICE
   };
 
+  # Setup libvirt default network
+  systemd.services.libvirt-default-network = {
+    description = "Start libvirt default network";
+    after = [ "libvirtd.service" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    script = ''
+      ${pkgs.libvirt}/bin/virsh net-autostart default
+      ${pkgs.libvirt}/bin/virsh net-start default 2>/dev/null || true
+    '';
+  };
+
   # Enable Docker
   virtualisation.docker = {
     enable = true;            # Enable Docker
