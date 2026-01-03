@@ -27,10 +27,6 @@
         package = pkgs.qemu_kvm;   # Use KVM-enabled QEMU
         runAsRoot = false;         # Run QEMU as regular user (more secure)
         swtpm.enable = true;       # Enable TPM emulation for Windows 11 and secure boot
-        ovmf = {
-          enable = true;           # Enable UEFI support for VMs
-          packages = [ pkgs.OVMFFull.fd ]; # Full OVMF package with Secure Boot support
-        };
       };
     };
     spiceUSBRedirection.enable = true;    # Enable USB redirection for SPICE
