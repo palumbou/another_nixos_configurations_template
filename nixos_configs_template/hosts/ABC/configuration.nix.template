@@ -3,21 +3,24 @@
   # Import hardware and network configurations
   imports =
     [
-      ./hardware-configuration.nix                              # Hardware configuration
+      ./hardware-configuration.nix                               # Hardware configuration
       #./nm_configurations.nix                                   # Network Manager configurations
-      #../../common/config/battery_management.nix               # Battery management settings
-      ../../common/config/boot_luks.nix                         # Boot configuration with Plymouth and LUKS encryption
-      ../../common/config/system.nix                            # System settings
+      #../../common/config/battery_management.nix                # Battery management settings
+      ../../common/config/boot_luks.nix                          # Boot configuration with Plymouth and LUKS encryption
+      ../../common/config/system.nix                             # System settings
       #../../common/gui/gnome.nix                                # Gnome GUI configuration
       #../../common/gui/hyprland.nix                             # Hyprland GUI configuration
-      ../../common/gui/kde.nix                                  # KDE GUI configuration
-      ../../common/network/default_network.nix                  # Default network settings
-      ../../common/packages/default_packages_services.nix       # Default packages and services
+      ../../common/gui/kde.nix                                   # KDE GUI configuration
+      ../../common/network/default_network.nix                   # Default network settings
+      ../../common/packages/default_packages_services.nix        # Default packages and services
       #../../common/packages/extra_packages_services.nix         # Extra packages and services
       #../../common/packages/grub.nix                            # GRUB bootloader settings
       #../../common/packages/syncthing.nix                       # Syncthing configuration
       #../../common/packages/workstation_packages_services.nix   # Workstation packages and services
-      ../../users/XYZ/user.nix                                  # User-specific settings
+      #"${builtins.fetchTarball "https://github.com/nix-community/disko/archive/master.tar.gz"}/module.nix"  # Disko module from GitHub
+      #./single-disk-ext4.nix                                    # Disko disk configuration (optional)
+      #../secure_boot/secure_boot.nix                            # Secure Boot with Lanzaboote (optional)
+      ../../users/XYZ/user.nix                                   # User-specific settings
     ];
 
   # Bootloader configuration

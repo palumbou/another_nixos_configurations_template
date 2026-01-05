@@ -37,13 +37,6 @@ hosts/
 - **`btrfs`**: Template che utilizzano il filesystem Btrfs (opzionalmente con subvolumi e LUKS).  
 - **`ext4`**: Template che utilizzano il filesystem ext4, con boot BIOS o EFI, eventualmente cifrato.
 
-### Fonti & Riferimenti
-
-- **Disko Templates**: [https://github.com/nix-community/disko-templates](https://github.com/nix-community/disko-templates)  
-- **Esempi Disko**: [https://github.com/nix-community/disko/tree/master/example](https://github.com/nix-community/disko/tree/master/example)
-
-Questi template sono stati adattati dagli esempi ufficiali di Disko.
-
 ---
 
 ## Utilizzo
@@ -177,11 +170,13 @@ In questo modo il disco cifrato diventa disponibile in `/dev/mapper/data`.
 
 ---
 
-## Fonti
+## Fonti & Riferimenti
 
-- **Disko**  
-  [https://github.com/nix-community/disko](https://github.com/nix-community/disko)  
-- **Manuale NixOS** (Sezione Partizionamento)  
-  [https://nixos.org/manual/nixos/stable](https://nixos.org/manual/nixos/stable/#sec-installation-manual-partitioning)
+- **Disko**: [https://github.com/nix-community/disko](https://github.com/nix-community/disko)  
+- **Disko Templates**: [https://github.com/nix-community/disko-templates](https://github.com/nix-community/disko-templates)  
+- **Esempi Disko**: [https://github.com/nix-community/disko/tree/master/example](https://github.com/nix-community/disko/tree/master/example)  
+- **Manuale NixOS** (Sezione Partizionamento): [https://nixos.org/manual/nixos/stable](https://nixos.org/manual/nixos/stable/#sec-installation-manual-partitioning)
+
+Questi template sono stati adattati dagli esempi ufficiali di Disko.
 
 Consulta queste risorse per ulteriori dettagli e suggerimenti aggiuntivi sulla configurazione Disko e sul partizionamento manuale in NixOS.

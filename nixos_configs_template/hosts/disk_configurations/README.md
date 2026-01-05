@@ -37,13 +37,6 @@ hosts/
 - **`btrfs`**: Templates using a Btrfs filesystem (with optional subvolumes and LUKS).  
 - **`ext4`**: Templates using the ext4 filesystem, with BIOS or EFI boot, optionally encrypted.
 
-### Sources & References
-
-- **Disko Templates**: [https://github.com/nix-community/disko-templates](https://github.com/nix-community/disko-templates)  
-- **Disko Example Files**: [https://github.com/nix-community/disko/tree/master/example](https://github.com/nix-community/disko/tree/master/example)
-
-These templates have been adapted from the official Disko examples.
-
 ---
 
 ## Usage
@@ -177,9 +170,11 @@ This makes the encrypted volume available at `/dev/mapper/data`.
 
 ---
 
-## Sources
+## Sources & References
 
 - **Disko**: [https://github.com/nix-community/disko](https://github.com/nix-community/disko)  
+- **Disko Templates**: [https://github.com/nix-community/disko-templates](https://github.com/nix-community/disko-templates)  
+- **Disko Example Files**: [https://github.com/nix-community/disko/tree/master/example](https://github.com/nix-community/disko/tree/master/example)  
 - **NixOS Manual** (Partitioning Section): [https://nixos.org/manual/nixos/stable](https://nixos.org/manual/nixos/stable/#sec-installation-manual-partitioning)
 
-Refer to these resources for further details and additional configuration guidance. 
+These templates have been adapted from the official Disko examples. 

@@ -42,19 +42,23 @@ Nel 2023, ho commesso l'errore di iniziare subito con **Flakes** e **Home Manage
 
 Di seguito è riportata la struttura delle directory pianificata, insieme ai file inclusi. Ogni sottocartella ha il proprio file README dedicato che spiega in dettaglio i file e le sottocartelle:
 ```bash
-nixos_configs/                    # Cartella principale
+nixos_configs/                    # Cartella genitore
 └── common/                       # File di configurazione e sottocartelle comuni a tutti gli host/utenti
     ├── config/                   # Configurazioni relative al sistema operativo
-    ├── gui/                      # Configurazioni relative all'interfaccia grafica
+    ├── gui/                      # Configurazione relativa alla GUI
     │   └── themes/               # Temi per vari software (GRUB, Hyprland, Plymouth)
-    ├── packages/                 # Configurazioni per i pacchetti software da installare
-    └── network/                  # Configurazioni relative alla rete
-    │   └── nmconnection_files/   # File di connessione di NetworkManager
+    ├── packages/                 # Configurazione per i pacchetti software da installare
+    └── network/                  # File di configurazione relativi alla rete
+        └── nmconnection_files/   # File di connessione NetworkManager
 └── hosts/                        # Sottocartelle per ogni host definito
-    └── ABC/                      # File di configurazione per l'host 'ABC'
+    ├── ABC/                      # File di configurazione per l'host 'ABC'
+    ├── disk_configurations/      # Template Disko per la configurazione dichiarativa del disco
+    │   ├── btrfs/                # Template filesystem Btrfs
+    │   └── ext4/                 # Template filesystem ext4
+    └── secure_boot/              # Configurazione Secure Boot con Lanzaboote
 └── users/                        # Sottocartelle per ogni utente definito
     └── XYZ/                      # File di configurazione per l'utente 'XYZ'
-        └── dotfile/              # Dotfiles per l'utente 'XYZ'
+        └── dotfiles/             # Dotfile per l'utente 'XYZ'
 ```
 
 ### La Cartella `nixos_configs`
@@ -83,14 +87,15 @@ La cartella **`common`** contiene file di configurazione di NixOS condivisi da t
 
 #### `hosts`
 
-La cartella **`hosts`** memorizza le configurazioni dei singoli host, ognuno nella propria sottocartella denominata con il nome dell'host. All'interno della sottocartella di ogni host troverai:
+La cartella **`hosts`** memorizza le configurazioni individuali degli host, ciascuna nella propria sottocartella denominata come l'host stesso. All'interno della sottocartella di ogni host, troverai:
 
-- **`configuration.nix`** – La configurazione base per quell'host specifico. Qui specifichi quali pacchetti e servizi comuni importare da `common/packages` e quali utenti vuoi definire.
-- **Un file di configurazione `Disko`** *(opzionale)* – Fai riferimento al [README](./nixos_configs_template/hosts/disk_configurations/README.it.md) presente nella cartella `disk_configurations` per maggiori informazioni.
-- **`hardware-configuration.nix`** – Definisce le impostazioni hardware specifiche. Puoi ottenere questo file:
+- **`configuration.nix`** – La configurazione di base per quello specifico host. Qui specifichi quali pacchetti e servizi comuni importare da `common/packages` così come quali utenti vuoi definire.
+- **Un file di configurazione `Disko`** *(opzionale)* – Fai riferimento al [README](./nixos_configs_template/hosts/disk_configurations/README.it.md) all'interno della cartella `disk_configurations` per ulteriori informazioni.
+- **Una configurazione `Secure Boot`** *(opzionale)* – Fai riferimento al [README](./nixos_configs_template/hosts/secure_boot/README.it.md) all'interno della cartella `secure_boot` per istruzioni dettagliate su come abilitare Secure Boot con Lanzaboote.
+- **`hardware-configuration.nix`** – Definisce le impostazioni specifiche dell'hardware. Puoi ottenere questo file:
   - Copiandolo da `/etc/nixos` dopo aver installato NixOS da una [ISO ufficiale](https://nixos.org/download/).
   - Generandolo tramite `nixos-generate-config` sull'host.
-  - Importandolo dal repository ufficiale [nixos-hardware](https://github.com/NixOS/nixos-hardware), che ospita una raccolta di configurazioni hardware-specifiche.
+  - Importandolo dal [repository ufficiale nixos-hardware](https://github.com/NixOS/nixos-hardware), che ospita una collezione di configurazioni specifiche per l'hardware.
 
 - (Opzionale) Il file `nm_configurations.nix` per importare connessioni specifiche di Network Manager necessarie per quell'host.
 
@@ -137,8 +142,9 @@ Questo progetto è ancora un **work in progress**: i prossimi passaggi (vedi [To
   Vedi [Btrfs sulla Wiki di NixOS](https://nixos.wiki/wiki/Btrfs).~~
   ✅ *Completato: configurazione tramite Disko aggiunta a Marzo 2025.*
 
-- **Attivazione Secure Boot con Lanzaboote**  
-  Abilitare il Secure Boot utilizzando il tool della community [Lanzaboote](https://github.com/nix-community/lanzaboote).
+- ~~**Attivazione Secure Boot con Lanzaboote**  
+  Abilitare il Secure Boot utilizzando il tool della community [Lanzaboote](https://github.com/nix-community/lanzaboote).~~
+  ✅ *Completato: file di configurazione e documentazione completa aggiunti a Gennaio 2026. Vedi [`hosts/secure_boot/`](nixos_configs_template/hosts/secure_boot/README.it.md) per i dettagli.*
 
 - **Importazione del Profilo KDE**  
   Importare automaticamente il profilo KDE durante la build, senza doverlo importare manualmente.
@@ -154,7 +160,7 @@ Se trovi utili queste configurazioni o vuoi aiutare a migliorarle, sentiti liber
 
 ---
 
-## Fonti
+## Fonti & Riferimenti
 
 - **Vimjoyer’s YouTube Channel**  
   [https://www.youtube.com/@vimjoyer](https://www.youtube.com/@vimjoyer)  

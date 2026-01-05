@@ -49,12 +49,16 @@ nixos_configs/                    # Parent folder
     │   └── themes/               # Themes for various software (GRUB, Hyprland, Plymouth)
     ├── packages/                 # Configuration for software packages to install
     └── network/                  # Network-related configuration files
-    │   └── nmconnection_files/   # NetworkManager connection files
+        └── nmconnection_files/   # NetworkManager connection files
 └── hosts/                        # Subfolders for each defined host
-    └── ABC/                      # Configuration files for host 'ABC'
+    ├── ABC/                      # Configuration files for host 'ABC'
+    ├── disk_configurations/      # Disko templates for declarative disk setup
+    │   ├── btrfs/                # Btrfs filesystem templates
+    │   └── ext4/                 # ext4 filesystem templates
+    └── secure_boot/              # Secure Boot configuration with Lanzaboote
 └── users/                        # Subfolders for each defined user
     └── XYZ/                      # Configuration files for user 'XYZ'
-        └── dotfile/              # Dotfiles for user 'XYZ'
+        └── dotfiles/             # Dotfiles for user 'XYZ'
 ```
 
 ### The `nixos_configs` Folder
@@ -83,10 +87,11 @@ The **`common`** folder contains NixOS configuration files that are shared by al
 
 #### `hosts`
 
-The **`hosts`** folder stores individual host configurations, each in its own subfolder named after the host. Inside every host’s subfolder, you’ll find:
+The **`hosts`** folder stores individual host configurations, each in its own subfolder named after the host. Inside every host's subfolder, you'll find:
 
 - **`configuration.nix`** – The base configuration for that specific host. Here you specify which common packages and services to import from `common/packages` as well as which users you want to define.
 - **A `Disko` configuration file** *(optional)* – Refer to the [README](./nixos_configs_template/hosts/disk_configurations/README.md) inside the `disk_configurations` folder for more information.
+- **A `Secure Boot` configuration** *(optional)* – Refer to the [README](./nixos_configs_template/hosts/secure_boot/README.md) inside the `secure_boot` folder for detailed instructions on enabling Secure Boot with Lanzaboote.
 - **`hardware-configuration.nix`** – Defines hardware-specific settings. You can obtain this file by:
   - Copying it from `/etc/nixos` after installing NixOS from an [official ISO](https://nixos.org/download/).
   - Generating it via `nixos-generate-config` on the host.
@@ -137,8 +142,9 @@ This project is still a **work in progress**; the next steps (see [To-Do](#to-do
   See [Btrfs on NixOS Wiki](https://nixos.wiki/wiki/Btrfs).~~
   ✅ *Completed: configuration using Disko added in March 2025.*
 
-- **Secure Boot Activation with Lanzaboote**  
-  Enable Secure Boot using the community tool [Lanzaboote](https://github.com/nix-community/lanzaboote).
+- ~~**Secure Boot Activation with Lanzaboote**  
+  Enable Secure Boot using the community tool [Lanzaboote](https://github.com/nix-community/lanzaboote).~~
+  ✅ *Completed: configuration files and comprehensive documentation added in January 2026. See [`hosts/secure_boot/`](nixos_configs_template/hosts/secure_boot/README.md) for details.*
 
 - **Import KDE Profile**  
   Automatically import the KDE profile during the build, rather than requiring a manual import.
@@ -154,7 +160,7 @@ If you find these configs useful or want to help improve them, feel free to open
 
 ---
 
-## Sources
+## Sources & References
 
 - **Vimjoyer’s YouTube Channel**  
   [https://www.youtube.com/@vimjoyer](https://www.youtube.com/@vimjoyer)  
