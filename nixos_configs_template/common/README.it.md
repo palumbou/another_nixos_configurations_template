@@ -11,6 +11,7 @@ common/
 ├── config/
 │   ├── battery_management.nix
 │   ├── boot_luks.nix
+│   ├── os_compatibility.nix
 │   ├── os_optimization.nix
 │   ├── sudo.nix
 │   └── system.nix.template
@@ -38,6 +39,7 @@ common/
     ├── grub.nix
     ├── kde_packages.nix
     ├── syncthing.nix.template
+    ├── unstable_temporary_packages.nix
     └── workstation_packages_services.nix
 ```
 
@@ -49,9 +51,10 @@ Questa cartella archivia configurazioni **relative al Sistema Operativo**:
 
 - **`battery_management.nix`** per configurare la gestione della batteria TLP e le funzionalità di risparmio energetico. Include soglie di carica della batteria, regolatori di frequenza CPU e politiche di prestazione energetiche per le modalità AC e batteria.
 - **`boot_luks.nix`** per configurare i parametri di boot con supporto alla crittografia LUKS e le impostazioni di Plymouth per la schermata di avvio.
+- **`os_compatibility.nix`** per abilitare la compatibilità con binari precompilati su NixOS. Utilizza nix-ld per fornire i percorsi delle librerie standard di Linux e le librerie condivise comuni, consentendo l'esecuzione di binari non-NixOS senza patch. Questo file viene importato automaticamente da `system.nix`.
 - **`os_optimization.nix`** per le impostazioni di ottimizzazione del sistema incluse garbage collection automatica di Nix, ottimizzazione del Nix store, limiti del journal di systemd, supporto TRIM per SSD e configurazione zram. Questo file viene importato automaticamente da `system.nix`.
 - **`sudo.nix`** per abilitare e gestire sudo, come l'aggiunta di regole personalizzate che consentono agli utenti nel gruppo **`wheel`** (amministratori) di eseguire specifici comandi di sistema **senza richiedere password** (opzione NOPASSWD). Questo file viene importato automaticamente da `system.nix`.
-- **`system.nix`** contiene impostazioni relative alla localizzazione e alla versione specifica di NixOS che stai utilizzando. Importa automaticamente `sudo.nix` e `os_optimization.nix`. In genere importerai questo file nel `configuration.nix` di ciascun host per garantire impostazioni coerenti a livello di locale e di sistema su tutti gli host.
+- **`system.nix`** contiene impostazioni relative alla localizzazione e alla versione specifica di NixOS che stai utilizzando. Importa automaticamente `sudo.nix`, `os_compatibility.nix` e `os_optimization.nix`. In genere importerai questo file nel `configuration.nix` di ciascun host per garantire impostazioni coerenti a livello di locale e di sistema su tutti gli host.
 
 ---
 
@@ -79,13 +82,15 @@ Questa cartella include configurazioni per pacchetti e servizi. Ogni file ha il 
 - **`default_packages_services.nix`**  
   Pacchetti e servizi di base che dovrebbero essere abilitati su tutti gli host di default.
 - **`extra_packages_services.nix`**  
-  Pacchetti e servizi per configurazioni specifiche (ad es. l’installazione di **solaar** per dispositivi Logitech).
+  Pacchetti e servizi per configurazioni specifiche (ad es. l'installazione di **solaar** per dispositivi Logitech).
 - **`grub.nix`**  
-  Configurazione del boot loader (GRUB) (ad es. abilitare il tema “catppuccin”).
+  Configurazione del boot loader (GRUB) (ad es. abilitare il tema "catppuccin").
 - **`kde_packages.nix`**  
-  Programmi aggiuntivi per migliorare l’ambiente KDE Plasma. Questo file viene importato automaticamente se scegli KDE in `gui/kde.nix`.
+  Programmi aggiuntivi per migliorare l'ambiente KDE Plasma. Questo file viene importato automaticamente se scegli KDE in `gui/kde.nix`.
 - **`syncthing.nix`**  
   Configurazione di **Syncthing**. Leggi il file per maggiori informazioni.
+- **`unstable_temporary_packages.nix`**  
+  Pacchetti dal canale unstable o per test temporanei. Scarica automaticamente i pacchetti da nixos-unstable senza configurazione manuale del canale. Utile per pacchetti all'avanguardia, testare nuovo software o pacchetti non ancora disponibili in stable. Completamente reversibile - rimuovendo l'import si puliscono automaticamente i pacchetti unstable.
 - **`workstation_packages_services.nix`**  
   Pacchetti e servizi potenzialmente utili a tutti gli utenti su un host workstation.
 

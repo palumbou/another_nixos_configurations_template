@@ -24,7 +24,6 @@
       #"kvm"            # Access to KVM virtualization.
       "libvirtd"       # Allows managing virtual machines.
       "networkmanager" # Allows managing network connections.
-      "plugdev"        # Access to plug-and-play devices like USB.
       #"qemu-libvirtd"  # Access to QEMU virtual machines.
       "video"          # Access to video devices.
       "wheel"          # Grants sudo/root access.

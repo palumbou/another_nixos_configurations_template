@@ -2,8 +2,9 @@
 {
   imports =
     [
-      ./sudo.nix
+      ./os_compatibility.nix
       ./os_optimization.nix
+      ./sudo.nix
     ];
 
   # Set your time zone.

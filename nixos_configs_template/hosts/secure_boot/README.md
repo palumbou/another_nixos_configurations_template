@@ -333,6 +333,3 @@ Regardless of the chosen method:
 - **Test thoroughly** before deploying on production systems
 
 This is not a NixOS limitation, but an inherent property of Secure Boot.
-
----
-

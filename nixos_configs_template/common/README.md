@@ -11,6 +11,7 @@ common/
 ├── config/
 │   ├── battery_management.nix
 │   ├── boot_luks.nix
+│   ├── os_compatibility.nix
 │   ├── os_optimization.nix
 │   ├── sudo.nix
 │   └── system.nix.template
@@ -38,6 +39,7 @@ common/
     ├── grub.nix
     ├── kde_packages.nix
     ├── syncthing.nix.template
+    ├── unstable_temporary_packages.nix
     └── workstation_packages_services.nix
 ```
 
@@ -49,9 +51,10 @@ This folder stores **Operating System-related** configurations:
 
 - **`battery_management.nix`** for configuring TLP battery management and power saving features. It includes battery charge thresholds, CPU scaling governors, and energy performance policies for both AC and battery modes.
 - **`boot_luks.nix`** for configuring boot parameters with LUKS encryption support and Plymouth boot splash settings.
+- **`os_compatibility.nix`** for enabling compatibility with pre-compiled binaries on NixOS. It uses nix-ld to provide standard Linux library paths and common shared libraries, allowing execution of non-NixOS binaries without patching. This file is automatically imported by `system.nix`.
 - **`os_optimization.nix`** for system optimization settings including automatic Nix garbage collection, Nix store optimization, systemd journal limits, SSD TRIM support, and zram configuration. This file is automatically imported by `system.nix`.
 - **`sudo.nix`** for enabling and managing sudo, such as adding custom rules that allow users in the **`wheel`** group (administrators) to execute specific system commands **without requiring a password** (NOPASSWD option). This file is automatically imported by `system.nix`.
-- **`system.nix`** file contains settings related to localization and the specific version of NixOS you're using. It automatically imports `sudo.nix` and `os_optimization.nix`. You'll typically import this file in each host's `configuration.nix` to ensure consistent locale and system-wide settings across all hosts.
+- **`system.nix`** file contains settings related to localization and the specific version of NixOS you're using. It automatically imports `sudo.nix`, `os_compatibility.nix` and `os_optimization.nix`. You'll typically import this file in each host's `configuration.nix` to ensure consistent locale and system-wide settings across all hosts.
 
 ---
 
@@ -81,11 +84,13 @@ This folder includes configurations for packages and services. Each file has its
 - **`extra_packages_services.nix`**  
   Packages and services for specific configurations (e.g., installing **solaar** for Logitech devices).
 - **`grub.nix`**  
-  Boot loader (GRUB) configuration (e.g., enabling the “catppuccin” theme).
+  Boot loader (GRUB) configuration (e.g., enabling the "catppuccin" theme).
 - **`kde_packages.nix`**  
   Additional programs enhancing the KDE Plasma environment. This file is automatically imported if you choose KDE in `gui/kde.nix`.
 - **`syncthing.nix`**  
   Configuration for **Syncthing**. Read the file for more information.
+- **`unstable_temporary_packages.nix`**  
+  Packages from the unstable channel or for temporary testing. Automatically fetches packages from nixos-unstable without manual channel configuration. Useful for bleeding-edge packages, testing new software, or packages not yet available in stable. Fully reversible - removing the import automatically cleans up unstable packages.
 - **`workstation_packages_services.nix`**  
   Packages and services potentially useful for all users on a workstation host.
 

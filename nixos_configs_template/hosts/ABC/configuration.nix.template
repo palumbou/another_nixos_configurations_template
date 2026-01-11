@@ -16,6 +16,7 @@
       #../../common/packages/extra_packages_services.nix         # Extra packages and services
       #../../common/packages/grub.nix                            # GRUB bootloader settings
       #../../common/packages/syncthing.nix                       # Syncthing configuration
+      #../../common/packages/unstable_temporary_packages.nix     # Unstable/temporary packages
       #../../common/packages/workstation_packages_services.nix   # Workstation packages and services
       #"${builtins.fetchTarball "https://github.com/nix-community/disko/archive/master.tar.gz"}/module.nix"  # Disko module from GitHub
       #./single-disk-ext4.nix                                    # Disko disk configuration (optional)

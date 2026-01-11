@@ -8,9 +8,10 @@ Questa cartella contiene file di configurazione di base del sistema che definisc
 
 - **`battery_management.nix`** - Configurazione per la gestione della batteria TLP e funzionalità di risparmio energetico, incluse soglie di carica della batteria, regolatori di frequenza CPU e politiche di prestazione energetiche per le modalità AC e batteria
 - **`boot_luks.nix`** - Configurazione per il boot con crittografia LUKS e impostazioni Plymouth per la schermata di avvio
+- **`os_compatibility.nix`** - Abilita la compatibilità con binari precompilati su NixOS usando nix-ld. Fornisce i percorsi delle librerie standard di Linux e le librerie condivise comuni (libc, libstdc++, X11, OpenGL, audio, ecc.) permettendo l'esecuzione di binari non-NixOS senza patch. Include supporto per applicazioni compatibili con FHS (Filesystem Hierarchy Standard). Configura inoltre le regole udev per l'accesso ai dispositivi HID (necessario per l'API WebHID in Chrome/Chromium per accedere a tastiere, mouse e altri dispositivi USB/HID) utilizzando il moderno meccanismo TAG+="uaccess". Sicuro da tenere abilitato anche quando non si usano attivamente binari esterni (importato automaticamente da `system.nix`)
 - **`os_optimization.nix`** - Impostazioni di ottimizzazione del sistema incluse garbage collection automatica, ottimizzazione del Nix store, limiti del journal di systemd, supporto TRIM per SSD e configurazione zram (importato automaticamente da `system.nix`)
 - **`sudo.nix`** - Configurazione per i privilegi sudo e le autorizzazioni degli utenti (importato automaticamente da `system.nix`)
-- **`system.nix`** - Impostazioni di base del sistema inclusi locale, fuso orario, comportamenti fondamentali del sistema e importa sia `sudo.nix` che `os_optimization.nix`
+- **`system.nix`** - Impostazioni di base del sistema inclusi locale, fuso orario, comportamenti fondamentali del sistema e importa `sudo.nix`, `os_compatibility.nix` e `os_optimization.nix`
 
 ## Utilizzo
 

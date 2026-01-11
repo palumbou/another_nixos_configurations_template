@@ -8,9 +8,10 @@ This folder contains core system configuration files that define fundamental sys
 
 - **`battery_management.nix`** - Configuration for TLP battery management and power saving features, including battery charge thresholds, CPU scaling governors, and energy performance policies for both AC and battery modes
 - **`boot_luks.nix`** - Configuration for LUKS encryption boot and Plymouth boot splash settings
+- **`os_compatibility.nix`** - Enables compatibility with pre-compiled binaries on NixOS using nix-ld. Provides standard Linux library paths and common shared libraries (libc, libstdc++, X11, OpenGL, audio, etc.) allowing execution of non-NixOS binaries without patching. Includes support for FHS (Filesystem Hierarchy Standard) compatible applications. Also configures udev rules for HID device access (needed for WebHID API in Chrome/Chromium to access keyboards, mice, and other USB/HID devices) using the modern TAG+="uaccess" mechanism. Safe to keep enabled even when not actively using external binaries (automatically imported by `system.nix`)
 - **`os_optimization.nix`** - System optimization settings including automatic garbage collection, Nix store optimization, systemd journal limits, SSD TRIM support, and zram configuration (automatically imported by `system.nix`)
 - **`sudo.nix`** - Configuration for sudo privileges and user permissions (automatically imported by `system.nix`)
-- **`system.nix`** - Core system settings including locale, time zone, basic system behaviors, and imports both `sudo.nix` and `os_optimization.nix`
+- **`system.nix`** - Core system settings including locale, time zone, basic system behaviors, and imports `sudo.nix`, `os_compatibility.nix` and `os_optimization.nix`
 
 ## Usage
 
