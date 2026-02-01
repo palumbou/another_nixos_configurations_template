@@ -6,6 +6,8 @@ Questa cartella contiene file di configurazione di base del sistema che definisc
 
 ## File Disponibili
 
+- **`audio.nix`** - Configurazione audio centralizzata con PipeWire, session manager wireplumber, rtkit per la priorità real-time, supporto ALSA (32-bit e 64-bit), layer di compatibilità PulseAudio e utility audio (strumenti CLI pulseaudio, GUI pwvucontrol). Importato automaticamente dalle configurazioni degli ambienti desktop (Hyprland, GNOME, KDE)
+- **`audio_airplay.nix`** - Supporto opzionale per lo streaming AirPlay/RAOP per inviare audio a dispositivi compatibili AirPlay (Apple HomePod, speaker Denon Home, ecc.). Configura il modulo libpipewire-module-raop-discover di PipeWire e Avahi mDNS per il rilevamento dei dispositivi. Importare solo nelle configurazioni host che necessitano della funzionalità AirPlay
 - **`battery_management.nix`** - Configurazione per la gestione della batteria TLP e funzionalità di risparmio energetico, incluse soglie di carica della batteria, regolatori di frequenza CPU e politiche di prestazione energetiche per le modalità AC e batteria
 - **`boot_luks.nix`** - Configurazione per il boot con crittografia LUKS e impostazioni Plymouth per la schermata di avvio
 - **`os_compatibility.nix`** - Abilita la compatibilità con binari precompilati su NixOS usando nix-ld. Fornisce i percorsi delle librerie standard di Linux e le librerie condivise comuni (libc, libstdc++, X11, OpenGL, audio, ecc.) permettendo l'esecuzione di binari non-NixOS senza patch. Include supporto per applicazioni compatibili con FHS (Filesystem Hierarchy Standard). Configura inoltre le regole udev per l'accesso ai dispositivi HID (necessario per l'API WebHID in Chrome/Chromium per accedere a tastiere, mouse e altri dispositivi USB/HID) utilizzando il moderno meccanismo TAG+="uaccess". Sicuro da tenere abilitato anche quando non si usano attivamente binari esterni (importato automaticamente da `system.nix`)
@@ -20,6 +22,7 @@ Importa questi file di configurazione nel file `configuration.nix` specifico del
 ```nix
 imports = [
   # ...altri import...
+  ../common/config/audio_airplay.nix  # Opzionale: solo se necessiti dello streaming AirPlay/RAOP
   ../common/config/boot_luks.nix  # Opzionale: solo se si usa la crittografia LUKS
   ../common/config/battery_management.nix  # Opzionale: solo per laptop
   ../common/config/system.nix  # Richiesto: importa automaticamente sudo.nix e os_optimization.nix
@@ -27,7 +30,7 @@ imports = [
 ];
 ```
 
-> **Nota**: Non è necessario importare `sudo.nix` e `os_optimization.nix` separatamente, poiché vengono importati automaticamente da `system.nix`.
+> **Nota**: Non è necessario importare `sudo.nix`, `os_optimization.nix` o `audio.nix` separatamente. I primi due vengono importati automaticamente da `system.nix`, mentre `audio.nix` viene importato automaticamente dalle configurazioni degli ambienti desktop (Hyprland, GNOME, KDE).
 
 ## Personalizzazione
 

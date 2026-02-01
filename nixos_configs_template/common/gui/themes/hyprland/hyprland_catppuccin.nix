@@ -19,6 +19,10 @@
     # Qt Theme - qt6ct for Qt6 configuration
     qt6Packages.qt6ct # Qt6 Configuration Tool
     libsForQt5.qt5ct # Qt5 Configuration Tool (for Qt5 apps)
+    
+    # Qt Wayland support (required for Qt apps on Hyprland)
+    qt6Packages.qtwayland # Qt6 Wayland plugin
+    libsForQt5.qt5.qtwayland # Qt5 Wayland plugin
 
     # Qt Catppuccin Theme
     catppuccin-qt5ct # Catppuccin theme for qt5ct and qt6ct

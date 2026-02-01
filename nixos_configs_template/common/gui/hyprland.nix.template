@@ -2,6 +2,7 @@
 {
   imports =
     [
+      ../config/audio.nix
       ./themes/hyprland/hyprland_catppuccin.nix
     ];
 
@@ -44,22 +45,6 @@
     exec-once = ${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1
   '';
 
-  # Enable sound with PipeWire
-  services.pulseaudio.enable = false;
-  security.rtkit.enable = true;
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-    # If you want to use JACK applications, uncomment this
-    # jack.enable = true;
-
-    # Enables media-session, a lightweight session manager for PipeWire,
-    # used to handle audio routing and device management.
-    wireplumber.enable = true;
-  };
-
   # Add system packages
   environment.systemPackages = with pkgs; [
     brightnessctl # CLI tool to control screen and keyboard brightness
@@ -78,15 +63,12 @@
     oh-my-posh # A prompt theme engine for various shells, providing a customizable prompt
     playerctl # CLI tool to control media players via MPRIS (for Waybar media controls)
     polkit_gnome # Polkit authentication agent for privilege escalation dialogs (virt-manager, mounting, etc.)
-    pwvucontrol # PipeWire Volume Control - Native GUI for PipeWire audio management
     qalculate-gtk # A powerful calculator with a GTK+ interface
     swaynotificationcenter # Notification daemon with a notification center for Wayland
     trash-cli # Command-line interface for managing the trash (recycle bin)
     waybar # Highly customizable status bar for Wayland compositors like Sway
     wl-clipboard # Command-line clipboard utilities for Wayland
     wofi # A minimalist launcher and menu for Wayland, similar to dmenu
-    xdg-desktop-portal # A portal implementation for X11 and Wayland, allowing applications to interact with the desktop environment
-    xdg-desktop-portal-hyprland # A portal implementation for Hyprland, allowing applications to interact with the desktop environment
     xdg-utils # Utilities for desktop integration (open URLs, files, etc.)
     xournalpp # Note-taking application with PDF annotation support
   ];

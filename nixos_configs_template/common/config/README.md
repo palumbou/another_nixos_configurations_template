@@ -6,6 +6,8 @@ This folder contains core system configuration files that define fundamental sys
 
 ## Available Files
 
+- **`audio.nix`** - Centralized audio configuration with PipeWire, wireplumber session manager, rtkit for real-time priority, ALSA support (32-bit and 64-bit), PulseAudio compatibility layer, and audio utilities (pulseaudio CLI tools, pwvucontrol GUI). Automatically imported by desktop environment configurations (Hyprland, GNOME, KDE)
+- **`audio_airplay.nix`** - Optional AirPlay/RAOP streaming support for sending audio to AirPlay-compatible devices (Apple HomePod, Denon Home speakers, etc.). Configures PipeWire's libpipewire-module-raop-discover and Avahi mDNS for device discovery. Import this only in host configurations that need AirPlay functionality
 - **`battery_management.nix`** - Configuration for TLP battery management and power saving features, including battery charge thresholds, CPU scaling governors, and energy performance policies for both AC and battery modes
 - **`boot_luks.nix`** - Configuration for LUKS encryption boot and Plymouth boot splash settings
 - **`os_compatibility.nix`** - Enables compatibility with pre-compiled binaries on NixOS using nix-ld. Provides standard Linux library paths and common shared libraries (libc, libstdc++, X11, OpenGL, audio, etc.) allowing execution of non-NixOS binaries without patching. Includes support for FHS (Filesystem Hierarchy Standard) compatible applications. Also configures udev rules for HID device access (needed for WebHID API in Chrome/Chromium to access keyboards, mice, and other USB/HID devices) using the modern TAG+="uaccess" mechanism. Safe to keep enabled even when not actively using external binaries (automatically imported by `system.nix`)
@@ -20,6 +22,7 @@ Import these configuration files in your host-specific `configuration.nix` file:
 ```nix
 imports = [
   # ...other imports...
+  ../common/config/audio_airplay.nix  # Optional: only if you need AirPlay/RAOP streaming
   ../common/config/boot_luks.nix  # Optional: only if using LUKS encryption
   ../common/config/battery_management.nix  # Optional: only for laptops
   ../common/config/system.nix  # Required: imports sudo.nix and os_optimization.nix automatically
@@ -27,7 +30,7 @@ imports = [
 ];
 ```
 
-> **Note**: You don't need to import `sudo.nix` and `os_optimization.nix` separately, as they are automatically imported by `system.nix`.
+> **Note**: You don't need to import `sudo.nix`, `os_optimization.nix`, or `audio.nix` separately. The first two are automatically imported by `system.nix`, while `audio.nix` is automatically imported by desktop environment configurations (Hyprland, GNOME, KDE).
 
 ## Customization
 

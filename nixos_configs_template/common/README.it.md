@@ -9,6 +9,8 @@ Questa cartella contiene file di configurazione NixOS che sono **comuni** a tutt
 ```bash
 common/
 ├── config/
+│   ├── audio.nix
+│   ├── audio_airplay.nix
 │   ├── battery_management.nix
 │   ├── boot_luks.nix
 │   ├── os_compatibility.nix
@@ -49,6 +51,8 @@ common/
 
 Questa cartella archivia configurazioni **relative al Sistema Operativo**:
 
+- **`audio.nix`** per la configurazione audio centralizzata con PipeWire, session manager wireplumber, rtkit per la priorità real-time, supporto ALSA (32-bit e 64-bit), layer di compatibilità PulseAudio e utility audio (strumenti CLI pulseaudio, GUI pwvucontrol). Questo file viene importato automaticamente dalle configurazioni degli ambienti desktop (Hyprland, GNOME, KDE).
+- **`audio_airplay.nix`** per il supporto opzionale allo streaming AirPlay/RAOP per inviare audio a dispositivi compatibili AirPlay (Apple HomePod, speaker Denon Home, ecc.). Configura il modulo libpipewire-module-raop-discover di PipeWire e Avahi mDNS per il rilevamento dei dispositivi. Importare solo nelle configurazioni host che necessitano della funzionalità AirPlay.
 - **`battery_management.nix`** per configurare la gestione della batteria TLP e le funzionalità di risparmio energetico. Include soglie di carica della batteria, regolatori di frequenza CPU e politiche di prestazione energetiche per le modalità AC e batteria.
 - **`boot_luks.nix`** per configurare i parametri di boot con supporto alla crittografia LUKS e le impostazioni di Plymouth per la schermata di avvio.
 - **`os_compatibility.nix`** per abilitare la compatibilità con binari precompilati su NixOS. Utilizza nix-ld per fornire i percorsi delle librerie standard di Linux e le librerie condivise comuni, consentendo l'esecuzione di binari non-NixOS senza patch. Questo file viene importato automaticamente da `system.nix`.
@@ -67,9 +71,9 @@ Questa cartella archivia le configurazioni per gli ambienti grafici che puoi sce
 - **`kde.nix`** – KDE Plasma (versione 6)
 - **`themes/`** - Una sottocartella contenente temi per vari software (GRUB, Hyprland, Plymouth, ...)
 
-Le configurazioni di Gnome e KDE provengono dalle installazioni di NixOS, mentre la configurazione Hyprland è personalizzata, includendo pacchetti di base per un setup funzionale (display manager, file manager, terminale, barra di stato e launcher). Tutti i file abilitano anche l’audio con PipeWire.
+Le configurazioni di Gnome e KDE provengono dalle installazioni di NixOS, mentre la configurazione Hyprland è personalizzata, includendo pacchetti di base per un setup funzionale (display manager, file manager, terminale, barra di stato e launcher).
 
-> **Nota**: Assicurati di modificare le variabili  
+> **Nota**: Assicurati di modificare le variabili
 > - in **`gnome.nix`** e **`kde.nix`**, sostituisci `${KEY_LAYOUT}` con il codice [ISO 639](https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes) desiderato per il layout della tastiera  
 > - in **`hyprland.nix`**, sostituisci `${FONT}` con il tuo font preferito e seleziona il tema desiderato
 
