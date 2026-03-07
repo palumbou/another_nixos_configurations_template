@@ -12,21 +12,23 @@
     # drivers = [ pkgs.epson-escpr ];       # Epson inkjet printers
     # drivers = [ pkgs.gutenprint ];        # Wide range of printers (Canon, Epson, HP, etc.)
     # drivers = [ pkgs.samsung-unified-linux-driver ]; # Samsung printers
-
-    # Declarative printer definition
-    # printers = [
-    #   {
-    #     name = "My-Printer";
-    #     location = "Home";
-    #     deviceUri = "socket://192.168.1.100:9100";  # Network printer (raw socket)
-    #     # deviceUri = "usb://Manufacturer/Model";    # USB printer
-    #     # deviceUri = "ipp://192.168.1.100/ipp";     # IPP network printer
-    #     model = "drv:///driver.drv/model.ppd";       # PPD model from driver
-    #   }
-    # ];
-
-    # defaultPrinter = "My-Printer";
   };
+
+  # Declarative printer definition
+  # hardware.printers = {
+  #   ensurePrinters = [
+  #     {
+  #       name = "My-Printer";
+  #       location = "Home";
+  #       deviceUri = "socket://192.168.1.100:9100";  # Network printer (raw socket)
+  #       # deviceUri = "usb://Manufacturer/Model";    # USB printer
+  #       # deviceUri = "ipp://192.168.1.100/ipp";     # IPP network printer
+  #       model = "drv:///driver.drv/model.ppd";       # PPD model from driver
+  #     }
+  #   ];
+  #
+  #   ensureDefaultPrinter = "My-Printer";
+  # };
 
   # mDNS for network printer discovery (recommended for network printers)
   services.avahi = {
