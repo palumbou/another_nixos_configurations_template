@@ -11,6 +11,7 @@ La cartella **`hosts`** contiene le configurazioni per ognuna delle tue macchine
 Ogni cartella host include tipicamente:
 
 - **`configuration.nix`** - File di configurazione di base con import per GUI, pacchetti, utenti e funzionalità opzionali
+- **`external-hardware-configuration.nix`** (opzionale) - Configurazione per hardware esterno o specifico dell'host (stampanti, scanner, ecc.)
 - **`hardware-configuration.nix`** - Configurazione specifica dell'hardware generata durante l'installazione
 - **`nm_configurations.nix`** (opzionale) - File di connessione NetworkManager da importare durante la build
 
@@ -20,6 +21,7 @@ Ogni cartella host include tipicamente:
 hosts/
 ├── ABC/                          # Cartella host di esempio
 │   ├── configuration.nix
+│   ├── external-hardware-configuration.nix
 │   ├── hardware-configuration.nix
 │   └── nm_configurations.nix
 ├── disk_configurations/          # Template Disko per configurazione disco
@@ -101,6 +103,23 @@ Puoi ottenerlo:
 - Installando NixOS da una [ISO ufficiale](https://nixos.org/download) e copiando `/etc/nixos/hardware-configuration.nix`.
 - Eseguendo `nixos-generate-config` sull'host di destinazione.
 - Importandolo da [nixos-hardware](https://github.com/NixOS/nixos-hardware), se esiste un profilo corrispondente.
+
+---
+
+## File `external-hardware-configuration.nix` (Opzionale)
+
+Questo file contiene la configurazione per hardware esterno o specifico dell'host che non fa parte del rilevamento hardware standard di NixOS, come:
+
+- **Stampanti di rete** (configurazione CUPS, driver, definizioni dichiarative delle stampanti)
+- **Scanner** (configurazione SANE)
+- **Altre periferiche** specifiche dell'host
+
+È fornito un file template (`external-hardware-configuration.nix.template`) con un esempio di configurazione stampante che include driver per i marchi più comuni (Brother, HP, Epson, Samsung) e il discovery di rete tramite Avahi/mDNS.
+
+Per utilizzarlo:
+1. Copia il template e rinominalo in `external-hardware-configuration.nix`
+2. Personalizzalo per il tuo hardware
+3. Decommenta `./external-hardware-configuration.nix` nel tuo `configuration.nix`
 
 ---
 

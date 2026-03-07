@@ -11,6 +11,7 @@ The **`hosts`** folder contains configurations for each of your machines (hosts)
 Each host folder typically includes:
 
 - **`configuration.nix`** - Base configuration file with imports for GUI, packages, users, and optional features
+- **`external-hardware-configuration.nix`** (optional) - Configuration for external or host-specific hardware (printers, scanners, etc.)
 - **`hardware-configuration.nix`** - Hardware-specific configuration generated during installation
 - **`nm_configurations.nix`** (optional) - NetworkManager connection files to import during build
 
@@ -20,6 +21,7 @@ Each host folder typically includes:
 hosts/
 ├── ABC/                          # Example host folder
 │   ├── configuration.nix
+│   ├── external-hardware-configuration.nix
 │   ├── hardware-configuration.nix
 │   └── nm_configurations.nix
 ├── disk_configurations/          # Disko templates for disk setup
@@ -101,6 +103,23 @@ You can acquire it by:
 - Installing NixOS from an [official ISO](https://nixos.org/download) and copying `/etc/nixos/hardware-configuration.nix`.
 - Running `nixos-generate-config` on the target host.
 - Importing it from [nixos-hardware](https://github.com/NixOS/nixos-hardware), if a matching profile exists.
+
+---
+
+## `external-hardware-configuration.nix` File (Optional)
+
+This file contains configuration for external or host-specific hardware that is not part of the standard NixOS hardware detection, such as:
+
+- **Network printers** (CUPS configuration, drivers, declarative printer definitions)
+- **Scanners** (SANE configuration)
+- **Other peripherals** specific to the host
+
+A template file (`external-hardware-configuration.nix.template`) is provided with an example printer configuration including drivers for common brands (Brother, HP, Epson, Samsung) and network discovery via Avahi/mDNS.
+
+To use it:
+1. Copy the template and rename it to `external-hardware-configuration.nix`
+2. Customize it for your hardware
+3. Uncomment `./external-hardware-configuration.nix` in your `configuration.nix`
 
 ---
 

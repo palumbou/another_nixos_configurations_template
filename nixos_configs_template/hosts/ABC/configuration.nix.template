@@ -4,6 +4,7 @@
   imports =
     [
       ./hardware-configuration.nix                               # Hardware configuration
+      #./external-hardware-configuration.nix                      # External hardware (printer, scanner, etc.)
       #./nm_configurations.nix                                    # Network Manager configurations
       #../../common/config/audio_airplay.nix                      # Audio AirPlay settings
       #../../common/config/battery_management.nix                 # Battery management settings

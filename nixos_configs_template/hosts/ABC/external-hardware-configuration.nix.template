@@ -1,0 +1,36 @@
+{ config, pkgs, ... }:
+
+{
+  # Enable CUPS printing service
+  services.printing = {
+    enable = true;
+
+    # Printer drivers (uncomment the one you need)
+    # drivers = [ pkgs.brlaser ];           # Brother laser printers (open source)
+    # drivers = [ pkgs.brgenml1lpr ];       # Brother generic LPR driver
+    # drivers = [ pkgs.hplip ];             # HP printers
+    # drivers = [ pkgs.epson-escpr ];       # Epson inkjet printers
+    # drivers = [ pkgs.gutenprint ];        # Wide range of printers (Canon, Epson, HP, etc.)
+    # drivers = [ pkgs.samsung-unified-linux-driver ]; # Samsung printers
+
+    # Declarative printer definition
+    # printers = [
+    #   {
+    #     name = "My-Printer";
+    #     location = "Home";
+    #     deviceUri = "socket://192.168.1.100:9100";  # Network printer (raw socket)
+    #     # deviceUri = "usb://Manufacturer/Model";    # USB printer
+    #     # deviceUri = "ipp://192.168.1.100/ipp";     # IPP network printer
+    #     model = "drv:///driver.drv/model.ppd";       # PPD model from driver
+    #   }
+    # ];
+
+    # defaultPrinter = "My-Printer";
+  };
+
+  # mDNS for network printer discovery (recommended for network printers)
+  services.avahi = {
+    enable = true;
+    nssmdns4 = true;
+  };
+}
