@@ -21,6 +21,7 @@
     file       # Identifies file types by analyzing their content (GNU, avanzate)
     gawk       # GNU implementation of the AWK programming language
     gcc        # The GNU Compiler Collection for compiling C, C++, and other languages
+    gdu        # A disk usage analyzer with a terminal interface
     git        # A distributed version control system for source code
     gnupg      # Tools for encrypting and signing data and communications
     gnused     # GNU implementation of sed for stream editing text files (avanzate)

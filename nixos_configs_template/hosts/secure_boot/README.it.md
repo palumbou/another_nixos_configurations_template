@@ -137,7 +137,7 @@ sudo nixos-rebuild switch
 #### 1. Creare le chiavi Secure Boot
 
 ```bash
-sudo sbctl create-keys"
+sudo sbctl create-keys
 ```
 
 Le chiavi vengono archiviate in `/var/lib/sbctl/`.
@@ -145,7 +145,7 @@ Le chiavi vengono archiviate in `/var/lib/sbctl/`.
 #### 2. Registrare le chiavi nel firmware
 
 ```bash
-sudo sbctl enroll-keys --microsoft"
+sudo sbctl enroll-keys --microsoft
 ```
 
 > **Informazioni sul flag `--microsoft`**: Questo include i certificati Microsoft nel database delle chiavi. È **necessario** se si utilizza il dual-boot con Windows o se si ha bisogno di avviare hardware con driver firmati da Microsoft (es. alcune schede di rete, schede grafiche). Se si avvia solo NixOS e non si ha tale hardware, si può omettere questo flag, anche se includerlo è generalmente più sicuro per la compatibilità.
@@ -231,8 +231,8 @@ sudo nix-shell -p sbctl --run "sbctl enroll-keys --microsoft"
 #### Con sbctl installato
 
 ```bash
-sudo sbctl create-keys"
-sudo sbctl enroll-keys --microsoft"
+sudo sbctl create-keys
+sudo sbctl enroll-keys --microsoft
 ```
 
 > **Informazioni sul flag `--microsoft`**: Includilo se utilizzi il dual-boot con Windows o hai hardware che richiede driver firmati da Microsoft. Vedi la Fase B nel Metodo 1 per i dettagli.
