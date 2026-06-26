@@ -38,6 +38,7 @@ common/
 └── packages/
     ├── default_packages_services.nix.template
     ├── extra_packages_services.nix
+    ├── external_monitor.nix
     ├── grub.nix
     ├── kde_packages.nix
     ├── syncthing.nix.template
@@ -51,7 +52,7 @@ common/
 
 This folder stores **Operating System-related** configurations:
 
-- **`audio.nix`** for centralized audio configuration with PipeWire, wireplumber session manager, rtkit for real-time priority, ALSA support (32-bit and 64-bit), PulseAudio compatibility layer, and audio utilities (pulseaudio CLI tools, pwvucontrol GUI). This file is automatically imported by desktop environment configurations (Hyprland, GNOME, KDE).
+- **`audio.nix`** for centralized audio configuration with PipeWire, wireplumber session manager, rtkit for real-time priority, ALSA support (32-bit and 64-bit), PulseAudio compatibility layer, JACK support for professional audio applications, and audio utilities (pulseaudio CLI tools, pwvucontrol GUI). This file is automatically imported by desktop environment configurations (Hyprland, GNOME, KDE).
 - **`audio_airplay.nix`** for optional AirPlay/RAOP streaming support to send audio to AirPlay-compatible devices (Apple HomePod, Denon Home speakers, etc.). Configures PipeWire's libpipewire-module-raop-discover and Avahi mDNS for device discovery. Import this only in host configurations that need AirPlay functionality.
 - **`battery_management.nix`** for configuring TLP battery management and power saving features. It includes battery charge thresholds, CPU scaling governors, and energy performance policies for both AC and battery modes.
 - **`boot_luks.nix`** for configuring boot parameters with LUKS encryption support and Plymouth boot splash settings.
@@ -87,6 +88,8 @@ This folder includes configurations for packages and services. Each file has its
   Basic packages and services that should be enabled on all hosts by default.
 - **`extra_packages_services.nix`**  
   Packages and services for specific configurations (e.g., installing **solaar** for Logitech devices).
+- **`external_monitor.nix`**  
+  External monitor support via DDC/CI: enables the I2C bus (`hardware.i2c.enable`) and installs `ddcutil` (brightness/contrast/input control via DDC/CI) and `v4l-utils` (webcam and video capture device management). Automatically adds the user to the `i2c` group when the bus is enabled (condition defined in `users/<username>/user.nix`).
 - **`grub.nix`**  
   Boot loader (GRUB) configuration (e.g., enabling the "catppuccin" theme).
 - **`kde_packages.nix`**  

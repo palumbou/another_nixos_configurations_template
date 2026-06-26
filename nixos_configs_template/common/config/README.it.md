@@ -6,7 +6,7 @@ Questa cartella contiene file di configurazione di base del sistema che definisc
 
 ## File Disponibili
 
-- **`audio.nix`** - Configurazione audio centralizzata con PipeWire, session manager wireplumber, rtkit per la priorità real-time, supporto ALSA (32-bit e 64-bit), layer di compatibilità PulseAudio e utility audio (strumenti CLI pulseaudio, GUI pwvucontrol). Importato automaticamente dalle configurazioni degli ambienti desktop (Hyprland, GNOME, KDE)
+- **`audio.nix`** - Configurazione audio centralizzata con PipeWire, session manager wireplumber, rtkit per la priorità real-time, supporto ALSA (32-bit e 64-bit), layer di compatibilità PulseAudio, supporto JACK per applicazioni audio professionali e utility audio (strumenti CLI pulseaudio, GUI pwvucontrol). Importato automaticamente dalle configurazioni degli ambienti desktop (Hyprland, GNOME, KDE)
 - **`audio_airplay.nix`** - Supporto opzionale per lo streaming AirPlay/RAOP per inviare audio a dispositivi compatibili AirPlay (Apple HomePod, speaker Denon Home, ecc.). Configura il modulo libpipewire-module-raop-discover di PipeWire e Avahi mDNS per il rilevamento dei dispositivi. Importare solo nelle configurazioni host che necessitano della funzionalità AirPlay
 - **`battery_management.nix`** - Configurazione per la gestione della batteria TLP e funzionalità di risparmio energetico, incluse soglie di carica della batteria, regolatori di frequenza CPU e politiche di prestazione energetiche per le modalità AC e batteria
 - **`boot_luks.nix`** - Configurazione per il boot con crittografia LUKS e impostazioni Plymouth per la schermata di avvio

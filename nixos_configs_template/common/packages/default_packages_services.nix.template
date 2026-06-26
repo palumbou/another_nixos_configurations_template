@@ -35,6 +35,7 @@
     nano       # A simple, easy-to-use text editor for the terminal
     nmap       # A network scanning tool for security and discovery
     ntfs3g     # A driver for reading and writing NTFS filesystems
+    openssl    # A toolkit for SSL/TLS and general cryptography
     parted     # A partitioning tool for managing disk partitions
     p7zip      # A tool for creating and extracting .7z files
     pciutils   # Tools for inspecting PCI devices on the system

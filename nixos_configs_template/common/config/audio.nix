@@ -9,8 +9,7 @@
     alsa.enable = true;
     alsa.support32Bit = true;  # Enables both 32-bit and 64-bit ALSA support
     pulse.enable = true;
-    # If you want to use JACK applications, uncomment this
-    # jack.enable = true;
+    jack.enable = true;  # Enable JACK support for professional audio applications
 
     # Enables wireplumber, a session manager for PipeWire,
     # used to handle audio routing and device management.

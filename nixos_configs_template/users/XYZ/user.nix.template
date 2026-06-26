@@ -27,6 +27,8 @@
       #"qemu-libvirtd"  # Access to QEMU virtual machines.
       "video"          # Access to video devices.
       "wheel"          # Grants sudo/root access.
+    ] ++ lib.optionals config.hardware.i2c.enable [
+      "i2c"            # DDC/CI monitor control via ddcutil (requires hardware.i2c.enable)
     ];
 
     home = "/home/${USER}"; # Sets the home directory for the user.

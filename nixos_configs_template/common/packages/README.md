@@ -8,9 +8,11 @@ This folder contains configuration files for various package groups and services
 
 - **`default_packages_services.nix`** - Essential default packages and services for basic system functionality
 - **`extra_packages_services.nix`** - Additional packages and services for extended functionality
+- **`external_monitor.nix`** - External monitor support via DDC/CI: enables the I2C bus and installs `ddcutil` (brightness/contrast/input control) and `v4l-utils` (webcam and video capture device management). Automatically adds the user to the `i2c` group when the bus is enabled
 - **`grub.nix`** - GRUB bootloader configuration (must be imported when using GRUB as bootloader)
 - **`kde_packages.nix`** - Packages specific to the KDE Plasma environment (already imported in file ../gui/kde.nix)
 - **`syncthing.nix`** - Configuration for the Syncthing file synchronization service
+- **`unstable_temporary_packages.nix`** - Packages from the unstable channel or for temporary testing. Automatically fetches packages from nixos-unstable without manual channel configuration
 - **`workstation_packages_services.nix`** - Packages and services tailored for workstation setups
 
 ## Usage

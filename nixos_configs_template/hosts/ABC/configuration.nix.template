@@ -16,6 +16,7 @@
       ../../common/network/default_network.nix                   # Default network settings
       ../../common/packages/default_packages_services.nix        # Default packages and services
       #../../common/packages/extra_packages_services.nix          # Extra packages and services
+      #../../common/packages/external_monitor.nix                 # External monitor (DDC/CI) and webcam support
       #../../common/packages/grub.nix                             # GRUB bootloader settings
       #../../common/packages/syncthing.nix                        # Syncthing configuration
       #../../common/packages/unstable_temporary_packages.nix      # Unstable/temporary packages

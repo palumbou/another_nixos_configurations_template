@@ -38,6 +38,7 @@ common/
 └── packages/
     ├── default_packages_services.nix.template
     ├── extra_packages_services.nix
+    ├── external_monitor.nix
     ├── grub.nix
     ├── kde_packages.nix
     ├── syncthing.nix.template
@@ -51,7 +52,7 @@ common/
 
 Questa cartella archivia configurazioni **relative al Sistema Operativo**:
 
-- **`audio.nix`** per la configurazione audio centralizzata con PipeWire, session manager wireplumber, rtkit per la priorità real-time, supporto ALSA (32-bit e 64-bit), layer di compatibilità PulseAudio e utility audio (strumenti CLI pulseaudio, GUI pwvucontrol). Questo file viene importato automaticamente dalle configurazioni degli ambienti desktop (Hyprland, GNOME, KDE).
+- **`audio.nix`** per la configurazione audio centralizzata con PipeWire, session manager wireplumber, rtkit per la priorità real-time, supporto ALSA (32-bit e 64-bit), layer di compatibilità PulseAudio, supporto JACK per applicazioni audio professionali e utility audio (strumenti CLI pulseaudio, GUI pwvucontrol). Questo file viene importato automaticamente dalle configurazioni degli ambienti desktop (Hyprland, GNOME, KDE).
 - **`audio_airplay.nix`** per il supporto opzionale allo streaming AirPlay/RAOP per inviare audio a dispositivi compatibili AirPlay (Apple HomePod, speaker Denon Home, ecc.). Configura il modulo libpipewire-module-raop-discover di PipeWire e Avahi mDNS per il rilevamento dei dispositivi. Importare solo nelle configurazioni host che necessitano della funzionalità AirPlay.
 - **`battery_management.nix`** per configurare la gestione della batteria TLP e le funzionalità di risparmio energetico. Include soglie di carica della batteria, regolatori di frequenza CPU e politiche di prestazione energetiche per le modalità AC e batteria.
 - **`boot_luks.nix`** per configurare i parametri di boot con supporto alla crittografia LUKS e le impostazioni di Plymouth per la schermata di avvio.
@@ -87,6 +88,8 @@ Questa cartella include configurazioni per pacchetti e servizi. Ogni file ha il 
   Pacchetti e servizi di base che dovrebbero essere abilitati su tutti gli host di default.
 - **`extra_packages_services.nix`**  
   Pacchetti e servizi per configurazioni specifiche (ad es. l'installazione di **solaar** per dispositivi Logitech).
+- **`external_monitor.nix`**  
+  Supporto per monitor esterni tramite DDC/CI: abilita il bus I2C (`hardware.i2c.enable`) e installa `ddcutil` (controllo brightness/contrasto/input via DDC/CI) e `v4l-utils` (gestione webcam e dispositivi video). Aggiunge automaticamente l'utente al gruppo `i2c` se il bus è abilitato (condizione definita in `users/<username>/user.nix`).
 - **`grub.nix`**  
   Configurazione del boot loader (GRUB) (ad es. abilitare il tema "catppuccin").
 - **`kde_packages.nix`**  
