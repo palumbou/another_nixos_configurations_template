@@ -22,7 +22,13 @@
       #../../common/packages/syncthing.nix                        # Syncthing configuration
       #../../common/packages/unstable_temporary_packages.nix      # Unstable/temporary packages
       #../../common/packages/workstation_packages_services.nix    # Workstation packages and services
-      #"${builtins.fetchTarball "https://github.com/nix-community/disko/archive/master.tar.gz"}/module.nix"  # Disko module from GitHub
+      ## Disko module, pinned to a release for reproducibility and supply-chain safety.
+      ## To update: pick a tag from https://github.com/nix-community/disko/releases and run
+      ##   nix-prefetch-url --unpack https://github.com/nix-community/disko/archive/refs/tags/<tag>.tar.gz
+      #"${builtins.fetchTarball {
+      #  url = "https://github.com/nix-community/disko/archive/refs/tags/v1.13.0.tar.gz";
+      #  sha256 = "03jz60kw0khm1lp72q65z8gq69bfrqqbj08kw0hbiav1qh3g7p08";
+      #}}/module.nix"
       #./single-disk-ext4.nix                                     # Disko disk configuration (optional)
       #../secure_boot/secure_boot.nix                             # Secure Boot with Lanzaboote (optional)
       ../../users/XYZ/user.nix                                   # User-specific settings
@@ -37,6 +43,12 @@
 
   # Set the hostname
   networking.hostName = "${HOSTNAME}"; # Define your hostname.
+
+  # NixOS release this host was FIRST installed with. Never change it on an
+  # existing installation (see the option documentation before touching it).
+  # Keeping it per host allows different hosts to have been installed with
+  # different releases (e.g. an old host on 25.11, a new one on 26.05).
+  system.stateVersion = "${NIXOS_VERSION}";
 
   # Enable syncing for the specified folders in Syncthing
   services.syncthing.settings.folders.NAME FOLDER.enable = true;

@@ -71,7 +71,8 @@ Se desideri personalizzare le impostazioni di sistema in `system.nix`:
   };
   
   # Aggiungi qui le tue impostazioni di sistema personalizzate
-  system.stateVersion = "25.11"; # NON MODIFICARE QUESTO VALORE
+  # Nota: system.stateVersion è impostato per host in hosts/<nome>/configuration.nix,
+  # perché registra la release NixOS con cui ciascun host è stato installato la prima volta.
 }
 ```
 

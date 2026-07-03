@@ -22,15 +22,6 @@
     };
   };
 
-  # Enable SDDM
-  services.displayManager.sddm = {
-    enable = true;
-    autoNumlock = true;
-    wayland = {
-      enable = true;
-    };
-  };
-
   # Enable Hyprland
   programs.hyprland = {
     enable = true;
