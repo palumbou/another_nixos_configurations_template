@@ -59,7 +59,7 @@
     trash-cli # Command-line interface for managing the trash (recycle bin)
     waybar # Highly customizable status bar for Wayland compositors like Sway
     wl-clipboard # Command-line clipboard utilities for Wayland
-    wofi # A minimalist launcher and menu for Wayland, similar to dmenu
+    fuzzel # Application launcher and dmenu replacement for Wayland (successor of the unmaintained wofi)
     xdg-utils # Utilities for desktop integration (open URLs, files, etc.)
     xournalpp # Note-taking application with PDF annotation support
   ];
