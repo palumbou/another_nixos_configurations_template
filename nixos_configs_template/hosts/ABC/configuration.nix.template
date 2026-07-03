@@ -50,8 +50,9 @@
   # different releases (e.g. an old host on 25.11, a new one on 26.05).
   system.stateVersion = "${NIXOS_VERSION}";
 
-  # Enable syncing for the specified folders in Syncthing
-  services.syncthing.settings.folders.NAME FOLDER.enable = true;
+  # Enable syncing for the specified folders in Syncthing (set the folder name
+  # defined in syncthing.nix and uncomment together with the syncthing.nix import)
+  #services.syncthing.settings.folders."FOLDER_NAME".enable = true;
 
   ## Hardware graphics acceleration
   #hardware.graphics = {
