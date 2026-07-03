@@ -39,6 +39,7 @@ common/
     ├── default_packages_services.nix.template
     ├── extra_packages_services.nix
     ├── external_monitor.nix
+    ├── gamestation_packages.nix
     ├── grub.nix
     ├── kde_packages.nix
     ├── syncthing.nix.template
@@ -90,6 +91,8 @@ Questa cartella include configurazioni per pacchetti e servizi. Ogni file ha il 
   Pacchetti e servizi per configurazioni specifiche (ad es. l'installazione di **solaar** per dispositivi Logitech).
 - **`external_monitor.nix`**  
   Supporto per monitor esterni tramite DDC/CI: abilita il bus I2C (`hardware.i2c.enable`) e installa `ddcutil` (controllo brightness/contrasto/input via DDC/CI) e `v4l-utils` (gestione webcam e dispositivi video). Aggiunge automaticamente l'utente al gruppo `i2c` se il bus è abilitato (condizione definita in `users/<username>/user.nix`).
+- **`gamestation_packages.nix`**  
+  Pacchetti e servizi per il gaming: Steam tramite il modulo NixOS (che abilita anche le librerie grafiche 32-bit e le regole udev steam-hardware necessarie a Steam Input per i controller) e il launcher Heroic per Epic Games Store/GOG/Amazon.
 - **`grub.nix`**  
   Configurazione del boot loader (GRUB) (ad es. abilitare il tema "catppuccin").
 - **`kde_packages.nix`**  

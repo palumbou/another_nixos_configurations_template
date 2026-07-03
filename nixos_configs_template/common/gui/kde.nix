@@ -1,10 +1,10 @@
-{ config, ... }:
+{ config, pkgs, ... }:
 {
-  imports =
-    [
-      ../config/audio.nix
-      ../../common/packages/kde_packages.nix
-    ];
+  imports = [
+    ../config/audio.nix
+    ./themes/grub/grub_catppuccin.nix
+    ../packages/kde_packages.nix
+  ];
 
   # Enable the X11 windowing system.
   # You can disable this if you're only using the Wayland session.

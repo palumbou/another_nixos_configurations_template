@@ -17,13 +17,13 @@
       expat
       
       # Graphics and display
-      xorg.libX11
-      xorg.libXcursor
-      xorg.libXrandr
-      xorg.libXi
-      xorg.libXext
-      xorg.libXrender
-      xorg.libxcb
+      libx11
+      libxcursor
+      libxrandr
+      libxi
+      libxext
+      libxrender
+      libxcb
       libglvnd
       
       # Audio

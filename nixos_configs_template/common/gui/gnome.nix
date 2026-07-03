@@ -17,5 +17,5 @@
   #services.xserver.libinput.enable = true;
 
   # Enable Bluetooth support with Blueman (GUI Bluetooth manager)
-  #services.blueman.enable = true;
+  services.blueman.enable = true;
 }

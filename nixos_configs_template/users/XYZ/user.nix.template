@@ -1,6 +1,8 @@
 { config, lib, pkgs, ... }:
 {
-  # Enables declarative user configuration, preventing manual creation of users with "useradd".
+  # Allow imperative changes to users (useradd/passwd still work and their
+  # changes persist). Set to false for fully declarative user management,
+  # where only what is defined here exists.
   users.mutableUsers = true;
 
   # Declares a group named "${USER}" with GID 1000 and assigns "${USER}" as a member.

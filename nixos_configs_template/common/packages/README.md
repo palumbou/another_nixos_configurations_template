@@ -9,6 +9,7 @@ This folder contains configuration files for various package groups and services
 - **`default_packages_services.nix`** - Essential default packages and services for basic system functionality
 - **`extra_packages_services.nix`** - Additional packages and services for extended functionality
 - **`external_monitor.nix`** - External monitor support via DDC/CI: enables the I2C bus and installs `ddcutil` (brightness/contrast/input control) and `v4l-utils` (webcam and video capture device management). Automatically adds the user to the `i2c` group when the bus is enabled
+- **`gamestation_packages.nix`** - Gaming packages and services: Steam via the NixOS module (32-bit graphics libraries and steam-hardware udev rules for controller support) and the Heroic launcher for Epic Games Store/GOG/Amazon games
 - **`grub.nix`** - GRUB bootloader configuration (must be imported when using GRUB as bootloader)
 - **`kde_packages.nix`** - Packages specific to the KDE Plasma environment (already imported in file ../gui/kde.nix)
 - **`syncthing.nix`** - Configuration for the Syncthing file synchronization service

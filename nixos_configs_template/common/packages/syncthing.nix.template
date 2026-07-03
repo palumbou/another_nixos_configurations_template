@@ -62,7 +62,11 @@
   # Prevents creating the default "Sync" folder in the user's home directory during the first sync
   systemd.services.syncthing.environment.STNODEFAULTFOLDER = "true";
 
-  # Uncomment the following lines to configure the firewall:
+  # Uncomment the following lines to configure the firewall.
+  # Open only what you actually use:
+  # - 22000 (TCP/UDP): sync listener (UDP only needed for the QUIC listener)
+  # - 21027/UDP: local discovery (only if localAnnounceEnabled = true)
+  # - 8384/TCP: web GUI (only if the GUI is NOT bound to localhost)
   # networking.firewall.allowedTCPPorts = [ 8384 22000 ]; # Opens required TCP ports for Syncthing
   # networking.firewall.allowedUDPPorts = [ 22000 21027 ]; # Opens required UDP ports for Syncthing
 }

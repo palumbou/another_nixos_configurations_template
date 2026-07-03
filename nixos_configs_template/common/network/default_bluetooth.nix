@@ -6,7 +6,7 @@
     powerOnBoot = true;  # Turn on Bluetooth adapter at boot
     settings = {
       General = {
-        DiscoverableTimeout = 180;  # Disable discoverable timeout
+        DiscoverableTimeout = 180;  # Stay discoverable for 180 seconds (0 = always discoverable)
         Experimental = true;  # Enable experimental features (e.g. some codecs)
         FastConnectable = true;
         MultiProfile = "off";  # Disable multi-profile support; possible values: "off", "single", "multiple"

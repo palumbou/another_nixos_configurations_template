@@ -4,9 +4,13 @@
   services.tlp = {
     enable = true;
     settings = {
-      # Battery charge thresholds
+      # Battery charge thresholds.
+      # Some laptops expose the battery as BAT0 (Lenovo, Dell), others as BAT1
+      # (e.g. Framework): both are set, TLP ignores the one that doesn't exist.
       START_CHARGE_THRESH_BAT0 = 75;
       STOP_CHARGE_THRESH_BAT0 = 80;
+      START_CHARGE_THRESH_BAT1 = 75;
+      STOP_CHARGE_THRESH_BAT1 = 80;
 
       # CPU profiles
       CPU_SCALING_GOVERNOR_ON_AC = "performance";

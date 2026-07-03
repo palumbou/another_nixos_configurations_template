@@ -68,17 +68,20 @@
   #   enableSSHSupport = true;
   # };
 
-  # Enable dynamic linker compatibility for non-Nix binaries (e.g., VS Code Remote SSH)
-  programs.nix-ld.enable = true;
+  # Note: nix-ld (dynamic linker compatibility for non-Nix binaries) is
+  # enabled and fully configured in common/config/os_compatibility.nix.
 
   # List services that you want to enable:
   services.openssh = {
     enable = true;
     ports = [${SSH_PORT}];
     settings = {
+      # Password login is kept for the regular user; direct root login is
+      # disabled (log in as your user and use sudo). Once key-based login is
+      # verified from all machines, set PasswordAuthentication = false too.
       PasswordAuthentication = true;
       KbdInteractiveAuthentication = false;
-      PermitRootLogin = "yes";
+      PermitRootLogin = "no";
     };
   };
 }
