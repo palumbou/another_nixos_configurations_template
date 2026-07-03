@@ -31,4 +31,17 @@
       USB_AUTOSUSPEND = 0;
     };
   };
+
+  # UPower: last-resort protection against a dying battery.
+  # Hibernates automatically at 7% while discharging, so a drained battery
+  # results in a clean hibernation instead of a hard power loss.
+  # Keep percentageAction below any user-space battery watcher threshold
+  # to avoid racing with it. No-op on hosts without a battery.
+  services.upower = {
+    enable = true;
+    percentageLow = 15;             # battery is considered low
+    percentageCritical = 10;        # battery is considered critical
+    percentageAction = 7;           # threshold that triggers the action below
+    criticalPowerAction = "Hibernate";
+  };
 }

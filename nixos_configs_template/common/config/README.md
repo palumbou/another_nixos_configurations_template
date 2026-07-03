@@ -8,7 +8,7 @@ This folder contains core system configuration files that define fundamental sys
 
 - **`audio.nix`** - Centralized audio configuration with PipeWire, wireplumber session manager, rtkit for real-time priority, ALSA support (32-bit and 64-bit), PulseAudio compatibility layer, JACK support for professional audio applications, and audio utilities (pulseaudio CLI tools, pwvucontrol GUI). Automatically imported by desktop environment configurations (Hyprland, GNOME, KDE)
 - **`audio_airplay.nix`** - Optional AirPlay/RAOP streaming support for sending audio to AirPlay-compatible devices (Apple HomePod, Denon Home speakers, etc.). Configures PipeWire's libpipewire-module-raop-discover and Avahi mDNS for device discovery. Import this only in host configurations that need AirPlay functionality
-- **`battery_management.nix`** - Configuration for TLP battery management and power saving features, including battery charge thresholds, CPU scaling governors, and energy performance policies for both AC and battery modes
+- **`battery_management.nix`** - Configuration for TLP battery management and power saving features, including battery charge thresholds, CPU scaling governors, and energy performance policies for both AC and battery modes. Also enables UPower as a last-resort protection against battery drain: the system hibernates automatically at 7% while discharging instead of losing power abruptly
 - **`boot_luks.nix`** - Configuration for LUKS encryption boot and Plymouth boot splash settings
 - **`os_compatibility.nix`** - Enables compatibility with pre-compiled binaries on NixOS using nix-ld. Provides standard Linux library paths and common shared libraries (libc, libstdc++, X11, OpenGL, audio, etc.) allowing execution of non-NixOS binaries without patching. Includes support for FHS (Filesystem Hierarchy Standard) compatible applications. Also configures udev rules for HID device access (needed for WebHID API in Chrome/Chromium to access keyboards, mice, and other USB/HID devices) using the modern TAG+="uaccess" mechanism. Safe to keep enabled even when not actively using external binaries (automatically imported by `system.nix`)
 - **`os_optimization.nix`** - System optimization settings including automatic garbage collection, Nix store optimization, systemd journal limits, SSD TRIM support, and zram configuration (automatically imported by `system.nix`)
@@ -36,7 +36,7 @@ imports = [
 
 The configuration files in this directory define foundational system settings. You can:
 
-- Modify `battery_management.nix` to adjust TLP battery thresholds and power management policies
+- Modify `battery_management.nix` to adjust TLP battery thresholds, power management policies, and the UPower low-battery hibernation thresholds
 - Modify `boot_luks.nix` to customize encrypted boot settings and Plymouth configuration
 - Modify `sudo.nix` to adjust user privilege levels and security policies (note: imported automatically by `system.nix`)
 - Modify `os_optimization.nix` to tune Nix garbage collection, store optimization, and system resource management (note: imported automatically by `system.nix`)
