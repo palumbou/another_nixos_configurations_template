@@ -21,13 +21,13 @@ This guide explains how to upgrade your NixOS system to a newer version, both fo
 ## Understanding NixOS Versions
 
 NixOS uses a versioning scheme of `YY.MM`:
-- **Major version**: represents a significant release (e.g., 24.11, 25.05, 25.11)
+- **Major version**: represents a significant release (e.g., 25.05, 25.11, 26.05)
 - **Minor version**: bug fixes and security updates within the same major version
 
 Examples:
-- `24.11` → `25.05`: **Major upgrade**
 - `25.05` → `25.11`: **Major upgrade**
-- Updates within `25.11`: **Minor upgrade** (channel updates, package updates)
+- `25.11` → `26.05`: **Major upgrade**
+- Updates within `26.05`: **Minor upgrade** (channel updates, package updates)
 
 ---
 
@@ -36,7 +36,7 @@ Examples:
 The `system.stateVersion` variable in your configuration is **critical** and should be handled with care:
 
 ```nix
-system.stateVersion = "25.11"; # This value determines the stateful data schema
+system.stateVersion = "26.05"; # This value determines the stateful data schema
 ```
 
 ### What is stateVersion?
@@ -89,7 +89,7 @@ nix-channel --list > ~/channels-before-upgrade.txt
 ### 2. Review the Release Notes
 
 Always read the release notes for the target version:
-- [NixOS 25.11 Release Notes](https://nixos.org/manual/nixos/stable/release-notes.html#sec-release-25.11)
+- [NixOS 26.05 Release Notes](https://nixos.org/manual/nixos/stable/release-notes.html#sec-release-26.05)
 - [NixOS Manual](https://nixos.org/manual/nixos/stable/)
 
 Look for:
@@ -142,7 +142,7 @@ Minor upgrades are updates within the same NixOS version (e.g., package updates,
 
 ## Major Version Upgrade
 
-Major upgrades involve switching to a new NixOS release (e.g., 25.05 → 25.11).
+Major upgrades involve switching to a new NixOS release (e.g., 25.11 → 26.05).
 
 ### Method 1: Using Channels (Recommended for Stable Systems)
 
@@ -152,8 +152,8 @@ Major upgrades involve switching to a new NixOS release (e.g., 25.05 → 25.11).
 # Check current channels
 sudo nix-channel --list
 
-# Switch to the new version (example: 25.11)
-sudo nix-channel --add https://nixos.org/channels/nixos-25.11 nixos
+# Switch to the new version (example: 26.05)
+sudo nix-channel --add https://nixos.org/channels/nixos-26.05 nixos
 sudo nix-channel --update
 ```
 
@@ -181,7 +181,7 @@ sudo reboot
 
 ```bash
 nixos-version
-# Should show: 25.11.xxxxxx.xxxxxxx (NixOS)
+# Should show: 26.05.xxxxxx.xxxxxxx (NixOS)
 ```
 
 ---

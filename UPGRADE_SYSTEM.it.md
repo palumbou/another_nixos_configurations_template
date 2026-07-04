@@ -21,13 +21,13 @@ Questa guida spiega come aggiornare il tuo sistema NixOS a una versione più rec
 ## Comprendere le Versioni di NixOS
 
 NixOS utilizza uno schema di versioning `AA.MM`:
-- **Versione major**: rappresenta un rilascio significativo (es. 24.11, 25.05, 25.11)
+- **Versione major**: rappresenta un rilascio significativo (es. 25.05, 25.11, 26.05)
 - **Versione minor**: correzioni di bug e aggiornamenti di sicurezza all'interno della stessa versione major
 
 Esempi:
-- `24.11` → `25.05`: **Aggiornamento major**
 - `25.05` → `25.11`: **Aggiornamento major**
-- Aggiornamenti all'interno di `25.11`: **Aggiornamento minor** (aggiornamenti channel, aggiornamenti pacchetti)
+- `25.11` → `26.05`: **Aggiornamento major**
+- Aggiornamenti all'interno di `26.05`: **Aggiornamento minor** (aggiornamenti channel, aggiornamenti pacchetti)
 
 ---
 
@@ -36,7 +36,7 @@ Esempi:
 La variabile `system.stateVersion` nella tua configurazione è **critica** e deve essere gestita con cura:
 
 ```nix
-system.stateVersion = "25.11"; # Questo valore determina lo schema dei dati stateful
+system.stateVersion = "26.05"; # Questo valore determina lo schema dei dati stateful
 ```
 
 ### Cos'è stateVersion?
@@ -89,7 +89,7 @@ nix-channel --list > ~/channels-prima-aggiornamento.txt
 ### 2. Rivedi le Note di Rilascio
 
 Leggi sempre le note di rilascio per la versione target:
-- [Note di Rilascio NixOS 25.11](https://nixos.org/manual/nixos/stable/release-notes.html#sec-release-25.11)
+- [Note di Rilascio NixOS 26.05](https://nixos.org/manual/nixos/stable/release-notes.html#sec-release-26.05)
 - [Manuale NixOS](https://nixos.org/manual/nixos/stable/)
 
 Cerca:
@@ -142,7 +142,7 @@ Gli aggiornamenti minor sono aggiornamenti all'interno della stessa versione Nix
 
 ## Aggiornamento Versione Major
 
-Gli aggiornamenti major comportano il passaggio a un nuovo rilascio di NixOS (es. 25.05 → 25.11).
+Gli aggiornamenti major comportano il passaggio a un nuovo rilascio di NixOS (es. 25.11 → 26.05).
 
 ### Metodo 1: Utilizzando i Channel (Raccomandato per Sistemi Stabili)
 
@@ -152,8 +152,8 @@ Gli aggiornamenti major comportano il passaggio a un nuovo rilascio di NixOS (es
 # Controlla i channel attuali
 sudo nix-channel --list
 
-# Passa alla nuova versione (esempio: 25.11)
-sudo nix-channel --add https://nixos.org/channels/nixos-25.11 nixos
+# Passa alla nuova versione (esempio: 26.05)
+sudo nix-channel --add https://nixos.org/channels/nixos-26.05 nixos
 sudo nix-channel --update
 ```
 
@@ -181,7 +181,7 @@ sudo reboot
 
 ```bash
 nixos-version
-# Dovrebbe mostrare: 25.11.xxxxxx.xxxxxxx (NixOS)
+# Dovrebbe mostrare: 26.05.xxxxxx.xxxxxxx (NixOS)
 ```
 
 ---

@@ -23,7 +23,8 @@ I decided to turn my configs into a readable, heavily commented template that an
 
 This repository maintains different branches for different NixOS versions:
 
-- **`master`** - Contains configurations for **NixOS 25.05**
+- **`master`** - Contains configurations for **NixOS 25.11**
+- **`26.05`** - Contains configurations for **NixOS 26.05**
 - **`25.11`** - Contains configurations for **NixOS 25.11** (aligned with master)
 - **`25.05`** - Contains configurations for **NixOS 25.05**
 - **`24.11`** - Contains configurations for **NixOS 24.11**
