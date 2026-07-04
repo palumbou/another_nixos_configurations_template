@@ -8,6 +8,7 @@ Questa cartella contiene configurazioni di rete che possono essere condivise tra
 
 ```bash
 network/
+├── default_bluetooth.nix   # Configurazione del supporto Bluetooth
 ├── default_network.nix     # Configurazione principale di NetworkManager + WireGuard
 └── nmconnection_files/     # File di connessione di NetworkManager
     ├── example-wifi.nmconnection

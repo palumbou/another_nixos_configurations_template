@@ -115,7 +115,7 @@ This folder contains **network-related** configurations:
 - **`default_bluetooth.nix`**  
   Basic configuration for Bluetooth support with blueman as the bluetooth manager.
 - **`default_network.nix`**  
-  Basic configuration for NetworkManager.
+  Basic configuration for NetworkManager, WireGuard tools, and the firewall.
 - **`nmconnection_files`**  
   A subfolder for storing `.nmconnection` files that define WiFi, VPN, or other network connections managed by NetworkManager.
 

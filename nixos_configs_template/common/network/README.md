@@ -8,6 +8,7 @@ This folder contains network configurations that can be shared across your NixOS
 
 ```bash
 network/
+├── default_bluetooth.nix   # Bluetooth support configuration
 ├── default_network.nix     # Main NetworkManager + WireGuard configuration
 └── nmconnection_files/     # NetworkManager connection files
     ├── example-wifi.nmconnection

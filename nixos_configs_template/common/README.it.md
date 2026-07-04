@@ -115,7 +115,7 @@ Questa cartella contiene configurazioni **relative alla rete**:
 - **`default_bluetooth.nix`**  
   Configurazione di base per il supporto Bluetooth con blueman come gestore bluetooth.
 - **`default_network.nix`**  
-  Configurazione di base per NetworkManager.
+  Configurazione di base per NetworkManager, gli strumenti WireGuard e il firewall.
 - **`nmconnection_files`**  
   Una sottocartella per archiviare i file `.nmconnection` che definiscono WiFi, VPN o altre connessioni di rete gestite da NetworkManager.
 
