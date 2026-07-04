@@ -8,7 +8,7 @@ This folder contains network configurations that can be shared across your NixOS
 
 ```bash
 network/
-├── networkmanager.nix      # Main NetworkManager configuration
+├── default_network.nix     # Main NetworkManager + WireGuard configuration
 └── nmconnection_files/     # NetworkManager connection files
     ├── example-wifi.nmconnection
     ├── example-vpn.nmconnection
@@ -17,7 +17,7 @@ network/
 
 ## Available Files
 
-- **`networkmanager.nix`** - Configures NetworkManager as the network connection manager
+- **`default_network.nix`** - Configures NetworkManager, WireGuard tools, and the firewall
 
 ### `nmconnection_files` Subfolder
 
@@ -25,14 +25,14 @@ This folder contains `.nmconnection` files that define specific connections for 
 
 ## Usage
 
-### Base NetworkManager Configuration
+### Base Network Configuration
 
-To enable NetworkManager on your host, import the `networkmanager.nix` file in your `configuration.nix` file:
+To enable NetworkManager and WireGuard tools on your host, import `default_network.nix` in your `configuration.nix`:
 
 ```nix
 imports = [
   # ...other imports...
-  ../common/network/networkmanager.nix
+  ../common/network/default_network.nix
 ];
 ```
 
@@ -68,7 +68,7 @@ The `.nmconnection` files contain details to configure specific connections (WiF
 ```nix
 imports = [
   # ...other imports...
-  ../common/network/networkmanager.nix
+  ../common/network/default_network.nix
   ./nm_configurations.nix
 ];
 ```
@@ -80,10 +80,25 @@ imports = [
   - Consider using more secure methods like Nix Secrets for credentials
   - Avoid committing sensitive information to version control
 
+### WireGuard VPN
+
+`default_network.nix` includes `wireguard-tools` for managing WireGuard VPN tunnels.
+The WireGuard kernel module is built-in since Linux 5.6+, and NetworkManager has native WireGuard support — no extra plugin is required.
+
+To configure a WireGuard interface, you can either:
+- Use `wg-quick` with a config file in `/etc/wireguard/wg0.conf`
+- Use NetworkManager's native WireGuard connection type
+
+If this host acts as a WireGuard server or listener, uncomment `allowedUDPPorts` in the firewall section of `default_network.nix`:
+
+```nix
+networking.firewall.allowedUDPPorts = [ 51820 ];
+```
+
 ## Customization
 
 You can extend the network configuration by:
 
 - Adding new `.nmconnection` files to the `nmconnection_files` folder
-- Modifying the `networkmanager.nix` file to change default settings
+- Modifying `default_network.nix` to change default settings or enable the WireGuard firewall port
 - Creating alternative configurations for other networking systems (like systemd-networkd)
