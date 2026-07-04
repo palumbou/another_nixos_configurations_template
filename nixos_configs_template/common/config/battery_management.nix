@@ -1,5 +1,9 @@
 { config, ... }:
 {
+  # TLP replaces power-profiles-daemon, which KDE Plasma and GNOME enable
+  # by default: the two conflict, so disable it explicitly.
+  services.power-profiles-daemon.enable = false;
+
   # Enable TLP for battery management and power saving
   services.tlp = {
     enable = true;

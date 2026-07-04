@@ -16,21 +16,21 @@
 {
   services.syncthing = {
     enable = true; # Enables the Syncthing service
-    configDir = ""; # Directory for Syncthing configuration files
-    dataDir = ""; # Directory where Syncthing stores its synced data
-    guiAddress = ""; # Sets the web interface to run on this address and port
+    #configDir = ""; # Directory for Syncthing configuration files (default: <dataDir>/.config/syncthing)
+    #dataDir = ""; # Directory where Syncthing stores its synced data (default: /var/lib/syncthing)
+    #guiAddress = ""; # Sets the web interface to run on this address and port (default: 127.0.0.1:8384)
     overrideDevices = false; # Keeps manually added devices persistent across configuration changes
     overrideFolders = false; # Keeps manually added folders persistent across configuration changes
     systemService = true; # Runs Syncthing as a system-wide service
     settings = {
       gui = {
         enabled = true; # Enables the Syncthing web interface
-        address = ""; # Sets the address for the web interface
+        #address = ""; # Sets the address for the web interface (default: guiAddress)
         tls = true; # Enables HTTPS for secure access to the web interface
         theme = "black"; # Sets the web interface theme to "black"
       };
       options = {
-        listenAddresses = [ "" ]; # Listens for connections on this address
+        #listenAddresses = [ "" ]; # Listens for connections on this address (default: [ "default" ])
         globalAnnounceEnabled = true; # Enables global device discovery
         localAnnounceEnabled = true; # Enables local device discovery
         natEnabled = true; # Enables NAT traversal
@@ -57,6 +57,7 @@
       #    devices = [ "DEVICE1" ]; # The list of remote devices to sync with
       #  };
       #};
+    };
   };
 
   # Prevents creating the default "Sync" folder in the user's home directory during the first sync
