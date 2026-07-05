@@ -282,6 +282,10 @@ Must show all files signed:
 
 > **Note**: it is normal for `kernel-*.efi` (or `*-bzImage.efi`) files to show as **"is not signed"**. With Lanzaboote they don't need to be signed: the chain of trust is firmware → signed stub (`nixos-generation-*.efi`) → kernel, and the stub verifies the kernel and initrd through hashes embedded inside it. What matters is that the stubs, the bootloader, and `BOOTX64.EFI` are signed.
 
+> **Warning — never sign the kernels manually**: do not run `sbctl sign` or `sbctl sign-all` on the `kernel-*.efi` files in `EFI/nixos/`. Signing modifies the PE binary and invalidates the hash embedded in the stub: at the next boot with Secure Boot enabled the stub stops with **"Kernel hash does not match!"** followed by a security violation, and the system won't boot. With Lanzaboote only the stubs get signed, and `lzbt` does it automatically at every rebuild.
+>
+> **If it happens**: boot with Secure Boot temporarily disabled, remove the signatures from sbctl's database (`sudo sbctl remove-file /boot/EFI/nixos/kernel-<version>.efi` for each signed kernel), delete those kernel files from the ESP, then run `sudo /run/current-system/bin/switch-to-configuration boot` to copy clean kernels back and regenerate the stubs. Check with `sudo sbctl verify`, then re-enable Secure Boot.
+
 ---
 
 ### Phase E — Enable Secure Boot
@@ -295,6 +299,14 @@ Same procedure as Method 1:
 5. Save and exit
 
 With Lanzaboote, **no manual signing is required** after future updates.
+
+After rebooting, confirm Secure Boot is active:
+
+```bash
+sudo bootctl status
+```
+
+The output must show `Secure Boot: enabled (user)` — "user" means the firmware is using your enrolled keys.
 
 ---
 

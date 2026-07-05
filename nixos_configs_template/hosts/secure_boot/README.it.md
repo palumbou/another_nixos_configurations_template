@@ -286,6 +286,10 @@ Deve mostrare tutti i file firmati:
 
 > **Nota**: è normale che i file `kernel-*.efi` (o `*-bzImage.efi`) risultino **"is not signed"**. Con Lanzaboote non vanno firmati: la catena di fiducia è firmware → stub firmato (`nixos-generation-*.efi`) → kernel, e lo stub verifica kernel e initrd tramite gli hash incorporati al suo interno. Quello che conta è che gli stub, il bootloader e `BOOTX64.EFI` siano firmati.
 
+> **Attenzione — mai firmare i kernel manualmente**: non eseguire `sbctl sign` o `sbctl sign-all` sui file `kernel-*.efi` in `EFI/nixos/`. La firma modifica il binario PE e invalida l'hash incorporato nello stub: al successivo avvio con Secure Boot abilitato lo stub si ferma con **"Kernel hash does not match!"** seguito da una security violation, e il sistema non si avvia. Con Lanzaboote si firmano solo gli stub, e lo fa `lzbt` automaticamente a ogni rebuild.
+>
+> **Se succede**: avviare con Secure Boot temporaneamente disabilitato, rimuovere le firme dal database di sbctl (`sudo sbctl remove-file /boot/EFI/nixos/kernel-<versione>.efi` per ogni kernel firmato), eliminare quei file kernel dalla ESP, poi eseguire `sudo /run/current-system/bin/switch-to-configuration boot` per ricopiare kernel puliti e rigenerare gli stub. Controllare con `sudo sbctl verify`, quindi riabilitare Secure Boot.
+
 ---
 
 ### Fase E — Abilitare Secure Boot
@@ -299,6 +303,14 @@ Stessa procedura del Metodo 1:
 5. Salvare e uscire
 
 Con Lanzaboote, **non è richiesta firma manuale** dopo gli aggiornamenti futuri.
+
+Dopo il riavvio, confermare che Secure Boot sia attivo:
+
+```bash
+sudo bootctl status
+```
+
+L'output deve mostrare `Secure Boot: enabled (user)` — "user" indica che il firmware sta usando le chiavi registrate da te.
 
 ---
 
