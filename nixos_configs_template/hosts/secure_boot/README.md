@@ -61,7 +61,7 @@ Before proceeding, ensure:
 To verify systemd-boot is active:
 
 ```bash
-bootctl status
+sudo bootctl status
 ```
 
 This command also shows your current Secure Boot status and other important information:
@@ -181,7 +181,7 @@ Forgetting this step will prevent boot after enabling Secure Boot.
 ### Phase D — Verification (mandatory)
 
 ```bash
-sbctl verify
+sudo sbctl verify
 ```
 
 All boot files must show as **signed**. Example output:
@@ -271,7 +271,7 @@ Lanzaboote will automatically sign all boot files during the rebuild.
 ### Phase D — Verification (mandatory)
 
 ```bash
-sbctl verify
+sudo sbctl verify
 ```
 
 Must show all files signed:
@@ -279,6 +279,8 @@ Must show all files signed:
 - `systemd-bootx64.efi`
 - `BOOTX64.EFI`
 - `nixos-generation-*.efi`
+
+> **Note**: it is normal for `kernel-*.efi` (or `*-bzImage.efi`) files to show as **"is not signed"**. With Lanzaboote they don't need to be signed: the chain of trust is firmware → signed stub (`nixos-generation-*.efi`) → kernel, and the stub verifies the kernel and initrd through hashes embedded inside it. What matters is that the stubs, the bootloader, and `BOOTX64.EFI` are signed.
 
 ---
 
@@ -328,7 +330,7 @@ With Lanzaboote, **no manual signing is required** after future updates.
 
 Regardless of the chosen method:
 
-- **Never enable Secure Boot before verification** - always run `sbctl verify` first
+- **Never enable Secure Boot before verification** - always run `sudo sbctl verify` first
 - **Keep a recovery method available** - BIOS access + NixOS live USB
 - **Test thoroughly** before deploying on production systems
 

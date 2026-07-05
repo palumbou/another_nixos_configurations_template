@@ -62,7 +62,7 @@ Prima di procedere, assicurati di avere:
 Per verificare che systemd-boot sia attivo:
 
 ```bash
-bootctl status
+sudo bootctl status
 ```
 
 Questo comando mostra anche lo stato attuale di Secure Boot e altre informazioni importanti:
@@ -182,7 +182,7 @@ Dimenticare questo passaggio impedirà l'avvio dopo aver abilitato Secure Boot.
 ### Fase D — Verifica (obbligatoria)
 
 ```bash
-sbctl verify
+sudo sbctl verify
 ```
 
 Tutti i file di boot devono risultare **firmati**. Esempio di output:
@@ -275,7 +275,7 @@ Lanzaboote firmerà automaticamente tutti i file di boot durante la ricostruzion
 ### Fase D — Verifica (obbligatoria)
 
 ```bash
-sbctl verify
+sudo sbctl verify
 ```
 
 Deve mostrare tutti i file firmati:
@@ -283,6 +283,8 @@ Deve mostrare tutti i file firmati:
 - `systemd-bootx64.efi`
 - `BOOTX64.EFI`
 - `nixos-generation-*.efi`
+
+> **Nota**: è normale che i file `kernel-*.efi` (o `*-bzImage.efi`) risultino **"is not signed"**. Con Lanzaboote non vanno firmati: la catena di fiducia è firmware → stub firmato (`nixos-generation-*.efi`) → kernel, e lo stub verifica kernel e initrd tramite gli hash incorporati al suo interno. Quello che conta è che gli stub, il bootloader e `BOOTX64.EFI` siano firmati.
 
 ---
 
@@ -332,7 +334,7 @@ Con Lanzaboote, **non è richiesta firma manuale** dopo gli aggiornamenti futuri
 
 Indipendentemente dal metodo scelto:
 
-- **Non abilitare mai Secure Boot prima della verifica** - eseguire sempre prima `sbctl verify`
+- **Non abilitare mai Secure Boot prima della verifica** - eseguire sempre prima `sudo sbctl verify`
 - **Mantenere disponibile un metodo di recovery** - accesso BIOS + USB live NixOS
 - **Testare accuratamente** prima di distribuire su sistemi di produzione
 
