@@ -11,6 +11,7 @@ common/
 ├── config/
 │   ├── audio.nix
 │   ├── audio_airplay.nix
+│   ├── audio_chromecast.nix
 │   ├── battery_management.nix
 │   ├── boot_luks.nix
 │   ├── os_compatibility.nix
@@ -55,6 +56,7 @@ This folder stores **Operating System-related** configurations:
 
 - **`audio.nix`** for centralized audio configuration with PipeWire, wireplumber session manager, rtkit for real-time priority, ALSA support (32-bit and 64-bit), PulseAudio compatibility layer, JACK support for professional audio applications, and audio utilities (pulseaudio CLI tools, pwvucontrol GUI). This file is automatically imported by desktop environment configurations (Hyprland, GNOME, KDE).
 - **`audio_airplay.nix`** for optional AirPlay/RAOP streaming support to send audio to AirPlay-compatible devices (Apple HomePod, Denon Home speakers, etc.). Configures PipeWire's libpipewire-module-raop-discover and Avahi mDNS for device discovery. Import this only in host configurations that need AirPlay functionality.
+- **`audio_chromecast.nix`** for optional Google Cast (Chromecast) streaming support to send audio to Cast-compatible devices (Google Home/Nest speakers, Chromecast, etc.). Runs pulseaudio-dlna as a systemd user service that creates a virtual audio sink for each device discovered on the LAN (works with PipeWire through the pipewire-pulse compatibility layer), and configures Avahi mDNS for device discovery plus the firewall ports needed for streaming. Import this only in host configurations that need Google Cast functionality.
 - **`battery_management.nix`** for configuring TLP battery management and power saving features. It includes battery charge thresholds, CPU scaling governors, and energy performance policies for both AC and battery modes.
 - **`boot_luks.nix`** for configuring boot parameters with LUKS encryption support and Plymouth boot splash settings.
 - **`os_compatibility.nix`** for enabling compatibility with pre-compiled binaries on NixOS. It uses nix-ld to provide standard Linux library paths and common shared libraries, allowing execution of non-NixOS binaries without patching. This file is automatically imported by `system.nix`.

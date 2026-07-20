@@ -8,6 +8,7 @@ This folder contains core system configuration files that define fundamental sys
 
 - **`audio.nix`** - Centralized audio configuration with PipeWire, wireplumber session manager, rtkit for real-time priority, ALSA support (32-bit and 64-bit), PulseAudio compatibility layer, JACK support for professional audio applications, and audio utilities (pulseaudio CLI tools, pwvucontrol GUI). Automatically imported by desktop environment configurations (Hyprland, GNOME, KDE)
 - **`audio_airplay.nix`** - Optional AirPlay/RAOP streaming support for sending audio to AirPlay-compatible devices (Apple HomePod, Denon Home speakers, etc.). Configures PipeWire's libpipewire-module-raop-discover and Avahi mDNS for device discovery. Import this only in host configurations that need AirPlay functionality
+- **`audio_chromecast.nix`** - Optional Google Cast (Chromecast) streaming support for sending audio to Cast-compatible devices (Google Home/Nest speakers, Chromecast, etc.). PipeWire has no native Cast module, so this runs pulseaudio-dlna as a systemd user service that creates a virtual audio sink for each device discovered on the LAN (working with PipeWire through the pipewire-pulse compatibility layer). Also configures Avahi mDNS for device discovery and opens the firewall ports needed for streaming (TCP 8080, UDP 1900). Import this only in host configurations that need Google Cast functionality
 - **`battery_management.nix`** - Configuration for TLP battery management and power saving features, including battery charge thresholds, CPU scaling governors, and energy performance policies for both AC and battery modes. Also enables UPower as a last-resort protection against battery drain: the system hibernates automatically at 7% while discharging instead of losing power abruptly
 - **`boot_luks.nix`** - Configuration for LUKS encryption boot and Plymouth boot splash settings
 - **`os_compatibility.nix`** - Enables compatibility with pre-compiled binaries on NixOS using nix-ld. Provides standard Linux library paths and common shared libraries (libc, libstdc++, X11, OpenGL, audio, etc.) allowing execution of non-NixOS binaries without patching. Includes support for FHS (Filesystem Hierarchy Standard) compatible applications. Also configures udev rules for HID device access (needed for WebHID API in Chrome/Chromium to access keyboards, mice, and other USB/HID devices) using the modern TAG+="uaccess" mechanism. Safe to keep enabled even when not actively using external binaries (automatically imported by `system.nix`)
@@ -23,6 +24,7 @@ Import these configuration files in your host-specific `configuration.nix` file:
 imports = [
   # ...other imports...
   ../common/config/audio_airplay.nix  # Optional: only if you need AirPlay/RAOP streaming
+  ../common/config/audio_chromecast.nix  # Optional: only if you need Google Cast streaming
   ../common/config/boot_luks.nix  # Optional: only if using LUKS encryption
   ../common/config/battery_management.nix  # Optional: only for laptops
   ../common/config/system.nix  # Required: imports sudo.nix and os_optimization.nix automatically

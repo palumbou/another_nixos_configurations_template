@@ -11,6 +11,7 @@ common/
 ├── config/
 │   ├── audio.nix
 │   ├── audio_airplay.nix
+│   ├── audio_chromecast.nix
 │   ├── battery_management.nix
 │   ├── boot_luks.nix
 │   ├── os_compatibility.nix
@@ -55,6 +56,7 @@ Questa cartella archivia configurazioni **relative al Sistema Operativo**:
 
 - **`audio.nix`** per la configurazione audio centralizzata con PipeWire, session manager wireplumber, rtkit per la priorità real-time, supporto ALSA (32-bit e 64-bit), layer di compatibilità PulseAudio, supporto JACK per applicazioni audio professionali e utility audio (strumenti CLI pulseaudio, GUI pwvucontrol). Questo file viene importato automaticamente dalle configurazioni degli ambienti desktop (Hyprland, GNOME, KDE).
 - **`audio_airplay.nix`** per il supporto opzionale allo streaming AirPlay/RAOP per inviare audio a dispositivi compatibili AirPlay (Apple HomePod, speaker Denon Home, ecc.). Configura il modulo libpipewire-module-raop-discover di PipeWire e Avahi mDNS per il rilevamento dei dispositivi. Importare solo nelle configurazioni host che necessitano della funzionalità AirPlay.
+- **`audio_chromecast.nix`** per il supporto opzionale allo streaming Google Cast (Chromecast) per inviare audio a dispositivi compatibili Cast (speaker Google Home/Nest, Chromecast, ecc.). Esegue pulseaudio-dlna come servizio utente systemd che crea un sink audio virtuale per ogni dispositivo rilevato in LAN (funziona con PipeWire tramite il layer di compatibilità pipewire-pulse) e configura Avahi mDNS per il rilevamento dei dispositivi oltre alle porte firewall necessarie per lo streaming. Importare solo nelle configurazioni host che necessitano della funzionalità Google Cast.
 - **`battery_management.nix`** per configurare la gestione della batteria TLP e le funzionalità di risparmio energetico. Include soglie di carica della batteria, regolatori di frequenza CPU e politiche di prestazione energetiche per le modalità AC e batteria.
 - **`boot_luks.nix`** per configurare i parametri di boot con supporto alla crittografia LUKS e le impostazioni di Plymouth per la schermata di avvio.
 - **`os_compatibility.nix`** per abilitare la compatibilità con binari precompilati su NixOS. Utilizza nix-ld per fornire i percorsi delle librerie standard di Linux e le librerie condivise comuni, consentendo l'esecuzione di binari non-NixOS senza patch. Questo file viene importato automaticamente da `system.nix`.
