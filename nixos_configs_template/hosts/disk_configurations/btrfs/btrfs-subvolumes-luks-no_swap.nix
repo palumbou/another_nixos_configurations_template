@@ -35,9 +35,13 @@
                 passwordFile = "/tmp/secret.key"; # Currently points to a file, but can be replaced with interactive entry
                 settings = {
                   allowDiscards = true; # Allows TRIM operations on the encrypted partition
-                  # keyFile = "/tmp/secret.key"; # Uncomment if you want to use a key file
+                  # Unlock at boot with a USB key instead of typing the passphrase (see LUKS_KEYS.md):
+                  # keyFile = "/dev/usbkey";   # udev symlink to the USB key stick
+                  # keyFileSize = 4096;        # read only the first 4096 bytes as the key
+                  # keyFileTimeout = 10;       # fall back to the passphrase prompt after 10 seconds
                 };
-                # additionalKeyFiles = [ "/tmp/additionalSecret.key" ]; # Can be used to add extra keys
+                # Enroll extra keys (e.g. USB sticks) at format time (see LUKS_KEYS.md):
+                # additionalKeyFiles = [ "/tmp/usbkey1.key" "/tmp/usbkey2.key" ];
 
                 # Inside the LUKS container, set up a Btrfs filesystem
                 content = {

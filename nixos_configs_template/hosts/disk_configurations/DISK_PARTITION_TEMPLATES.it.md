@@ -2,7 +2,7 @@
 
 > **Lingue disponibili**: [English](DISK_PARTITION_TEMPLATES.md) | [Italiano (corrente)](DISK_PARTITION_TEMPLATES.it.md)
 
-Questo documento offre una panoramica descrittiva dei sette template disponibili per il partizionamento del disco utilizzando il modulo **Disko** per NixOS. Ogni template fornisce un modo specifico e dichiarativo per configurare automaticamente partizioni, filesystem ed eventualmente cifratura LUKS.
+Questo documento offre una panoramica descrittiva degli otto template disponibili per il partizionamento del disco utilizzando il modulo **Disko** per NixOS. Ogni template fornisce un modo specifico e dichiarativo per configurare automaticamente partizioni, filesystem ed eventualmente cifratura LUKS.
 
 ## Templates Btrfs
 
@@ -14,12 +14,12 @@ Questo documento offre una panoramica descrittiva dei sette template disponibili
 ### 2. `btrfs-subvolumes.nix`
 - Tabella GPT con partizione EFI (ESP) montata su `/boot`.
 - Partizione root Btrfs con compressione `zstd` e organizzazione in subvolumi dedicati (es. root, home, nix-store).
-- Include anche una partizione swap (2GB).
+- Include swapfile di esempio (valori demo da 20 MB, da adattare).
 
 ### 3. `btrfs-subvolumes-luks.nix`
 - Tabella GPT con partizione EFI (ESP) da 512 MB montata su `/boot`.
 - Partizione LUKS che cifra tutto lo spazio rimanente, contenente filesystem Btrfs organizzato in subvolumi.
-- Include swap criptato (2GB).
+- Include uno swapfile di esempio cifrato (valore demo da 20 MB) in un subvolume dedicato.
 
 ### 4. `btrfs-subvolumes-luks-no_swap.nix`
 - Simile al template precedente (`btrfs-subvolumes-luks.nix`) ma senza partizione swap.
@@ -38,6 +38,10 @@ Questo documento offre una panoramica descrittiva dei sette template disponibili
 ### 7. `single-disk-ext4-luks.nix`
 - Tabella GPT con partizione EFI (ESP) da 500MB montata su `/boot`.
 - Cifratura LUKS su una singola partizione che occupa il resto del disco, formattata con Ext4.
+
+### 8. `single-disk-ext4-bios-luks.nix`
+- Tabella GPT con partizione di boot BIOS da 1MB (compatibile con avvio GRUB in modalità BIOS) e una partizione `/boot` ext4 separata non cifrata da 1GB.
+- Cifratura LUKS sulla partizione root che occupa il resto del disco, formattata con Ext4.
 
 ## Come utilizzare i template
 

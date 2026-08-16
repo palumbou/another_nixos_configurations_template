@@ -31,6 +31,7 @@ hosts/
     └── ext4/
         ├── single-disk-ext4.nix
         ├── single-disk-ext4-bios.nix
+        ├── single-disk-ext4-bios-luks.nix
         └── single-disk-ext4-luks.nix
 ```
 
@@ -167,6 +168,8 @@ cryptsetup luksOpen /dev/nvme0n1p2 data
 mount /dev/mapper/data /mnt
 ```
 This makes the encrypted volume available at `/dev/mapper/data`.
+
+For a complete guide to key management — multiple keyslots, unlocking with one or more USB key sticks (enrolled at format time or added later), and the boot-time options (`keyFile`, `keyFileTimeout`, …) — see [LUKS_KEYS.md](LUKS_KEYS.md).
 
 ---
 

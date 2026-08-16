@@ -32,9 +32,17 @@
                 # Designate this partition as a LUKS container
                 type = "luks";
                 name = "crypted";       # Name for the LUKS volume
-                settings.allowDiscards = true; # Enables TRIM operations on the encrypted volume
                 # Use a password file instead of interactive entry
                 passwordFile = "/tmp/secret.key";
+                settings = {
+                  allowDiscards = true; # Enables TRIM operations on the encrypted volume
+                  # Unlock at boot with a USB key instead of typing the passphrase (see LUKS_KEYS.md):
+                  # keyFile = "/dev/usbkey";   # udev symlink to the USB key stick
+                  # keyFileSize = 4096;        # read only the first 4096 bytes as the key
+                  # keyFileTimeout = 10;       # fall back to the passphrase prompt after 10 seconds
+                };
+                # Enroll extra keys (e.g. USB sticks) at format time (see LUKS_KEYS.md):
+                # additionalKeyFiles = [ "/tmp/usbkey1.key" "/tmp/usbkey2.key" ];
 
                 # Inside the LUKS container, format as an ext4 filesystem
                 content = {

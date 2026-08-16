@@ -2,7 +2,7 @@
 
 > **Available languages**: [English (current)](DISK_PARTITION_TEMPLATES.md) | [Italiano](DISK_PARTITION_TEMPLATES.it.md)
 
-This document provides an overview of the seven available disk partitioning templates using the **Disko** module for NixOS. Each template provides a specific and declarative way to automatically configure partitions, filesystems, and optionally LUKS encryption.
+This document provides an overview of the eight available disk partitioning templates using the **Disko** module for NixOS. Each template provides a specific and declarative way to automatically configure partitions, filesystems, and optionally LUKS encryption.
 
 ## Btrfs Templates
 
@@ -14,12 +14,12 @@ This document provides an overview of the seven available disk partitioning temp
 ### 2. `btrfs-subvolumes.nix`
 - GPT partition table with EFI partition (ESP) mounted at `/boot`.
 - Root partition formatted as Btrfs with `zstd` compression and organized into dedicated subvolumes (e.g., root, home, nix-store).
-- Includes a swap partition (2GB).
+- Includes example swapfiles (20 MB demo values, meant to be adjusted).
 
 ### 3. `btrfs-subvolumes-luks.nix`
 - GPT partition table with 512MB EFI partition (ESP) mounted at `/boot`.
 - LUKS-encrypted partition covering all remaining space, containing a Btrfs filesystem structured into subvolumes.
-- Includes encrypted swap partition (2GB).
+- Includes an encrypted example swapfile (20 MB demo value) in a dedicated subvolume.
 
 ### 4. `btrfs-subvolumes-luks-no_swap.nix`
 - Similar to the previous template (`btrfs-subvolumes-luks.nix`) but without a swap partition.
@@ -38,6 +38,10 @@ This document provides an overview of the seven available disk partitioning temp
 ### 7. `single-disk-ext4-luks.nix`
 - GPT partition table with a 500MB EFI partition (ESP) mounted at `/boot`.
 - LUKS encryption on a single partition occupying the rest of the disk, formatted with Ext4 filesystem.
+
+### 8. `single-disk-ext4-bios-luks.nix`
+- GPT partition table with a 1MB BIOS boot partition (compatible with GRUB booting in BIOS mode) and a separate unencrypted 1GB ext4 partition mounted at `/boot`.
+- LUKS encryption on the root partition occupying the rest of the disk, formatted with Ext4 filesystem.
 
 ## How to use templates
 
