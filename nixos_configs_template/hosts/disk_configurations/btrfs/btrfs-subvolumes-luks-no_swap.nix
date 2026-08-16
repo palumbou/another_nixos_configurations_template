@@ -39,6 +39,8 @@
                   # keyFile = "/dev/usbkey";   # udev symlink to the USB key stick
                   # keyFileSize = 4096;        # read only the first 4096 bytes as the key
                   # keyFileTimeout = 10;       # fall back to the passphrase prompt after 10 seconds
+                  # Automatic unlock via the TPM2 chip, optionally with a PIN (see LUKS_KEYS.md):
+                  # crypttabExtraOpts = [ "tpm2-device=auto" ];
                 };
                 # Enroll extra keys (e.g. USB sticks) at format time (see LUKS_KEYS.md):
                 # additionalKeyFiles = [ "/tmp/usbkey1.key" "/tmp/usbkey2.key" ];

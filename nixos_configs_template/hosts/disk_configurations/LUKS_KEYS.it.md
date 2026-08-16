@@ -2,7 +2,7 @@
 
 > **Lingue disponibili**: [English](LUKS_KEYS.md) | [Italiano (corrente)](LUKS_KEYS.it.md)
 
-Questa guida spiega le opzioni LUKS usate dai template Disko di questa cartella e come combinare **più passphrase** e/o una o più **chiavette USB** per sbloccare il disco cifrato — registrandole **già alla formattazione (installazione)** oppure **in un secondo momento, a sistema già installato**.
+Questa guida spiega le opzioni LUKS usate dai template Disko di questa cartella e come combinare **più passphrase**, una o più **chiavette USB** e/o il **chip TPM2** (con PIN opzionale) per sbloccare il disco cifrato — registrandoli **già alla formattazione (installazione)** oppure **in un secondo momento, a sistema già installato**.
 
 ---
 
@@ -16,6 +16,7 @@ Con i template di questa cartella la disposizione degli slot è deterministica:
 |------|------------------------------------|-------------------------------------------------------------|
 | 0    | la tua passphrase                  | `passwordFile` alla formattazione                            |
 | 1…n  | chiavi extra (es. chiavette USB)   | `additionalKeyFiles` alla formattazione, o `luksAddKey` dopo |
+| 1…n  | TPM2 (chiave custodita dal chip, PIN opzionale) | `systemd-cryptenroll` a sistema avviato |
 
 ---
 
@@ -157,6 +158,35 @@ boot.initrd.services.udev.rules = ''
 ```
 
 Risultato all'avvio: con una chiavetta inserita la macchina si sblocca da sola; senza, dopo `keyFileTimeout` secondi compare il consueto prompt della passphrase.
+
+### 4. TPM2: sblocco automatico, con o senza PIN
+
+Il chip TPM2 sulla scheda madre può custodire una chiave e rilasciarla **solo se lo stato di boot misurato corrisponde a quello atteso** (firmware, Secure Boot…): il disco si sblocca da solo, senza digitare nulla. Requisiti: LUKS2 (questi template lo creano già), l'initrd systemd (`boot.initrd.systemd.enable = true`, vedi `common/config/boot_luks.nix`) e un chip TPM2 — verifica con `systemd-analyze has-tpm2`.
+
+La registrazione avviene **a sistema avviato** e occupa un keyslot in più accanto alla passphrase:
+
+```bash
+# lega lo sblocco allo stato Secure Boot (PCR 7)
+sudo systemd-cryptenroll /dev/nvme0n1p2 --tpm2-device=auto --tpm2-pcrs=7
+
+# più robusto: richiede anche un PIN digitato al boot
+sudo systemd-cryptenroll /dev/nvme0n1p2 --tpm2-device=auto --tpm2-pcrs=7 --tpm2-with-pin=yes
+```
+
+Lato NixOS, decommenta le righe già pronte:
+
+- nel file Disko del host: `crypttabExtraOpts = [ "tpm2-device=auto" ];`
+- in `common/config/boot_luks.nix`: `security.tpm2.enable = true;`
+
+**PIN sì o PIN no?** Senza PIN la macchina si avvia da sola fino alla schermata di login: comodo, ma ci arriva anche un portatile rubato, quindi tutta la protezione si sposta su password utente/lockscreen. Con `--tpm2-with-pin=yes` digiti un breve PIN al boot: mantieni l'anti-manomissione del TPM (la chiave esce solo con un boot misurato sano) **più** un fattore di conoscenza, e il blocco anti-dizionario integrato nel TPM strozza i tentativi di forza bruta. È il compromesso sensato per i portatili.
+
+Nota che il PIN **non richiede alcuna opzione aggiuntiva in `settings`**: il requisito viene scritto nell'header LUKS2 al momento della registrazione (`--tpm2-with-pin=yes`), il PIN stesso lo imposti interattivamente durante quella stessa registrazione, e al boot il prompt del PIN compare da solo (`tpm2-device=auto` è tutta la configurazione necessaria). Per cambiare PIN si ri-registra: `--wipe-slot=tpm2`, poi nuova registrazione.
+
+Note:
+
+- **PCR 7** lega lo sblocco allo stato Secure Boot — si sposa naturalmente con il setup Lanzaboote in `hosts/secure_boot/`. Legare più PCR (es. `--tpm2-pcrs=0+2+7`) è più rigido, ma gli aggiornamenti firmware ti faranno cadere più spesso sulla passphrase di recovery.
+- **Tieni sempre la passphrase nel suo keyslot** come recovery: dopo un aggiornamento firmware, un cambio di PCR o un reset del TPM è l'unica via di rientro. Poi ri-registra con `systemd-cryptenroll --wipe-slot=tpm2` seguito da una nuova registrazione.
+- `cryptsetup luksDump` mostra il token `tpm2`; `systemd-cryptenroll /dev/... --wipe-slot=tpm2` lo rimuove.
 
 ---
 

@@ -2,7 +2,7 @@
 
 > **Available languages**: [English (current)](LUKS_KEYS.md) | [Italiano](LUKS_KEYS.it.md)
 
-This guide explains the LUKS-related options used by the Disko templates in this folder, and how to combine **multiple passphrases** and/or one or more **USB key sticks** to unlock the encrypted disk — enrolling them either **at installation (format) time** or **later, on an already-installed system**.
+This guide explains the LUKS-related options used by the Disko templates in this folder, and how to combine **multiple passphrases**, one or more **USB key sticks** and/or the **TPM2 chip** (with an optional PIN) to unlock the encrypted disk — enrolling them either **at installation (format) time** or **later, on an already-installed system**.
 
 ---
 
@@ -16,6 +16,7 @@ With the templates in this folder the slot layout is deterministic:
 |------|------------------------------|----------------------------------------------------------|
 | 0    | your passphrase              | `passwordFile` at format time                             |
 | 1…n  | extra keys (e.g. USB sticks) | `additionalKeyFiles` at format time, or `luksAddKey` later |
+| 1…n  | TPM2 (key held by the chip, optional PIN) | `systemd-cryptenroll` on the running system |
 
 ---
 
@@ -157,6 +158,35 @@ boot.initrd.services.udev.rules = ''
 ```
 
 Result at boot: with a stick inserted the machine unlocks by itself; without one, after `keyFileTimeout` seconds you get the usual passphrase prompt.
+
+### 4. TPM2: automatic unlock, with or without PIN
+
+The TPM2 chip on the motherboard can hold a key and release it **only if the measured boot state matches the expected one** (firmware, Secure Boot…): the disk unlocks by itself, nothing to type. Requirements: LUKS2 (these templates already create it), the systemd initrd (`boot.initrd.systemd.enable = true`, see `common/config/boot_luks.nix`) and a TPM2 chip — check with `systemd-analyze has-tpm2`.
+
+Enrollment happens **on the running system** and occupies an extra keyslot next to the passphrase:
+
+```bash
+# bind the unlock to the Secure Boot state (PCR 7)
+sudo systemd-cryptenroll /dev/nvme0n1p2 --tpm2-device=auto --tpm2-pcrs=7
+
+# stronger: additionally require a PIN typed at boot
+sudo systemd-cryptenroll /dev/nvme0n1p2 --tpm2-device=auto --tpm2-pcrs=7 --tpm2-with-pin=yes
+```
+
+On the NixOS side, uncomment the ready-made lines:
+
+- in the host's Disko file: `crypttabExtraOpts = [ "tpm2-device=auto" ];`
+- in `common/config/boot_luks.nix`: `security.tpm2.enable = true;`
+
+**PIN or no PIN?** Without a PIN the machine boots unattended straight to the login screen: convenient, but a stolen laptop gets there too, so all the protection shifts to the user password/lockscreen. With `--tpm2-with-pin=yes` you type a short PIN at boot: you keep the TPM's anti-tampering (the key is released only with a healthy measured boot) **plus** a knowledge factor, and the TPM's built-in dictionary-attack lockout throttles brute-force attempts. It is the sensible middle ground for laptops.
+
+Note that the PIN needs **no extra option in `settings`**: the requirement is stored in the LUKS2 header at enrollment time (`--tpm2-with-pin=yes`), the PIN itself is set interactively during that same enrollment, and at boot the PIN prompt appears automatically (`tpm2-device=auto` is all the configuration needed). To change the PIN, re-enroll: `--wipe-slot=tpm2`, then enroll again.
+
+Notes:
+
+- **PCR 7** binds the unlock to the Secure Boot state — a natural fit with the Lanzaboote setup in `hosts/secure_boot/`. Binding more PCRs (e.g. `--tpm2-pcrs=0+2+7`) is stricter, but firmware updates will drop you to the recovery passphrase more often.
+- **Always keep the passphrase in its keyslot** as recovery: after a firmware update, a PCR change or a TPM reset it is the only way back in. Then re-enroll with `systemd-cryptenroll --wipe-slot=tpm2` followed by a new enrollment.
+- `cryptsetup luksDump` shows the `tpm2` token; `systemd-cryptenroll /dev/... --wipe-slot=tpm2` removes it.
 
 ---
 

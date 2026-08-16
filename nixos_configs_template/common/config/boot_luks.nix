@@ -8,6 +8,10 @@
       #../gui/themes/plymouth/plymouth_plymouth-themes.nix
     ];
 
+  # TPM2 support, required for automatic LUKS unlock via the TPM chip.
+  # Enrollment and crypttab options: see hosts/disk_configurations/LUKS_KEYS.md
+  # security.tpm2.enable = true;
+
   # Boot configuration with LUKS (Linux Unified Key Setup) encryption support
   boot = {
     # Control verbosity level of kernel messages during boot

@@ -169,7 +169,7 @@ mount /dev/mapper/data /mnt
 ```
 This makes the encrypted volume available at `/dev/mapper/data`.
 
-For a complete guide to key management — multiple keyslots, unlocking with one or more USB key sticks (enrolled at format time or added later), and the boot-time options (`keyFile`, `keyFileTimeout`, …) — see [LUKS_KEYS.md](LUKS_KEYS.md).
+For a complete guide to key management — multiple keyslots, unlocking with one or more USB key sticks (enrolled at format time or added later), automatic unlock via TPM2 (with optional PIN), and the boot-time options (`keyFile`, `keyFileTimeout`, …) — see [LUKS_KEYS.md](LUKS_KEYS.md).
 
 ---
 
