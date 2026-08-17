@@ -99,7 +99,7 @@ Entrambi gli approcci seguono questo flusso di lavoro:
 
 ## Metodo 1: Manuale con sbctl
 
-### Fase A — Preparazione del Sistema
+### Fase A - Preparazione del Sistema
 
 #### 1. Abilitare systemd-boot
 
@@ -132,7 +132,7 @@ sudo nixos-rebuild switch
 
 ---
 
-### Fase B — Generare e Registrare le Chiavi
+### Fase B - Generare e Registrare le Chiavi
 
 #### 1. Creare le chiavi Secure Boot
 
@@ -154,7 +154,7 @@ sudo sbctl enroll-keys --microsoft
 
 ---
 
-### Fase C — Firma Manuale
+### Fase C - Firma Manuale
 
 #### 1. Firmare tutti i file di boot
 
@@ -179,7 +179,7 @@ Dimenticare questo passaggio impedirà l'avvio dopo aver abilitato Secure Boot.
 
 ---
 
-### Fase D — Verifica (obbligatoria)
+### Fase D - Verifica (obbligatoria)
 
 ```bash
 sudo sbctl verify
@@ -195,7 +195,7 @@ Tutti i file di boot devono risultare **firmati**. Esempio di output:
 
 ---
 
-### Fase E — Abilitare Secure Boot
+### Fase E - Abilitare Secure Boot
 
 Solo dopo una verifica riuscita:
 
@@ -213,13 +213,13 @@ Se il sistema non si avvia, disabilitare Secure Boot nel firmware e verificare c
 
 **Lanzaboote** è uno strumento della community che integra la firma Secure Boot nelle ricostruzioni di NixOS, eliminando l'intervento manuale.
 
-### Fase A — Preparazione del Sistema
+### Fase A - Preparazione del Sistema
 
 Come nel Metodo 1 (systemd-boot + sbctl).
 
 ---
 
-### Fase B — Generare e Registrare le Chiavi
+### Fase B - Generare e Registrare le Chiavi
 
 #### Con nix-shell (se sbctl non è ancora installato)
 
@@ -241,7 +241,7 @@ sudo sbctl enroll-keys --microsoft
 
 ---
 
-### Fase C — Abilitare Lanzaboote
+### Fase C - Abilitare Lanzaboote
 
 #### 1. Importare `secure-boot.nix` nella configurazione del tuo host
 
@@ -272,7 +272,7 @@ Lanzaboote firmerà automaticamente tutti i file di boot durante la ricostruzion
 
 ---
 
-### Fase D — Verifica (obbligatoria)
+### Fase D - Verifica (obbligatoria)
 
 ```bash
 sudo sbctl verify
@@ -286,13 +286,13 @@ Deve mostrare tutti i file firmati:
 
 > **Nota**: è normale che i file `kernel-*.efi` (o `*-bzImage.efi`) risultino **"is not signed"**. Con Lanzaboote non vanno firmati: la catena di fiducia è firmware → stub firmato (`nixos-generation-*.efi`) → kernel, e lo stub verifica kernel e initrd tramite gli hash incorporati al suo interno. Quello che conta è che gli stub, il bootloader e `BOOTX64.EFI` siano firmati.
 
-> **Attenzione — mai firmare i kernel manualmente**: non eseguire `sbctl sign` o `sbctl sign-all` sui file `kernel-*.efi` in `EFI/nixos/`. La firma modifica il binario PE e invalida l'hash incorporato nello stub: al successivo avvio con Secure Boot abilitato lo stub si ferma con **"Kernel hash does not match!"** seguito da una security violation, e il sistema non si avvia. Con Lanzaboote si firmano solo gli stub, e lo fa `lzbt` automaticamente a ogni rebuild.
+> **Attenzione - mai firmare i kernel manualmente**: non eseguire `sbctl sign` o `sbctl sign-all` sui file `kernel-*.efi` in `EFI/nixos/`. La firma modifica il binario PE e invalida l'hash incorporato nello stub: al successivo avvio con Secure Boot abilitato lo stub si ferma con **"Kernel hash does not match!"** seguito da una security violation, e il sistema non si avvia. Con Lanzaboote si firmano solo gli stub, e lo fa `lzbt` automaticamente a ogni rebuild.
 >
 > **Se succede**: avviare con Secure Boot temporaneamente disabilitato, rimuovere le firme dal database di sbctl (`sudo sbctl remove-file /boot/EFI/nixos/kernel-<versione>.efi` per ogni kernel firmato), eliminare quei file kernel dalla ESP, poi eseguire `sudo /run/current-system/bin/switch-to-configuration boot` per ricopiare kernel puliti e rigenerare gli stub. Controllare con `sudo sbctl verify`, quindi riabilitare Secure Boot.
 
 ---
 
-### Fase E — Abilitare Secure Boot
+### Fase E - Abilitare Secure Boot
 
 Stessa procedura del Metodo 1:
 
@@ -310,7 +310,7 @@ Dopo il riavvio, confermare che Secure Boot sia attivo:
 sudo bootctl status
 ```
 
-L'output deve mostrare `Secure Boot: enabled (user)` — "user" indica che il firmware sta usando le chiavi registrate da te.
+L'output deve mostrare `Secure Boot: enabled (user)` - "user" indica che il firmware sta usando le chiavi registrate da te.
 
 ---
 

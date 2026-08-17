@@ -98,7 +98,7 @@ Both approaches follow this workflow:
 
 ## Method 1: Manual with sbctl
 
-### Phase A — System Preparation
+### Phase A - System Preparation
 
 #### 1. Enable systemd-boot
 
@@ -131,7 +131,7 @@ sudo nixos-rebuild switch
 
 ---
 
-### Phase B — Generate and Enroll Keys
+### Phase B - Generate and Enroll Keys
 
 #### 1. Create Secure Boot keys
 
@@ -153,7 +153,7 @@ sudo sbctl enroll-keys --microsoft
 
 ---
 
-### Phase C — Manual Signing
+### Phase C - Manual Signing
 
 #### 1. Sign all boot files
 
@@ -178,7 +178,7 @@ Forgetting this step will prevent boot after enabling Secure Boot.
 
 ---
 
-### Phase D — Verification (mandatory)
+### Phase D - Verification (mandatory)
 
 ```bash
 sudo sbctl verify
@@ -194,7 +194,7 @@ All boot files must show as **signed**. Example output:
 
 ---
 
-### Phase E — Enable Secure Boot
+### Phase E - Enable Secure Boot
 
 Only after successful verification:
 
@@ -212,13 +212,13 @@ If the system doesn't boot, disable Secure Boot in firmware and verify all files
 
 **Lanzaboote** is a community tool that integrates Secure Boot signing into NixOS rebuilds, eliminating manual intervention. It replaces the standard NixOS systemd-boot module with a version that automatically signs all boot files during system builds.
 
-### Phase A — System Preparation
+### Phase A - System Preparation
 
 Same as Method 1 (systemd-boot + sbctl).
 
 ---
 
-### Phase B — Generate and Enroll Keys
+### Phase B - Generate and Enroll Keys
 
 #### With nix-shell (if sbctl not yet installed)
 
@@ -240,7 +240,7 @@ sudo sbctl enroll-keys --microsoft
 
 ---
 
-### Phase C — Enable Lanzaboote
+### Phase C - Enable Lanzaboote
 
 #### 1. Import `secure-boot.nix` in your host configuration
 
@@ -268,7 +268,7 @@ Lanzaboote will automatically sign all boot files during the rebuild.
 
 ---
 
-### Phase D — Verification (mandatory)
+### Phase D - Verification (mandatory)
 
 ```bash
 sudo sbctl verify
@@ -282,13 +282,13 @@ Must show all files signed:
 
 > **Note**: it is normal for `kernel-*.efi` (or `*-bzImage.efi`) files to show as **"is not signed"**. With Lanzaboote they don't need to be signed: the chain of trust is firmware → signed stub (`nixos-generation-*.efi`) → kernel, and the stub verifies the kernel and initrd through hashes embedded inside it. What matters is that the stubs, the bootloader, and `BOOTX64.EFI` are signed.
 
-> **Warning — never sign the kernels manually**: do not run `sbctl sign` or `sbctl sign-all` on the `kernel-*.efi` files in `EFI/nixos/`. Signing modifies the PE binary and invalidates the hash embedded in the stub: at the next boot with Secure Boot enabled the stub stops with **"Kernel hash does not match!"** followed by a security violation, and the system won't boot. With Lanzaboote only the stubs get signed, and `lzbt` does it automatically at every rebuild.
+> **Warning - never sign the kernels manually**: do not run `sbctl sign` or `sbctl sign-all` on the `kernel-*.efi` files in `EFI/nixos/`. Signing modifies the PE binary and invalidates the hash embedded in the stub: at the next boot with Secure Boot enabled the stub stops with **"Kernel hash does not match!"** followed by a security violation, and the system won't boot. With Lanzaboote only the stubs get signed, and `lzbt` does it automatically at every rebuild.
 >
 > **If it happens**: boot with Secure Boot temporarily disabled, remove the signatures from sbctl's database (`sudo sbctl remove-file /boot/EFI/nixos/kernel-<version>.efi` for each signed kernel), delete those kernel files from the ESP, then run `sudo /run/current-system/bin/switch-to-configuration boot` to copy clean kernels back and regenerate the stubs. Check with `sudo sbctl verify`, then re-enable Secure Boot.
 
 ---
 
-### Phase E — Enable Secure Boot
+### Phase E - Enable Secure Boot
 
 Same procedure as Method 1:
 
@@ -306,7 +306,7 @@ After rebooting, confirm Secure Boot is active:
 sudo bootctl status
 ```
 
-The output must show `Secure Boot: enabled (user)` — "user" means the firmware is using your enrolled keys.
+The output must show `Secure Boot: enabled (user)` - "user" means the firmware is using your enrolled keys.
 
 ---
 

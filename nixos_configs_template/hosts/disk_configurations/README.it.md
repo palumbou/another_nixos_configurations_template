@@ -169,7 +169,7 @@ mount /dev/mapper/data /mnt
 ```
 In questo modo il disco cifrato diventa disponibile in `/dev/mapper/data`.
 
-Per una guida completa alla gestione delle chiavi — keyslot multipli, sblocco con una o più chiavette USB (registrate alla formattazione o aggiunte dopo), sblocco automatico via TPM2 (con PIN opzionale) e le opzioni di boot (`keyFile`, `keyFileTimeout`, …) — vedi [LUKS_KEYS.it.md](LUKS_KEYS.it.md).
+Per una guida completa alla gestione delle chiavi - keyslot multipli, sblocco con una o più chiavette USB (registrate alla formattazione o aggiunte dopo), sblocco automatico via TPM2 (con PIN opzionale) e le opzioni di boot (`keyFile`, `keyFileTimeout`, …) - vedi [LUKS_KEYS.it.md](LUKS_KEYS.it.md).
 
 ---
 

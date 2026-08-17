@@ -11,7 +11,7 @@
 
   # WireGuard: CLI tools for managing VPN tunnels (wg, wg-quick)
   # The kernel module is built-in since Linux 5.6+
-  # NetworkManager has native WireGuard support — no extra plugin needed
+  # NetworkManager has native WireGuard support - no extra plugin needed
   environment.systemPackages = with pkgs; [
     wireguard-tools
   ];
