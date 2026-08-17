@@ -125,23 +125,11 @@ To use it:
 
 ## `nm_configurations.nix` File (Optional)
 
-If you need to import `.nmconnection` files at build time (e.g., WiFi or VPN settings):
+Declares the host's WiFi networks through NetworkManager's `ensureProfiles`: profiles are generated directly inside NetworkManager at activation, and the pre-shared keys are read from the sops-encrypted secrets file (`secrets/common.yaml`, `$WIFI_*_PSK` variables) - nothing sensitive in the Nix store, no `.nmconnection` files to manage. See [`SECRETS.md`](../common/config/SECRETS.md) for the full guide.
 
-1. Place those files in `nixos_configs/common/network/nmconnection_files/`.
-2. Uncomment the line `./nm_configurations.nix` in your `configuration.nix`.
-3. In `nm_configurations.nix`, reference the files with the correct absolute path. For example:
-
-        {
-          environment.etc."NetworkManager/system-connections/HomeWiFi.nmconnection" = {
-            source = "${BASEPATHNM}/nixos_configs/common/network/nmconnection_files/HomeWiFi.nmconnection";
-            mode = "0600";
-            user = "root";
-            group = "root";
-          };
-        }
-
-Replace `${BASEPATHNM}` with your actual path to `nixos_configs` and `HomeWiFi.nmconnection` with your file name.
-If a file is declared but not found, you'll see a warning during the build, but it will not fail.
+1. Copy `nm_configurations.nix.template` to `nm_configurations.nix` and declare the networks this host uses (set `id`/`ssid`, pick the matching `$WIFI_*_PSK` variable).
+2. Add the corresponding `WIFI_*_PSK=` lines to `wifi_env` in `secrets/common.yaml` (`sops secrets/common.yaml`).
+3. Uncomment the line `./nm_configurations.nix` in your `configuration.nix`.
 
 > **Note:** you can also manage WiFi through [`networking.wireless.networks`](https://search.nixos.org/options?channel=26.05&from=0&size=50&sort=relevance&type=packages&query=networking.wireless.networks.), but that approach enables `wpa_supplicant` and disables WiFi control in NetworkManager.
 

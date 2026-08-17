@@ -16,6 +16,7 @@ common/
 │   ├── boot_luks.nix
 │   ├── os_compatibility.nix
 │   ├── os_optimization.nix
+│   ├── secrets.nix
 │   ├── sudo.nix
 │   └── system.nix.template
 ├── gui/
@@ -34,8 +35,7 @@ common/
 │           └── plymouth_plymouth-themes.nix
 ├── network/
 │   ├── default_bluetooth.nix
-│   ├── default_network.nix
-│   └── nmconnection_files/
+│   └── default_network.nix
 └── packages/
     ├── default_packages_services.nix.template
     ├── extra_packages_services.nix
@@ -58,9 +58,10 @@ Questa cartella archivia configurazioni **relative al Sistema Operativo**:
 - **`audio_airplay.nix`** per il supporto opzionale allo streaming AirPlay/RAOP per inviare audio a dispositivi compatibili AirPlay (Apple HomePod, speaker Denon Home, ecc.). Configura il modulo libpipewire-module-raop-discover di PipeWire e Avahi mDNS per il rilevamento dei dispositivi. Importare solo nelle configurazioni host che necessitano della funzionalità AirPlay.
 - **`audio_chromecast.nix`** per il supporto opzionale allo streaming Google Cast (Chromecast) per inviare audio a dispositivi compatibili Cast (speaker Google Home/Nest, Chromecast, ecc.). Esegue pulseaudio-dlna come servizio utente systemd che crea un sink audio virtuale per ogni dispositivo rilevato in LAN (funziona con PipeWire tramite il layer di compatibilità pipewire-pulse) e configura Avahi mDNS per il rilevamento dei dispositivi oltre alle porte firewall necessarie per lo streaming. Importare solo nelle configurazioni host che necessitano della funzionalità Google Cast.
 - **`battery_management.nix`** per configurare la gestione della batteria TLP e le funzionalità di risparmio energetico. Include soglie di carica della batteria, regolatori di frequenza CPU e politiche di prestazione energetiche per le modalità AC e batteria.
-- **`boot_luks.nix`** per configurare i parametri di boot con supporto alla crittografia LUKS e le impostazioni di Plymouth per la schermata di avvio.
+- **`boot_luks.nix`** per configurare i parametri di boot con supporto alla crittografia LUKS e le impostazioni di Plymouth per la schermata di avvio; abilita inoltre automaticamente lo stack userspace TPM2 quando un device LUKS è impostato per sbloccarsi via TPM2 (vedi [LUKS_KEYS.it.md](../hosts/disk_configurations/LUKS_KEYS.it.md)).
 - **`os_compatibility.nix`** per abilitare la compatibilità con binari precompilati su NixOS. Utilizza nix-ld per fornire i percorsi delle librerie standard di Linux e le librerie condivise comuni, consentendo l'esecuzione di binari non-NixOS senza patch. Questo file viene importato automaticamente da `system.nix`.
 - **`os_optimization.nix`** per le impostazioni di ottimizzazione del sistema incluse garbage collection automatica di Nix, ottimizzazione del Nix store, limiti del journal di systemd, supporto TRIM per SSD e configurazione zram. Questo file viene importato automaticamente da `system.nix`.
+- **`secrets.nix`** per la gestione dei segreti con sops-nix: gli host decifrano i file in `secrets/` con la chiave age derivata dalla propria chiave SSH host, e i tool di editing vengono installati a sistema. Richiesto da ogni host - vedi [SECRETS.it.md](config/SECRETS.it.md).
 - **`sudo.nix`** per abilitare e gestire sudo, come l'aggiunta di regole personalizzate che consentono agli utenti nel gruppo **`wheel`** (amministratori) di eseguire specifici comandi di sistema **senza richiedere password** (opzione NOPASSWD). Questo file viene importato automaticamente da `system.nix`.
 - **`system.nix`** contiene impostazioni relative alla localizzazione e alla versione specifica di NixOS che stai utilizzando. Importa automaticamente `sudo.nix`, `os_compatibility.nix` e `os_optimization.nix`. In genere importerai questo file nel `configuration.nix` di ciascun host per garantire impostazioni coerenti a livello di locale e di sistema su tutti gli host.
 
@@ -118,9 +119,5 @@ Questa cartella contiene configurazioni **relative alla rete**:
   Configurazione di base per il supporto Bluetooth con blueman come gestore bluetooth.
 - **`default_network.nix`**  
   Configurazione di base per NetworkManager, gli strumenti WireGuard e il firewall.
-- **`nmconnection_files`**  
-  Una sottocartella per archiviare i file `.nmconnection` che definiscono WiFi, VPN o altre connessioni di rete gestite da NetworkManager.
 
-Se vuoi importare le configurazioni di NetworkManager durante la build (ad es. WiFi, VPN, ecc.), posiziona i file `.nmconnection` qui, quindi dichiarali nel file `nm_configurations.nix` di ogni host.  
-Tali file possono essere copiati direttamente dal tuo sistema (solitamente in `/etc/NetworkManager/system-connections`) o generati da uno script (attualmente in sviluppo).  
-Se un file `.nmconnection` viene dichiarato ma non si trova in questa cartella, riceverai un avviso durante la build (anche se non causerà un errore).
+Le connessioni WiFi si dichiarano per host in `nm_configurations.nix` tramite `ensureProfiles` di NetworkManager, con le chiavi precondivise cifrate con sops in `secrets/common.yaml` - vedi [SECRETS.it.md](config/SECRETS.it.md) e il [README di network](network/README.it.md).

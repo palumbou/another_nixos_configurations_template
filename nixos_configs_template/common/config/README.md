@@ -10,9 +10,10 @@ This folder contains core system configuration files that define fundamental sys
 - **`audio_airplay.nix`** - Optional AirPlay/RAOP streaming support for sending audio to AirPlay-compatible devices (Apple HomePod, Denon Home speakers, etc.). Configures PipeWire's libpipewire-module-raop-discover and Avahi mDNS for device discovery. Import this only in host configurations that need AirPlay functionality
 - **`audio_chromecast.nix`** - Optional Google Cast (Chromecast) streaming support for sending audio to Cast-compatible devices (Google Home/Nest speakers, Chromecast, etc.). PipeWire has no native Cast module, so this runs pulseaudio-dlna as a systemd user service that creates a virtual audio sink for each device discovered on the LAN (working with PipeWire through the pipewire-pulse compatibility layer). Also configures Avahi mDNS for device discovery and opens the firewall ports needed for streaming (TCP 8080, UDP 1900). Import this only in host configurations that need Google Cast functionality
 - **`battery_management.nix`** - Configuration for TLP battery management and power saving features, including battery charge thresholds, CPU scaling governors, and energy performance policies for both AC and battery modes. Also enables UPower as a last-resort protection against battery drain: the system hibernates automatically at 7% while discharging instead of losing power abruptly
-- **`boot_luks.nix`** - Configuration for LUKS encryption boot and Plymouth boot splash settings
+- **`boot_luks.nix`** - Configuration for LUKS encryption boot and Plymouth boot splash settings; it also enables the TPM2 userspace stack automatically when a LUKS device is set to unlock via TPM2 (see [LUKS_KEYS.md](../../hosts/disk_configurations/LUKS_KEYS.md))
 - **`os_compatibility.nix`** - Enables compatibility with pre-compiled binaries on NixOS using nix-ld. Provides standard Linux library paths and common shared libraries (libc, libstdc++, X11, OpenGL, audio, etc.) allowing execution of non-NixOS binaries without patching. Includes support for FHS (Filesystem Hierarchy Standard) compatible applications. Also configures udev rules for HID device access (needed for WebHID API in Chrome/Chromium to access keyboards, mice, and other USB/HID devices) using the modern TAG+="uaccess" mechanism. Safe to keep enabled even when not actively using external binaries (automatically imported by `system.nix`)
 - **`os_optimization.nix`** - System optimization settings including automatic garbage collection, Nix store optimization, systemd journal limits, SSD TRIM support, and zram configuration (automatically imported by `system.nix`)
+- **`secrets.nix`** - Secrets management with [sops-nix](https://github.com/Mic92/sops-nix), pinned by commit: hosts decrypt the files in `secrets/` with the age key derived from their own SSH host key, and the editing tools (`sops`, `age`, `ssh-to-age`) are installed system-wide. Required by every host, since shared modules (user, WiFi) declare `sops.*` secrets. Full guide: [SECRETS.md](SECRETS.md)
 - **`sudo.nix`** - Configuration for sudo privileges and user permissions (automatically imported by `system.nix`)
 - **`system.nix`** - Core system settings including locale, time zone, basic system behaviors, and imports `sudo.nix`, `os_compatibility.nix` and `os_optimization.nix`
 
@@ -26,6 +27,7 @@ imports = [
   ../common/config/audio_airplay.nix  # Optional: only if you need AirPlay/RAOP streaming
   ../common/config/audio_chromecast.nix  # Optional: only if you need Google Cast streaming
   ../common/config/boot_luks.nix  # Optional: only if using LUKS encryption
+  ../common/config/secrets.nix  # Required: sops-nix secrets management (see SECRETS.md)
   ../common/config/battery_management.nix  # Optional: only for laptops
   ../common/config/system.nix  # Required: imports sudo.nix and os_optimization.nix automatically
   # ...other configurations as needed...
@@ -40,6 +42,7 @@ The configuration files in this directory define foundational system settings. Y
 
 - Modify `battery_management.nix` to adjust TLP battery thresholds, power management policies, and the UPower low-battery hibernation thresholds
 - Modify `boot_luks.nix` to customize encrypted boot settings and Plymouth configuration
+- Manage the encrypted secrets themselves with `sops secrets/common.yaml` (see [SECRETS.md](SECRETS.md)); `secrets.nix` only needs editing to update the sops-nix pin
 - Modify `sudo.nix` to adjust user privilege levels and security policies (note: imported automatically by `system.nix`)
 - Modify `os_optimization.nix` to tune Nix garbage collection, store optimization, and system resource management (note: imported automatically by `system.nix`)
 - Update `system.nix` to change locale settings, time zones, or core system behaviors

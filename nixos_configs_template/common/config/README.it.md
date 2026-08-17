@@ -10,9 +10,10 @@ Questa cartella contiene file di configurazione di base del sistema che definisc
 - **`audio_airplay.nix`** - Supporto opzionale per lo streaming AirPlay/RAOP per inviare audio a dispositivi compatibili AirPlay (Apple HomePod, speaker Denon Home, ecc.). Configura il modulo libpipewire-module-raop-discover di PipeWire e Avahi mDNS per il rilevamento dei dispositivi. Importare solo nelle configurazioni host che necessitano della funzionalità AirPlay
 - **`audio_chromecast.nix`** - Supporto opzionale per lo streaming Google Cast (Chromecast) per inviare audio a dispositivi compatibili Cast (speaker Google Home/Nest, Chromecast, ecc.). PipeWire non ha un modulo Cast nativo, quindi questo file esegue pulseaudio-dlna come servizio utente systemd che crea un sink audio virtuale per ogni dispositivo rilevato in LAN (funziona con PipeWire tramite il layer di compatibilità pipewire-pulse). Configura inoltre Avahi mDNS per il rilevamento dei dispositivi e apre le porte firewall necessarie per lo streaming (TCP 8080, UDP 1900). Importare solo nelle configurazioni host che necessitano della funzionalità Google Cast
 - **`battery_management.nix`** - Configurazione per la gestione della batteria TLP e funzionalità di risparmio energetico, incluse soglie di carica della batteria, regolatori di frequenza CPU e politiche di prestazione energetiche per le modalità AC e batteria. Abilita inoltre UPower come protezione di ultima istanza contro l'esaurimento della batteria: il sistema iberna automaticamente al 7% in scarica invece di spegnersi bruscamente
-- **`boot_luks.nix`** - Configurazione per il boot con crittografia LUKS e impostazioni Plymouth per la schermata di avvio
+- **`boot_luks.nix`** - Configurazione per il boot con crittografia LUKS e impostazioni Plymouth per la schermata di avvio; abilita inoltre automaticamente lo stack userspace TPM2 quando un device LUKS è impostato per sbloccarsi via TPM2 (vedi [LUKS_KEYS.it.md](../../hosts/disk_configurations/LUKS_KEYS.it.md))
 - **`os_compatibility.nix`** - Abilita la compatibilità con binari precompilati su NixOS usando nix-ld. Fornisce i percorsi delle librerie standard di Linux e le librerie condivise comuni (libc, libstdc++, X11, OpenGL, audio, ecc.) permettendo l'esecuzione di binari non-NixOS senza patch. Include supporto per applicazioni compatibili con FHS (Filesystem Hierarchy Standard). Configura inoltre le regole udev per l'accesso ai dispositivi HID (necessario per l'API WebHID in Chrome/Chromium per accedere a tastiere, mouse e altri dispositivi USB/HID) utilizzando il moderno meccanismo TAG+="uaccess". Sicuro da tenere abilitato anche quando non si usano attivamente binari esterni (importato automaticamente da `system.nix`)
 - **`os_optimization.nix`** - Impostazioni di ottimizzazione del sistema incluse garbage collection automatica, ottimizzazione del Nix store, limiti del journal di systemd, supporto TRIM per SSD e configurazione zram (importato automaticamente da `system.nix`)
+- **`secrets.nix`** - Gestione dei segreti con [sops-nix](https://github.com/Mic92/sops-nix), pinnato per commit: gli host decifrano i file in `secrets/` con la chiave age derivata dalla propria chiave SSH host, e i tool di editing (`sops`, `age`, `ssh-to-age`) vengono installati a sistema. Richiesto da ogni host, poiché i moduli condivisi (utente, WiFi) dichiarano segreti `sops.*`. Guida completa: [SECRETS.it.md](SECRETS.it.md)
 - **`sudo.nix`** - Configurazione per i privilegi sudo e le autorizzazioni degli utenti (importato automaticamente da `system.nix`)
 - **`system.nix`** - Impostazioni di base del sistema inclusi locale, fuso orario, comportamenti fondamentali del sistema e importa `sudo.nix`, `os_compatibility.nix` e `os_optimization.nix`
 
@@ -26,6 +27,7 @@ imports = [
   ../common/config/audio_airplay.nix  # Opzionale: solo se necessiti dello streaming AirPlay/RAOP
   ../common/config/audio_chromecast.nix  # Opzionale: solo se necessiti dello streaming Google Cast
   ../common/config/boot_luks.nix  # Opzionale: solo se si usa la crittografia LUKS
+  ../common/config/secrets.nix  # Richiesto: gestione segreti sops-nix (vedi SECRETS.it.md)
   ../common/config/battery_management.nix  # Opzionale: solo per laptop
   ../common/config/system.nix  # Richiesto: importa automaticamente sudo.nix e os_optimization.nix
   # ...altre configurazioni secondo necessità...
@@ -40,6 +42,7 @@ I file di configurazione in questa directory definiscono le impostazioni fondame
 
 - Modificare `battery_management.nix` per regolare le soglie della batteria TLP, le politiche di gestione dell'energia e le soglie di ibernazione UPower per batteria scarica
 - Modificare `boot_luks.nix` per personalizzare le impostazioni di boot crittografato e la configurazione di Plymouth
+- Gestire i segreti cifrati stessi con `sops secrets/common.yaml` (vedi [SECRETS.it.md](SECRETS.it.md)); `secrets.nix` va modificato solo per aggiornare il pin di sops-nix
 - Modificare `sudo.nix` per regolare i livelli di privilegio degli utenti e le politiche di sicurezza (nota: importato automaticamente da `system.nix`)
 - Modificare `os_optimization.nix` per ottimizzare la garbage collection di Nix, l'ottimizzazione dello store e la gestione delle risorse di sistema (nota: importato automaticamente da `system.nix`)
 - Aggiornare `system.nix` per cambiare le impostazioni locali, i fusi orari o i comportamenti di base del sistema

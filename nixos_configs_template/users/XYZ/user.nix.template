@@ -5,6 +5,15 @@
   # where only what is defined here exists.
   users.mutableUsers = true;
 
+  # Declares the user's password hash secret, decrypted early - before users
+  # are created (neededForUsers). The value lives sops-encrypted in
+  # secrets/common.yaml (key "user_hashedPassword", see SECRETS.md); requires
+  # common/config/secrets.nix imported by every host.
+  sops.secrets.user_hashedPassword = {
+    sopsFile = ../../secrets/common.yaml;
+    neededForUsers = true;
+  };
+
   # Declares a group named "${USER}" with GID 1000 and assigns "${USER}" as a member.
   users.groups.${USER} = {
     name = "${USER}";
@@ -14,7 +23,9 @@
 
   # Declares a user named "${USER}" with specific properties.
   users.users.${USER} = {
-    hashedPassword = "${USER_PWD}";
+    # Password hash read from the sops-encrypted secrets file (generate the
+    # hash with "mkpasswd -m sha-512" and store it with: sops secrets/common.yaml)
+    hashedPasswordFile = config.sops.secrets.user_hashedPassword.path;
     isNormalUser = true; # Specifies that this is a regular user (not a system user).
     description = ""; # Description of the user.
     uid = 1000; # Sets the user ID.

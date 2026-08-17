@@ -50,7 +50,6 @@ nixos_configs/                    # Parent folder
     │   └── themes/               # Themes for various software (GRUB, Hyprland, Plymouth)
     ├── packages/                 # Configuration for software packages to install
     └── network/                  # Network-related configuration files
-        └── nmconnection_files/   # NetworkManager connection files
 └── hosts/                        # Subfolders for each defined host
     ├── ABC/                      # Configuration files for host 'ABC'
     ├── disk_configurations/      # Disko templates for declarative disk setup
@@ -60,6 +59,8 @@ nixos_configs/                    # Parent folder
 └── users/                        # Subfolders for each defined user
     └── XYZ/                      # Configuration files for user 'XYZ'
         └── dotfiles/             # Dotfiles for user 'XYZ'
+└── secrets/                      # sops-encrypted secrets (see nixos_configs_template/common/config/SECRETS.md)
+└── .sops.yaml                    # sops rules: which keys decrypt which files
 ```
 
 ### The `nixos_configs` Folder
@@ -82,7 +83,7 @@ The **`common`** folder contains NixOS configuration files that are shared by al
 - **`config`** – Contains operating system-related configurations such as boot parameters with LUKS encryption, Plymouth boot splash, sudo rules, and system settings.
 - **`gui`** – Contains possible GUI configurations (currently Hyprland and KDE), from which you can choose, and a `themes` subfolder with themes for various software.  
 - **`packages`** – Specifies which packages to install and which services to enable.  
-- **`network`** – Network-related configurations. Inside this folder is another subfolder, `nmconnection_files`, which holds the Network Manager connection files.
+- **`network`** – Network-related configurations. WiFi connections are declared per host and their credentials live sops-encrypted in the `secrets/` folder (see [SECRETS.md](nixos_configs_template/common/config/SECRETS.md)).
 
 ---
 

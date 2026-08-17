@@ -125,23 +125,11 @@ Per utilizzarlo:
 
 ## File `nm_configurations.nix` (Opzionale)
 
-Se hai bisogno di importare file `.nmconnection` in fase di build (ad esempio, impostazioni WiFi o VPN):
+Dichiara le reti WiFi del host tramite `ensureProfiles` di NetworkManager: i profili vengono generati direttamente dentro NetworkManager all'attivazione, e le chiavi precondivise sono lette dal file di segreti cifrato con sops (`secrets/common.yaml`, variabili `$WIFI_*_PSK`) - niente di sensibile nel Nix store, niente file `.nmconnection` da gestire. Vedi [`SECRETS.it.md`](../common/config/SECRETS.it.md) per la guida completa.
 
-1. Inserisci quei file in `nixos_configs/common/network/nmconnection_files/`.
-2. Decommenta la riga `./nm_configurations.nix` nel tuo `configuration.nix`.
-3. In `nm_configurations.nix`, fai riferimento ai file con il percorso assoluto corretto. Ad esempio:
-
-        {
-          environment.etc."NetworkManager/system-connections/HomeWiFi.nmconnection" = {
-            source = "${BASEPATHNM}/nixos_configs/common/network/nmconnection_files/HomeWiFi.nmconnection";
-            mode = "0600";
-            user = "root";
-            group = "root";
-          };
-        }
-
-Sostituisci `${BASEPATHNM}` con il percorso effettivo a `nixos_configs` e `HomeWiFi.nmconnection` con il nome del tuo file.  
-Se un file viene dichiarato ma non trovato, vedrai un avviso durante la build, ma non ci sarà un errore bloccante.
+1. Copia `nm_configurations.nix.template` in `nm_configurations.nix` e dichiara le reti usate da questo host (imposta `id`/`ssid`, scegli la variabile `$WIFI_*_PSK` corrispondente).
+2. Aggiungi le righe `WIFI_*_PSK=` corrispondenti a `wifi_env` in `secrets/common.yaml` (`sops secrets/common.yaml`).
+3. Decommenta la riga `./nm_configurations.nix` nel tuo `configuration.nix`.
 
 > **Nota**: puoi anche gestire il WiFi tramite [`networking.wireless.networks`](https://search.nixos.org/options?channel=26.05&from=0&size=50&sort=relevance&type=packages&query=networking.wireless.networks.), ma questo approccio abilita `wpa_supplicant` e disabilita il controllo WiFi in NetworkManager.
 

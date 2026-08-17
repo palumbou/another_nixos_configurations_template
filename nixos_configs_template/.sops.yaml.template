@@ -1,0 +1,25 @@
+# sops configuration: which keys can decrypt which secrets files.
+# Rename this file to ".sops.yaml" and replace the placeholders below.
+#
+# - admin: your personal age key pair, used for editing the secrets.
+#   Generate it once with:
+#     mkdir -p ~/.config/sops/age && age-keygen -o ~/.config/sops/age/keys.txt
+#   The PRIVATE key lives in that file and must NEVER enter this repository;
+#   paste the printed PUBLIC key (age1...) below.
+# - host_*: each host's age public key, derived from its SSH host key with:
+#     ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
+#
+# After adding or removing a key, re-encrypt the affected files with:
+#   sops updatekeys secrets/common.yaml
+#
+# Full guide: common/config/SECRETS.md.
+keys:
+  - &admin AGE_PUBLIC_KEY_OF_YOUR_ADMIN_KEY
+  - &host_ABC AGE_PUBLIC_KEY_OF_HOST_ABC
+creation_rules:
+  # Fleet-wide secrets: add every host key here as it gets derived
+  - path_regex: secrets/common\.yaml$
+    key_groups:
+      - age:
+          - *admin
+          - *host_ABC

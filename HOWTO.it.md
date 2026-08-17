@@ -84,7 +84,7 @@ Fai riferimento al [README Disko](./nixos_configs_template/hosts/disk_configurat
 
 Seguendo le istruzioni nella sezione [Modifica dei file di configurazione](#modifica-dei-file-di-configurazione), personalizza e salva la tua copia su una penna USB, disco condiviso in rete, repository Git privato, o altro storage.
 
-Fai particolare attenzione ai percorsi dei file che copierai, specialmente le configurazioni di Network Manager (`nm_configurations.nix` nella cartella host) e i dotfiles utenti (nella cartella `users`). Le variabili rilevanti sono `BASEPATHNM` e `BASEPATHUSER`, entrambe definite come `/home` nel file `env.conf`.
+Fai particolare attenzione ai percorsi dei file che copierai, specialmente i dotfiles utenti (nella cartella `users`). La variabile rilevante è `BASEPATHUSER`, definita come `/home` nel file `env.conf`. Le credenziali WiFi e l'hash della password utente sono gestiti a parte, cifrati con sops in `secrets/common.yaml` - vedi [SECRETS.it.md](nixos_configs_template/common/config/SECRETS.it.md).
 
 ### Perché `/home`?
 
@@ -116,12 +116,19 @@ Assumendo che la cartella "nixos_config" modificata e personalizzata sia pronta:
    sudo nixos-generate-config --no-filesystems --root /mnt && sudo cp /mnt/etc/nixos/hardware-configuration.nix /mnt/home/nixos_config/hosts/ABC/
    ```
 
-6. Procedi con l'installazione:
+6. **Bootstrap della chiave host per i segreti** (richiesto da sops-nix - vedi [SECRETS.it.md](nixos_configs_template/common/config/SECRETS.it.md)): genera in anticipo la chiave SSH host, così il primo avvio può già decifrare i segreti:
+   ```bash
+   sudo mkdir -p /mnt/etc/ssh && sudo ssh-keygen -t ed25519 -N "" -f /mnt/etc/ssh/ssh_host_ed25519_key
+   sudo nix-shell -p ssh-to-age --run 'ssh-to-age < /mnt/etc/ssh/ssh_host_ed25519_key.pub'
+   ```
+   Aggiungi la chiave `age1...` stampata a `.sops.yaml` ed esegui `sops updatekeys secrets/common.yaml`.
+
+7. Procedi con l'installazione:
    ```bash
    sudo NIXOS_CONFIG=/mnt/home/nixos_config/hosts/ABC/configuration.nix nixos-install
    ```
 
-7. Riavvia il sistema:
+8. Riavvia il sistema:
    ```bash
    reboot
    ```

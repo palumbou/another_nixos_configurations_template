@@ -50,7 +50,6 @@ nixos_configs/                    # Cartella genitore
     │   └── themes/               # Temi per vari software (GRUB, Hyprland, Plymouth)
     ├── packages/                 # Configurazione per i pacchetti software da installare
     └── network/                  # File di configurazione relativi alla rete
-        └── nmconnection_files/   # File di connessione NetworkManager
 └── hosts/                        # Sottocartelle per ogni host definito
     ├── ABC/                      # File di configurazione per l'host 'ABC'
     ├── disk_configurations/      # Template Disko per la configurazione dichiarativa del disco
@@ -60,6 +59,8 @@ nixos_configs/                    # Cartella genitore
 └── users/                        # Sottocartelle per ogni utente definito
     └── XYZ/                      # File di configurazione per l'utente 'XYZ'
         └── dotfiles/             # Dotfile per l'utente 'XYZ'
+└── secrets/                      # Segreti cifrati con sops (vedi nixos_configs_template/common/config/SECRETS.it.md)
+└── .sops.yaml                    # Regole sops: quali chiavi decifrano quali file
 ```
 
 ### La Cartella `nixos_configs`
@@ -82,7 +83,7 @@ La cartella **`common`** contiene file di configurazione di NixOS condivisi da t
 - **`config`** – Contiene configurazioni relative al sistema operativo come parametri di boot con crittografia LUKS, schermata di avvio Plymouth, regole sudo e impostazioni di sistema.
 - **`gui`** – Contiene configurazioni per le interfacce grafiche (attualmente Hyprland e KDE), tra cui puoi scegliere, e una sottocartella `themes` con temi per vari software.  
 - **`packages`** – Specifica quali pacchetti installare e quali servizi abilitare.  
-- **`network`** – Configurazioni relative alla rete. All'interno di questa cartella c'è un'altra sottocartella, `nmconnection_files`, che contiene i file di connessione di NetworkManager.
+- **`network`** – Configurazioni relative alla rete. Le connessioni WiFi si dichiarano per host e le loro credenziali vivono cifrate con sops nella cartella `secrets/` (vedi [SECRETS.it.md](nixos_configs_template/common/config/SECRETS.it.md)).
 
 ---
 

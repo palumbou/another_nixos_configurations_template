@@ -1,19 +1,55 @@
-{ ... }:
+{ config, ... }:
+
 {
-  environment.etc = {
-    # Configuration for the WiFi connection "HomeWiFi"
-    "NetworkManager/system-connections/HomeWiFi.nmconnection" = {
-      source = "${BASEPATHNM}/nixos_configs/common/network/nmconnection_files/HomeWiFi.nmconnection";
-      mode = "0600";
-      user = "root";
-      group = "root";
-    };
-    # Configuration for the WiFi connection "OfficeWiFi"
-    "NetworkManager/system-connections/OfficeWiFi.nmconnection" = {
-      source = "${BASEPATHNM}/nixos_configs/common/network/nmconnection_files/OfficeWiFi.nmconnection";
-      mode = "0600";
-      user = "root";
-      group = "root";
+  # WiFi pre-shared keys, decrypted at activation from the sops-encrypted
+  # secrets file (fleet-wide). The PSKs never enter the Nix store: the
+  # profiles below only reference the $WIFI_* variables, substituted by
+  # NetworkManager's ensure-profiles service from this environment file.
+  # Edit the values with: sops secrets/common.yaml (see SECRETS.md)
+  sops.secrets.wifi_env = {
+    sopsFile = ../../secrets/common.yaml;
+  };
+
+  # WiFi profiles declared for this host: each host lists only the networks
+  # it actually uses; the environment file carries the whole fleet's PSKs.
+  networking.networkmanager.ensureProfiles = {
+    environmentFiles = [ config.sops.secrets.wifi_env.path ];
+    profiles = {
+      # WiFi connection "HomeWiFi": rename id/ssid to your real network name
+      "HomeWiFi" = {
+        connection = {
+          id = "HomeWiFi";
+          type = "wifi";
+        };
+        wifi = {
+          mode = "infrastructure";
+          ssid = "HomeWiFi";
+        };
+        wifi-security = {
+          key-mgmt = "wpa-psk";
+          psk = "$WIFI_HOME_PSK";
+        };
+        ipv4.method = "auto";
+        ipv6.method = "disabled"; # set to "auto" if you want IPv6 on this network
+      };
+
+      # WiFi connection "OfficeWiFi"
+      "OfficeWiFi" = {
+        connection = {
+          id = "OfficeWiFi";
+          type = "wifi";
+        };
+        wifi = {
+          mode = "infrastructure";
+          ssid = "OfficeWiFi";
+        };
+        wifi-security = {
+          key-mgmt = "wpa-psk";
+          psk = "$WIFI_OFFICE_PSK";
+        };
+        ipv4.method = "auto";
+        ipv6.method = "disabled"; # set to "auto" if you want IPv6 on this network
+      };
     };
   };
 }

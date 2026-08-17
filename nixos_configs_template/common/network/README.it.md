@@ -9,20 +9,12 @@ Questa cartella contiene configurazioni di rete che possono essere condivise tra
 ```bash
 network/
 ├── default_bluetooth.nix   # Configurazione del supporto Bluetooth
-├── default_network.nix     # Configurazione principale di NetworkManager + WireGuard
-└── nmconnection_files/     # File di connessione di NetworkManager
-    ├── example-wifi.nmconnection
-    ├── example-vpn.nmconnection
-    └── ...altri file di connessione...
+└── default_network.nix     # Configurazione principale di NetworkManager + WireGuard
 ```
 
 ## File Disponibili
 
 - **`default_network.nix`** - Configura NetworkManager, gli strumenti WireGuard e il firewall
-
-### Sottocartella `nmconnection_files`
-
-Questa cartella contiene file `.nmconnection` che definiscono connessioni specifiche per NetworkManager. Questi file possono essere generati da NetworkManager stesso o creati manualmente.
 
 ## Utilizzo
 
@@ -37,54 +29,45 @@ imports = [
 ];
 ```
 
-### Utilizzo dei File di Connessione
+### Connessioni WiFi (dichiarative, con sops-nix)
 
-I file `.nmconnection` contengono dettagli per configurare connessioni specifiche (WiFi, Ethernet, VPN, ecc.). Per utilizzarli:
-
-1. Crea un file `nm_configurations.nix` nella cartella del tuo host specifico:
+I profili WiFi si dichiarano per host tramite `ensureProfiles` di NetworkManager: un piccolo servizio systemd genera le connessioni **direttamente dentro NetworkManager** a ogni attivazione - niente file `.nmconnection` da copiare in giro. Le chiavi precondivise non entrano mai nel Nix store: vivono cifrate con sops in `secrets/common.yaml` (una variabile `WIFI_*_PSK` per rete) e vengono sostituite all'attivazione dall'environment file decifrato. Vedi [`SECRETS.it.md`](../config/SECRETS.it.md) per la guida completa e `hosts/ABC/nm_configurations.nix.template` per un esempio già pronto:
 
 ```nix
-{ config, lib, pkgs, ... }:
+{ config, ... }:
 
 {
-  # Copia i file di connessione desiderati nella directory di NetworkManager
-  environment.etc = {
-    "NetworkManager/system-connections/my-home-wifi.nmconnection" = {
-      source = ../common/network/nmconnection_files/my-home-wifi.nmconnection;
-      mode = "0600"; # Importante: i file .nmconnection richiedono permessi restrittivi
+  sops.secrets.wifi_env = {
+    sopsFile = ../../secrets/common.yaml;
+  };
+
+  networking.networkmanager.ensureProfiles = {
+    environmentFiles = [ config.sops.secrets.wifi_env.path ];
+    profiles = {
+      "HomeWiFi" = {
+        connection = { id = "HomeWiFi"; type = "wifi"; };
+        wifi = { mode = "infrastructure"; ssid = "HomeWiFi"; };
+        wifi-security = { key-mgmt = "wpa-psk"; psk = "$WIFI_HOME_PSK"; };
+        ipv4.method = "auto";
+        ipv6.method = "disabled";
+      };
     };
-    
-    "NetworkManager/system-connections/work-vpn.nmconnection" = {
-      source = ../common/network/nmconnection_files/work-vpn.nmconnection;
-      mode = "0600";
-    };
-    
-    # Aggiungi altri file di connessione secondo necessità
   };
 }
 ```
 
-2. Importa questo file nel file `configuration.nix` del tuo host:
+Poi importa il `nm_configurations.nix` del host nel suo `configuration.nix` come di consueto.
 
-```nix
-imports = [
-  # ...altri import...
-  ../common/network/default_network.nix
-  ./nm_configurations.nix
-];
-```
+I profili renderizzati (con le PSK vere) vivono in `/run/NetworkManager/system-connections/` - una tmpfs in RAM, accessibile solo a root - e vengono rigenerati a ogni attivazione: nulla di segreto tocca mai il disco persistente in chiaro, e allo spegnimento tutto evapora. Per lo stesso motivo, evita di modificare questi profili dalla GUI o con `nmcli connection modify` (NetworkManager ne salverebbe una copia persistente sotto `/etc/`): la fonte di verità è la configurazione Nix più il file dei segreti sops.
 
 ## Note di Sicurezza
 
-- I file `.nmconnection` possono contenere password e altre informazioni sensibili. Assicurati di:
-  - Impostare permessi appropriati (mode = "0600")
-  - Considerare l'utilizzo di metodi più sicuri come Nix Secrets per le credenziali
-  - Evitare di commettere informazioni sensibili nel controllo versione
+- Le credenziali WiFi sono cifrate con sops nel repository e decifrate solo all'attivazione sotto `/run/secrets` (vedi [`SECRETS.it.md`](../config/SECRETS.it.md)); non scrivere mai PSK in chiaro nei file `.nix`.
 
 ### WireGuard VPN
 
 `default_network.nix` include `wireguard-tools` per gestire i tunnel VPN WireGuard.
-Il modulo kernel WireGuard è integrato da Linux 5.6+, e NetworkManager ha supporto nativo per WireGuard — nessun plugin aggiuntivo è necessario.
+Il modulo kernel WireGuard è integrato da Linux 5.6+, e NetworkManager ha supporto nativo per WireGuard - nessun plugin aggiuntivo è necessario.
 
 Per configurare un'interfaccia WireGuard, puoi:
 - Usare `wg-quick` con un file di configurazione in `/etc/wireguard/wg0.conf`
@@ -100,6 +83,6 @@ networking.firewall.allowedUDPPorts = [ 51820 ];
 
 Puoi estendere la configurazione di rete:
 
-- Aggiungendo nuovi file `.nmconnection` nella cartella `nmconnection_files`
+- Dichiarando nuovi profili WiFi negli `nm_configurations.nix` dei host (le PSK vanno in `secrets/common.yaml`)
 - Modificando `default_network.nix` per cambiare le impostazioni di default o abilitare la porta firewall WireGuard
 - Creando configurazioni alternative per altri sistemi di rete (come systemd-networkd)

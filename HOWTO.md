@@ -84,7 +84,7 @@ Refer to the [Disko README](./nixos_configs_template/hosts/disk_configurations/R
 
 Following the instructions in the [Modifying Configuration Files](#modifying-configuration-files) section above, customize and save your own copy to a USB drive, network share, private Git repository, or other storage.
 
-Pay special attention to paths for the files you will copy, particularly Network Manager configurations (`nm_configurations.nix` within each defined host folder) and user dotfiles (within the `users` folder). The relevant variables are `BASEPATHNM` and `BASEPATHUSER`, both defined as `/home` in the `env.conf` file.
+Pay special attention to paths for the files you will copy, particularly user dotfiles (within the `users` folder). The relevant variable is `BASEPATHUSER`, defined as `/home` in the `env.conf` file. WiFi credentials and the user's password hash are handled separately, sops-encrypted in `secrets/common.yaml` - see [SECRETS.md](nixos_configs_template/common/config/SECRETS.md).
 
 ### Why `/home`?
 
@@ -116,12 +116,19 @@ Assuming you have the modified and personalized "nixos_config" folder ready:
    sudo nixos-generate-config --no-filesystems --root /mnt && sudo cp /mnt/etc/nixos/hardware-configuration.nix /mnt/home/nixos_config/hosts/ABC/
    ```
 
-6. Proceed with installation:
+6. **Bootstrap the secrets host key** (required by sops-nix - see [SECRETS.md](nixos_configs_template/common/config/SECRETS.md)): generate the SSH host key in advance, so the first boot can already decrypt the secrets:
+   ```bash
+   sudo mkdir -p /mnt/etc/ssh && sudo ssh-keygen -t ed25519 -N "" -f /mnt/etc/ssh/ssh_host_ed25519_key
+   sudo nix-shell -p ssh-to-age --run 'ssh-to-age < /mnt/etc/ssh/ssh_host_ed25519_key.pub'
+   ```
+   Add the printed `age1...` key to `.sops.yaml` and run `sops updatekeys secrets/common.yaml`.
+
+7. Proceed with installation:
    ```bash
    sudo NIXOS_CONFIG=/mnt/home/nixos_config/hosts/ABC/configuration.nix nixos-install
    ```
 
-7. Reboot the system:
+8. Reboot the system:
    ```bash
    reboot
    ```
