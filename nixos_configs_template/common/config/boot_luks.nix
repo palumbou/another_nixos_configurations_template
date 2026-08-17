@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, lib, pkgs, ... }:
 {
   imports =
     [
@@ -8,9 +8,17 @@
       #../gui/themes/plymouth/plymouth_plymouth-themes.nix
     ];
 
-  # TPM2 support, required for automatic LUKS unlock via the TPM chip.
+  # TPM2 userspace stack (tss libraries, udev rules), enabled automatically as
+  # soon as any LUKS device is configured to unlock via TPM2 - i.e. when the
+  # host's Disko file sets crypttabExtraOpts = [ "tpm2-device=auto" ]. The Disko
+  # file stays the single source of truth: no per-host option is needed, and a
+  # host can still override this (it is only a mkDefault).
   # Enrollment and crypttab options: see hosts/disk_configurations/LUKS_KEYS.md
-  # security.tpm2.enable = true;
+  security.tpm2.enable = lib.mkDefault (
+    lib.any
+      (dev: lib.any (opt: lib.hasPrefix "tpm2-" opt) dev.crypttabExtraOpts)
+      (lib.attrValues config.boot.initrd.luks.devices)
+  );
 
   # Boot configuration with LUKS (Linux Unified Key Setup) encryption support
   boot = {

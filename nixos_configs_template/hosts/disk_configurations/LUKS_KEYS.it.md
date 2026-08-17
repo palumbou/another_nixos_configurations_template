@@ -2,7 +2,7 @@
 
 > **Lingue disponibili**: [English](LUKS_KEYS.md) | [Italiano (corrente)](LUKS_KEYS.it.md)
 
-Questa guida spiega le opzioni LUKS usate dai template Disko di questa cartella e come combinare **più passphrase**, una o più **chiavette USB** e/o il **chip TPM2** (con PIN opzionale) per sbloccare il disco cifrato — registrandoli **già alla formattazione (installazione)** oppure **in un secondo momento, a sistema già installato**.
+Questa guida spiega le opzioni LUKS usate dai template Disko di questa cartella e come combinare **più passphrase**, una o più **chiavette USB** e/o il **chip TPM2** (con PIN opzionale) per sbloccare il disco cifrato - registrandoli **già alla formattazione (installazione)** oppure **in un secondo momento, a sistema già installato**.
 
 ---
 
@@ -24,7 +24,7 @@ Con i template di questa cartella la disposizione degli slot è deterministica:
 
 ### `passwordFile`
 
-Usato **solo durante la formattazione**: quando Disko esegue `cryptsetup luksFormat`, il contenuto di questo file diventa la passphrase registrata nel keyslot 0. Dopo l'installazione il file non esiste più e non serve — a ogni avvio digiterai quella passphrase al prompt. Va creato appena prima di lanciare Disko:
+Usato **solo durante la formattazione**: quando Disko esegue `cryptsetup luksFormat`, il contenuto di questo file diventa la passphrase registrata nel keyslot 0. Dopo l'installazione il file non esiste più e non serve - a ogni avvio digiterai quella passphrase al prompt. Va creato appena prima di lanciare Disko:
 
 ```bash
 echo -n "latuapassphrase" > /tmp/secret.key
@@ -32,16 +32,16 @@ echo -n "latuapassphrase" > /tmp/secret.key
 
 `echo -n` è importante: cryptsetup confronta i **byte esatti**, e un newline finale diventerebbe parte della passphrase. Sull'installer NixOS `/tmp` vive in RAM, quindi il file sparisce al riavvio.
 
-### `settings.*` — comportamento al boot
+### `settings.*` - comportamento al boot
 
 Tutto ciò che sta dentro `settings` viene inoltrato tale e quale da Disko all'opzione NixOS `boot.initrd.luks.devices.<name>`, cioè configura **come l'initrd sblocca il disco a ogni avvio**:
 
-- **`allowDiscards`** — lascia passare i comandi TRIM/discard del filesystem attraverso lo strato cifrato fino all'SSD. dm-crypt di default li blocca: il rovescio della medaglia di attivarlo è che un attaccante che ispeziona il disco raw può vedere *quanto* spazio è in uso (non il contenuto). Senza, `fstrim` non ha effetto sul volume e le prestazioni dell'SSD degradano nel tempo. Su SSD normalmente lo vuoi a `true` — ed è per questo che i template lo portano già attivo.
-- **`keyFile`** — un percorso che l'initrd legge per sbloccare il disco *senza chiedere nulla*. Il percorso deve essere leggibile **dentro l'initrd**, quindi in pratica è un device raw (una chiavetta USB) o un symlink udev che ci punta — non un file su un filesystem.
-- **`keyFileSize`** — legge solo i primi N byte di `keyFile` come chiave. Necessario con chiavi su device raw, dove il "file" sarebbe altrimenti l'intera chiavetta.
-- **`keyFileOffset`** — inizia a leggere la chiave a un certo offset invece che dall'inizio del device.
-- **`keyFileTimeout`** — quanti secondi aspettare che il device-chiave compaia; allo scadere, l'initrd ripiega sul normale prompt della passphrase. È ciò che rende la chiavetta *opzionale* all'avvio. Funziona con l'initrd systemd (`boot.initrd.systemd.enable = true`, vedi `common/config/boot_luks.nix`).
-- **`fallbackToPassword`** — stessa idea di fallback per il vecchio initrd a script; con l'initrd systemd usa invece `keyFileTimeout`.
+- **`allowDiscards`** - lascia passare i comandi TRIM/discard del filesystem attraverso lo strato cifrato fino all'SSD. dm-crypt di default li blocca: il rovescio della medaglia di attivarlo è che un attaccante che ispeziona il disco raw può vedere *quanto* spazio è in uso (non il contenuto). Senza, `fstrim` non ha effetto sul volume e le prestazioni dell'SSD degradano nel tempo. Su SSD normalmente lo vuoi a `true` - ed è per questo che i template lo portano già attivo.
+- **`keyFile`** - un percorso che l'initrd legge per sbloccare il disco *senza chiedere nulla*. Il percorso deve essere leggibile **dentro l'initrd**, quindi in pratica è un device raw (una chiavetta USB) o un symlink udev che ci punta - non un file su un filesystem.
+- **`keyFileSize`** - legge solo i primi N byte di `keyFile` come chiave. Necessario con chiavi su device raw, dove il "file" sarebbe altrimenti l'intera chiavetta.
+- **`keyFileOffset`** - inizia a leggere la chiave a un certo offset invece che dall'inizio del device.
+- **`keyFileTimeout`** - quanti secondi aspettare che il device-chiave compaia; allo scadere, l'initrd ripiega sul normale prompt della passphrase. È ciò che rende la chiavetta *opzionale* all'avvio. Funziona con l'initrd systemd (`boot.initrd.systemd.enable = true`, vedi `common/config/boot_luks.nix`).
+- **`fallbackToPassword`** - stessa idea di fallback per il vecchio initrd a script; con l'initrd systemd usa invece `keyFileTimeout`.
 
 ### `additionalKeyFiles`
 
@@ -51,13 +51,13 @@ Una lista di file che Disko registra come **keyslot aggiuntivi subito dopo il `l
 
 ## Scenari
 
-I mattoni sono sempre gli stessi — `passwordFile` (slot 0), `additionalKeyFiles` (slot extra alla formattazione), `cryptsetup luksAddKey` (slot extra in seguito), `settings.keyFile` (sblocco automatico al boot). Quello che cambia tra gli scenari è come li combini.
+I mattoni sono sempre gli stessi - `passwordFile` (slot 0), `additionalKeyFiles` (slot extra alla formattazione), `cryptsetup luksAddKey` (slot extra in seguito), `settings.keyFile` (sblocco automatico al boot). Quello che cambia tra gli scenari è come li combini.
 
 ### 1. Più passphrase, nessuna chiavetta
 
 Utile per una passphrase di emergenza/riserva (conservata in un password manager o stampata e messa in un posto sicuro), o per due persone che usano la stessa macchina con passphrase diverse. Non serve alcuna opzione NixOS aggiuntiva: il prompt di boot confronta ciò che digiti con **tutti** i keyslot, quindi qualunque passphrase registrata sblocca il disco.
 
-**Alla formattazione** — scrivi la passphrase aggiuntiva in un file e registrala con `additionalKeyFiles`:
+**Alla formattazione** - scrivi la passphrase aggiuntiva in un file e registrala con `additionalKeyFiles`:
 
 ```bash
 echo -n "latuapassphrase"     > /tmp/secret.key   # slot 0
@@ -71,7 +71,7 @@ additionalKeyFiles = [ "/tmp/second.key" ];
 
 Poiché il file è creato con `echo -n` (niente newline finale), la stessa identica stringa potrà poi essere digitata al prompt di boot.
 
-**A sistema già installato** — tutto interattivo, niente da configurare né rebuild:
+**A sistema già installato** - tutto interattivo, niente da configurare né rebuild:
 
 ```bash
 sudo cryptsetup luksAddKey /dev/nvme0n1p2
@@ -81,7 +81,7 @@ Chiede una passphrase esistente per autorizzare, poi due volte quella nuova.
 
 ### 2. Passphrase + una sola chiavetta USB
 
-Identico allo scenario 3 qui sotto — prepari la chiavetta e la registri (sezione A alla formattazione, sezione B in seguito) — ma il lato NixOS è più semplice: con una sola chiavetta la regola udev è opzionale, perché `keyFile` può puntare direttamente al percorso stabile della chiavetta:
+Identico allo scenario 3 qui sotto - prepari la chiavetta e la registri (sezione A alla formattazione, sezione B in seguito) - ma il lato NixOS è più semplice: con una sola chiavetta la regola udev è opzionale, perché `keyFile` può puntare direttamente al percorso stabile della chiavetta:
 
 ```nix
 settings = {
@@ -140,7 +140,7 @@ Il setup più semplice e robusto memorizza la chiave nei **primi 4096 byte raw d
    sudo cryptsetup luksAddKey /dev/nvme0n1p2 /dev/disk/by-id/usb-CHIAVETTA1-0:0 --new-keyfile-size 4096
    ```
 
-   (`/dev/nvme0n1p2` è la partizione LUKS — trova la tua con `lsblk -f | grep crypto_LUKS`.)
+   (`/dev/nvme0n1p2` è la partizione LUKS - trova la tua con `lsblk -f | grep crypto_LUKS`.)
 
 2. Aggiungi le stesse righe `settings` viste sopra al file Disko del host. Su un host già installato è **sicuro**: `settings` cambia solo la configurazione di boot generata, Disko non riformatta mai nulla al rebuild.
 
@@ -148,7 +148,7 @@ Il setup più semplice e robusto memorizza la chiave nei **primi 4096 byte raw d
 
 #### La regola udev (per entrambi i casi)
 
-`keyFile` accetta un solo percorso, quindi con due chiavette il trucco è una regola udev nell'initrd che dà **a entrambe lo stesso symlink** `/dev/usbkey` — qualunque delle due inserisci, il percorso è valido. Ricava il seriale di ogni chiavetta con `udevadm info /dev/sdX | grep ID_SERIAL_SHORT`, poi:
+`keyFile` accetta un solo percorso, quindi con due chiavette il trucco è una regola udev nell'initrd che dà **a entrambe lo stesso symlink** `/dev/usbkey` - qualunque delle due inserisci, il percorso è valido. Ricava il seriale di ogni chiavetta con `udevadm info /dev/sdX | grep ID_SERIAL_SHORT`, poi:
 
 ```nix
 boot.initrd.services.udev.rules = ''
@@ -161,22 +161,33 @@ Risultato all'avvio: con una chiavetta inserita la macchina si sblocca da sola; 
 
 ### 4. TPM2: sblocco automatico, con o senza PIN
 
-Il chip TPM2 sulla scheda madre può custodire una chiave e rilasciarla **solo se lo stato di boot misurato corrisponde a quello atteso** (firmware, Secure Boot…): il disco si sblocca da solo, senza digitare nulla. Requisiti: LUKS2 (questi template lo creano già), l'initrd systemd (`boot.initrd.systemd.enable = true`, vedi `common/config/boot_luks.nix`) e un chip TPM2 — verifica con `systemd-analyze has-tpm2`.
+Il chip TPM2 sulla scheda madre può custodire una chiave e rilasciarla **solo se lo stato di boot misurato corrisponde a quello atteso** (firmware, Secure Boot…): il disco si sblocca da solo, senza digitare nulla. Requisiti: LUKS2 (questi template lo creano già), l'initrd systemd (`boot.initrd.systemd.enable = true`, vedi `common/config/boot_luks.nix`) e un chip TPM2 - verifica con `systemd-analyze has-tpm2`.
 
-La registrazione avviene **a sistema avviato** e occupa un keyslot in più accanto alla passphrase:
+A differenza di passphrase e chiavette USB, il TPM **non si può registrare alla formattazione**. Non è un limite di Disko ma la natura del TPM: la registrazione sigilla la chiave contro i valori PCR del boot *corrente*, e durante l'installazione quelli misurati riflettono l'installer USB - al primo riavvio non combacerebbero e cadresti comunque sulla passphrase. Il flusso completo è:
 
-```bash
-# lega lo sblocco allo stato Secure Boot (PCR 7)
-sudo systemd-cryptenroll /dev/nvme0n1p2 --tpm2-device=auto --tpm2-pcrs=7
+1. **Formatta e installa normalmente** con la passphrase (i template così come sono).
+2. **Primo avvio**, digitando la passphrase.
+3. **Registrazione dal sistema avviato** - chiede una passphrase esistente per autorizzare e, con `--tpm2-with-pin=yes`, imposti anche il PIN lì, interattivamente. Occupa un keyslot in più accanto alla passphrase:
 
-# più robusto: richiede anche un PIN digitato al boot
-sudo systemd-cryptenroll /dev/nvme0n1p2 --tpm2-device=auto --tpm2-pcrs=7 --tpm2-with-pin=yes
-```
+   ```bash
+   # lega lo sblocco allo stato Secure Boot (PCR 7)
+   sudo systemd-cryptenroll /dev/nvme0n1p2 --tpm2-device=auto --tpm2-pcrs=7
 
-Lato NixOS, decommenta le righe già pronte:
+   # più robusto: richiede anche un PIN digitato al boot
+   sudo systemd-cryptenroll /dev/nvme0n1p2 --tpm2-device=auto --tpm2-pcrs=7 --tpm2-with-pin=yes
+   ```
 
-- nel file Disko del host: `crypttabExtraOpts = [ "tpm2-device=auto" ];`
-- in `common/config/boot_luks.nix`: `security.tpm2.enable = true;`
+4. **Decommenta la riga già pronta nel file Disko del host** e ricostruisci (`nixos-rebuild switch`):
+
+   ```nix
+   crypttabExtraOpts = [ "tpm2-device=auto" ];
+   ```
+
+   Non c'è altro da configurare: `common/config/boot_luks.nix` abilita da solo lo stack userspace TPM2 (`security.tpm2.enable`) non appena vede un device LUKS con un'opzione `tpm2-*`, così il file Disko resta l'unica fonte di verità. È impostato con `lib.mkDefault`, quindi un host può comunque forzarlo esplicitamente in caso di bisogno.
+
+5. **Dal riavvio successivo** il TPM sblocca il disco (chiedendo il PIN, se registrato con PIN) al posto della passphrase lunga - che resta nel suo keyslot come recovery.
+
+I passi 3 e 4 si possono invertire senza rischi: con `tpm2-device=auto` configurato ma nessuna registrazione fatta, il boot ripiega semplicemente sul prompt della passphrase.
 
 **PIN sì o PIN no?** Senza PIN la macchina si avvia da sola fino alla schermata di login: comodo, ma ci arriva anche un portatile rubato, quindi tutta la protezione si sposta su password utente/lockscreen. Con `--tpm2-with-pin=yes` digiti un breve PIN al boot: mantieni l'anti-manomissione del TPM (la chiave esce solo con un boot misurato sano) **più** un fattore di conoscenza, e il blocco anti-dizionario integrato nel TPM strozza i tentativi di forza bruta. È il compromesso sensato per i portatili.
 
@@ -184,7 +195,7 @@ Nota che il PIN **non richiede alcuna opzione aggiuntiva in `settings`**: il req
 
 Note:
 
-- **PCR 7** lega lo sblocco allo stato Secure Boot — si sposa naturalmente con il setup Lanzaboote in `hosts/secure_boot/`. Legare più PCR (es. `--tpm2-pcrs=0+2+7`) è più rigido, ma gli aggiornamenti firmware ti faranno cadere più spesso sulla passphrase di recovery.
+- **PCR 7** lega lo sblocco allo stato Secure Boot - si sposa naturalmente con il setup Lanzaboote in `hosts/secure_boot/`. Legare più PCR (es. `--tpm2-pcrs=0+2+7`) è più rigido, ma gli aggiornamenti firmware ti faranno cadere più spesso sulla passphrase di recovery.
 - **Tieni sempre la passphrase nel suo keyslot** come recovery: dopo un aggiornamento firmware, un cambio di PCR o un reset del TPM è l'unica via di rientro. Poi ri-registra con `systemd-cryptenroll --wipe-slot=tpm2` seguito da una nuova registrazione.
 - `cryptsetup luksDump` mostra il token `tpm2`; `systemd-cryptenroll /dev/... --wipe-slot=tpm2` lo rimuove.
 
@@ -202,7 +213,7 @@ sudo cryptsetup luksDump /dev/nvme0n1p2
 # persa una chiavetta? revoca solo il suo slot (scopri quale slot è di chi con --test-passphrase --key-slot N)
 sudo cryptsetup luksKillSlot /dev/nvme0n1p2 2
 
-# backup dell'header — da conservare FUORI da questo disco
+# backup dell'header - da conservare FUORI da questo disco
 sudo cryptsetup luksHeaderBackup /dev/nvme0n1p2 --header-backup-file luks-header.img
 ```
 
