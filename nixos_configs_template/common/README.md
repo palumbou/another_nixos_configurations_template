@@ -14,6 +14,8 @@ common/
 │   ├── audio_chromecast.nix
 │   ├── battery_management.nix
 │   ├── boot_luks.nix
+│   ├── btrfs_scrub.nix
+│   ├── btrfs_snapshots.nix
 │   ├── os_compatibility.nix
 │   ├── os_optimization.nix
 │   ├── secrets.nix
@@ -59,6 +61,8 @@ This folder stores **Operating System-related** configurations:
 - **`audio_chromecast.nix`** for optional Google Cast (Chromecast) streaming support to send audio to Cast-compatible devices (Google Home/Nest speakers, Chromecast, etc.). Runs pulseaudio-dlna as a systemd user service that creates a virtual audio sink for each device discovered on the LAN (works with PipeWire through the pipewire-pulse compatibility layer), and configures Avahi mDNS for device discovery plus the firewall ports needed for streaming. Import this only in host configurations that need Google Cast functionality.
 - **`battery_management.nix`** for configuring TLP battery management and power saving features. It includes battery charge thresholds, CPU scaling governors, and energy performance policies for both AC and battery modes.
 - **`boot_luks.nix`** for configuring boot parameters with LUKS encryption support and Plymouth boot splash settings; it also enables the TPM2 userspace stack automatically when a LUKS device is set to unlock via TPM2 (see [LUKS_KEYS.md](../hosts/disk_configurations/LUKS_KEYS.md)).
+- **`btrfs_scrub.nix`** for a periodic `btrfs scrub`, which re-reads every allocated block and verifies its checksum to catch silent corruption (bit rot) before you run into it while opening a file. Metadata is repaired from its second copy when the profile is DUP or RAID, while errors in single-profile data can only be reported. Import this only in hosts whose filesystem is Btrfs: elsewhere the build fails on an assertion.
+- **`btrfs_snapshots.nix`** for hourly snapper timeline snapshots on the `/` and `/home` subvolumes, with a daily cleanup. `/nix` is left out on purpose, since the Nix store is rolled back through the NixOS generations. It also installs btrfs-assistant, a Qt GUI to browse and restore snapshots and to manage subvolumes. Import this only in hosts where `/` and `/home` are Btrfs subvolumes.
 - **`os_compatibility.nix`** for enabling compatibility with pre-compiled binaries on NixOS. It uses nix-ld to provide standard Linux library paths and common shared libraries, allowing execution of non-NixOS binaries without patching. This file is automatically imported by `system.nix`.
 - **`os_optimization.nix`** for system optimization settings including automatic Nix garbage collection, Nix store optimization, systemd journal limits, SSD TRIM support, and zram configuration. This file is automatically imported by `system.nix`.
 - **`secrets.nix`** for secrets management with sops-nix: hosts decrypt the files in `secrets/` with the age key derived from their own SSH host key, and the editing tools are installed system-wide. Required by every host - see [SECRETS.md](config/SECRETS.md).

@@ -38,6 +38,10 @@ hosts/
 - **`btrfs`**: Templates using a Btrfs filesystem (with optional subvolumes and LUKS).  
 - **`ext4`**: Templates using the ext4 filesystem, with BIOS or EFI boot, optionally encrypted.
 
+> **Note**: the files in this folder are **install-time** Disko recipes. You copy one onto the installer, edit its device name, and then keep your edited copy inside `hosts/<name>/`. Nothing here is imported live by a host.
+>
+> The **runtime** counterparts live in `common/config/` and are imported like any other module: [`btrfs_scrub.nix`](../../common/config/btrfs_scrub.nix) for periodic integrity checks and [`btrfs_snapshots.nix`](../../common/config/btrfs_snapshots.nix) for snapper timeline snapshots. Import them only if you picked a Btrfs template, since they fail the build on other filesystems. See [common/config/README.md](../../common/config/README.md).
+
 ---
 
 ## Usage

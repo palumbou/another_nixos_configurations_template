@@ -38,6 +38,10 @@ hosts/
 - **`btrfs`**: Template che utilizzano il filesystem Btrfs (opzionalmente con subvolumi e LUKS).  
 - **`ext4`**: Template che utilizzano il filesystem ext4, con boot BIOS o EFI, eventualmente cifrato.
 
+> **Nota**: i file in questa cartella sono ricette Disko usate **in fase di installazione**. Se ne copia una sull'installer, si modifica il nome del device e poi si tiene la copia modificata dentro `hosts/<nome>/`. Nulla qui dentro viene importato vivo da un host.
+>
+> Le controparti **a runtime** vivono in `common/config/` e si importano come qualsiasi altro modulo: [`btrfs_scrub.nix`](../../common/config/btrfs_scrub.nix) per il controllo periodico di integrità e [`btrfs_snapshots.nix`](../../common/config/btrfs_snapshots.nix) per gli snapshot timeline di snapper. Vanno importati solo se si è scelto un template Btrfs, perché su altri filesystem fanno fallire la build. Vedi [common/config/README.it.md](../../common/config/README.it.md).
+
 ---
 
 ## Utilizzo
