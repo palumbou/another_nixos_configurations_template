@@ -117,7 +117,7 @@
     settings = {
       terminal.vt = 1;      # Virtual terminal da usare
       default_session = {
-        command = "${pkgs.tuigreet}/bin/tuigreet --time --cmd Hyprland --asterisks";
+        command = "${pkgs.tuigreet}/bin/tuigreet --time --cmd start-hyprland --asterisks";
         user = "greeter";
       };
     };
