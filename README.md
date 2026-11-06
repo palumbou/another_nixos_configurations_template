@@ -85,6 +85,10 @@ The **`common`** folder contains NixOS configuration files that are shared by al
 - **`packages`** – Specifies which packages to install and which services to enable.  
 - **`network`** – Network-related configurations. WiFi connections are declared per host and their credentials live sops-encrypted in the `secrets/` folder (see [SECRETS.md](nixos_configs_template/common/config/SECRETS.md)).
 
+Importing [`battery_management.nix`](nixos_configs_template/common/config/battery_management.nix) also installs `energy-profile` through [`energy_profiles.nix`](nixos_configs_template/common/config/energy_profiles.nix), requiring TLP 1.9 or newer. Automatic operation selects Performance on AC and Balanced on battery. Use `energy-profile performance`, `energy-profile balanced`, or `energy-profile saver` for a temporary manual choice; `energy-profile auto` restores automatic operation, and `energy-profile status` returns JSON. Every reboot restores automatic operation using TLP's own runtime state, without an additional state file. Local, active users in `wheel` can change profiles through the dedicated Polkit action.
+
+Balanced mode allows turbo and uses `balance_performance`; the manually selected saver uses `balance_power` with turbo disabled. The governor defaults target active `intel_pstate`/`amd-pstate` drivers. Override `services.tlp.settings` per host for other scaling drivers (for example, `schedutil` with `acpi-cpufreq`) or firmware profile names; inspect `tlp-stat -p` for supported values. The defaults use firmware `performance` on AC and `balanced` for both battery profiles.
+
 ---
 
 #### `hosts`

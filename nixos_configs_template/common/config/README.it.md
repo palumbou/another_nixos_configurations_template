@@ -9,10 +9,11 @@ Questa cartella contiene file di configurazione di base del sistema che definisc
 - **`audio.nix`** - Configurazione audio centralizzata con PipeWire, session manager wireplumber, rtkit per la priorità real-time, supporto ALSA (32-bit e 64-bit), layer di compatibilità PulseAudio, supporto JACK per applicazioni audio professionali e utility audio (strumenti CLI pulseaudio, GUI pwvucontrol). Importato automaticamente dalle configurazioni degli ambienti desktop (Hyprland, GNOME, KDE)
 - **`audio_airplay.nix`** - Supporto opzionale per lo streaming AirPlay/RAOP per inviare audio a dispositivi compatibili AirPlay (Apple HomePod, speaker Denon Home, ecc.). Configura il modulo libpipewire-module-raop-discover di PipeWire e Avahi mDNS per il rilevamento dei dispositivi. Importare solo nelle configurazioni host che necessitano della funzionalità AirPlay
 - **`audio_chromecast.nix`** - Supporto opzionale per lo streaming Google Cast (Chromecast) per inviare audio a dispositivi compatibili Cast (speaker Google Home/Nest, Chromecast, ecc.). PipeWire non ha un modulo Cast nativo, quindi questo file esegue pulseaudio-dlna come servizio utente systemd che crea un sink audio virtuale per ogni dispositivo rilevato in LAN (funziona con PipeWire tramite il layer di compatibilità pipewire-pulse). Configura inoltre Avahi mDNS per il rilevamento dei dispositivi e apre le porte firewall necessarie per lo streaming (TCP 8080, UDP 1900). Importare solo nelle configurazioni host che necessitano della funzionalità Google Cast
-- **`battery_management.nix`** - Configurazione per la gestione della batteria TLP e funzionalità di risparmio energetico, incluse soglie di carica della batteria, regolatori di frequenza CPU e politiche di prestazione energetiche per le modalità AC e batteria. Abilita inoltre UPower come protezione di ultima istanza contro l'esaurimento della batteria: il sistema iberna automaticamente al 7% in scarica invece di spegnersi bruscamente
+- **[`battery_management.nix`](battery_management.nix)** - Soglie di carica TLP e tre profili energetici: Performance con alimentatore, Bilanciato in batteria e Risparmio selezionabile manualmente. Importa automaticamente `energy_profiles.nix` e può essere usato anche sui fissi. Abilita inoltre UPower come protezione di ultima istanza contro l'esaurimento della batteria: il sistema iberna automaticamente al 7% in scarica invece di spegnersi bruscamente
 - **`boot_luks.nix`** - Configurazione per il boot con crittografia LUKS e impostazioni Plymouth per la schermata di avvio; abilita inoltre automaticamente lo stack userspace TPM2 quando un device LUKS è impostato per sbloccarsi via TPM2 (vedi [LUKS_KEYS.it.md](../../hosts/disk_configurations/LUKS_KEYS.it.md))
 - **`btrfs_scrub.nix`** - Scrub btrfs periodico tramite `services.btrfs.autoScrub`: rilegge ogni blocco allocato e ne verifica il checksum, intercettando la corruzione silenziosa (bit rot) prima di incontrarla aprendo un file. I metadati corrotti vengono riparati dalla seconda copia quando il profilo è DUP o RAID (DUP è il default di mkfs per i metadati), mentre gli errori dentro un chunk dati in profilo single possono solo essere segnalati nel journal. Gira mensilmente a bassa priorità di CPU e I/O su ogni mount point btrfs, deduplicato per device, quindi i subvolumi di uno stesso disco producono una sola unit. Importare solo negli host il cui filesystem è Btrfs: altrove la lista dei filesystem risulta vuota e la build fallisce su un'asserzione
 - **`btrfs_snapshots.nix`** - Snapshot timeline con [snapper](https://github.com/openSUSE/snapper) sui subvolumi `/` e `/home`, creati ogni ora e ripuliti una volta al giorno. `/nix` resta fuori di proposito, dato che il Nix store si ripristina già tramite le generation di NixOS, e né `/boot` né il subvolume di swap possono finire in uno snapshot. Crea con systemd-tmpfiles i subvolumi `.snapshots` richiesti da snapper (NixOS non esegue mai `snapper create-config`) e dà a ogni utente normale l'accesso agli snapshot di `/home` tramite ACL. Installa inoltre [btrfs-assistant](https://gitlab.com/btrfs-assistant/btrfs-assistant), una GUI Qt per sfogliare, confrontare e ripristinare gli snapshot e per gestire i subvolumi, che eleva i privilegi tramite pkexec e richiede quindi `security.polkit.enable` più un agent di autenticazione attivo. La CLI `snapper` e `btrfs-progs` non vanno dichiarati, arrivano dai moduli snapper e btrfs. Importare solo negli host in cui `/` e `/home` sono subvolumi Btrfs
+- **[`energy_profiles.nix`](energy_profiles.nix)** - CLI `energy-profile` e azione Polkit dedicata per la selezione manuale temporanea dei profili. Richiede TLP 1.9 o successivo; importato automaticamente da `battery_management.nix`. Gli utenti `wheel` con sessione locale attiva possono scegliere il profilo, mentre `energy-profile status` restituisce JSON senza privilegi elevati
 - **`os_compatibility.nix`** - Abilita la compatibilità con binari precompilati su NixOS usando nix-ld. Fornisce i percorsi delle librerie standard di Linux e le librerie condivise comuni (libc, libstdc++, X11, OpenGL, audio, ecc.) permettendo l'esecuzione di binari non-NixOS senza patch. Include supporto per applicazioni compatibili con FHS (Filesystem Hierarchy Standard). Configura inoltre le regole udev per l'accesso ai dispositivi HID (necessario per l'API WebHID in Chrome/Chromium per accedere a tastiere, mouse e altri dispositivi USB/HID) utilizzando il moderno meccanismo TAG+="uaccess". Sicuro da tenere abilitato anche quando non si usano attivamente binari esterni (importato automaticamente da `system.nix`)
 - **`os_optimization.nix`** - Impostazioni di ottimizzazione del sistema incluse garbage collection automatica, ottimizzazione del Nix store, limiti del journal di systemd, supporto TRIM per SSD e configurazione zram (importato automaticamente da `system.nix`)
 - **`secrets.nix`** - Gestione dei segreti con [sops-nix](https://github.com/Mic92/sops-nix), pinnato per commit: gli host decifrano i file in `secrets/` con la chiave age derivata dalla propria chiave SSH host, e i tool di editing (`sops`, `age`, `ssh-to-age`) vengono installati a sistema. Richiesto da ogni host, poiché i moduli condivisi (utente, WiFi) dichiarano segreti `sops.*`. Guida completa: [SECRETS.it.md](SECRETS.it.md)
@@ -32,7 +33,7 @@ imports = [
   ../common/config/btrfs_scrub.nix  # Opzionale: solo su host Btrfs
   ../common/config/btrfs_snapshots.nix  # Opzionale: solo su host Btrfs con / e /home come subvolumi
   ../common/config/secrets.nix  # Richiesto: gestione segreti sops-nix (vedi SECRETS.it.md)
-  ../common/config/battery_management.nix  # Opzionale: solo per laptop
+  ../common/config/battery_management.nix  # Opzionale: profili TLP per laptop o fissi; importa energy_profiles.nix
   ../common/config/system.nix  # Richiesto: importa automaticamente sudo.nix e os_optimization.nix
   # ...altre configurazioni secondo necessità...
 ];
@@ -40,11 +41,38 @@ imports = [
 
 > **Nota**: Non è necessario importare `sudo.nix`, `os_optimization.nix` o `audio.nix` separatamente. I primi due vengono importati automaticamente da `system.nix`, mentre `audio.nix` viene importato automaticamente dalle configurazioni degli ambienti desktop (Hyprland, GNOME, KDE).
 
+`battery_management.nix` importa anche `energy_profiles.nix`: gli host che importano già la gestione batteria non richiedono un ulteriore import.
+
+## Profili Energetici
+
+Automatico seleziona Performance con alimentatore e Bilanciato in batteria. Un fisso senza batteria di sistema usa automaticamente Performance. Risparmio si seleziona manualmente.
+
+| Impostazione | Performance (`AC`) | Bilanciato (`BAT`) | Risparmio (`SAV`) |
+|---|---|---|---|
+| Governor CPU | `performance` | `powersave` | `powersave` |
+| Preferenza energetica | `performance` | `balance_performance` | `balance_power` |
+| Turbo consentito | Sì | Sì | No |
+| Profilo firmware | `performance` | `balanced` | `balanced` |
+
+Questi governor predefiniti sono pensati per i driver `intel_pstate`/`amd-pstate` in modalità attiva. Personalizza `services.tlp.settings` nella configurazione dell'host se il driver o il firmware richiede valori differenti; `tlp-stat -p` mostra quelli supportati. Per esempio, un host con `acpi-cpufreq` può usare `schedutil` invece di `powersave`.
+
+Dopo il rebuild NixOS, usa:
+
+```bash
+energy-profile auto         # Ripristina la selezione automatica in base all'alimentazione
+energy-profile performance  # Forza Performance, anche in batteria
+energy-profile balanced     # Forza Bilanciato, anche con alimentatore
+energy-profile saver        # Seleziona Risparmio manualmente
+energy-profile status       # Legge profilo, modalità e alimentazione in JSON
+```
+
+Le scelte manuali restano attive collegando o scollegando l'alimentatore e dopo la sospensione; terminano tornando in Automatico o riavviando. Si usa soltanto lo stato temporaneo nativo di TLP, senza creare un ulteriore file di stato. I cambi di profilo sono autorizzati da un'azione Polkit dedicata agli utenti `wheel` con una sessione locale attiva. Il modulo richiede TLP 1.9 o successivo e verifica le impostazioni native di commutazione necessarie a questo comportamento.
+
 ## Personalizzazione
 
 I file di configurazione in questa directory definiscono le impostazioni fondamentali del sistema. Puoi:
 
-- Modificare `battery_management.nix` per regolare le soglie della batteria TLP, le politiche di gestione dell'energia e le soglie di ibernazione UPower per batteria scarica
+- Personalizzare `services.tlp.settings` per host per regolare i profili dichiarati da `battery_management.nix`, mantenendo riutilizzabili i valori comuni. Il modulo definisce anche le soglie della batteria e le soglie di ibernazione UPower per batteria scarica
 - Modificare `boot_luks.nix` per personalizzare le impostazioni di boot crittografato e la configurazione di Plymouth
 - Modificare `btrfs_scrub.nix` per cambiare l'intervallo dello scrub, limitarlo a una lista specifica di filesystem o mettere un tetto al throughput con `limit` sui dischi lenti
 - Modificare `btrfs_snapshots.nix` per cambiare quali subvolumi vengono snapshottati, l'intervallo degli snapshot e quanti snapshot orari/giornalieri/settimanali/mensili conservare; ricordarsi di tenere allineate le regole `systemd.tmpfiles` ai subvolumi configurati

@@ -2,7 +2,7 @@
 
 > **Available languages**: [English (current)](README.md) | [Italiano](README.it.md)
 
-This folder contains NixOS configuration files that are **common** to all host and user combinations. It includes three subfolders `gui`, `packages`, and `network` and a `system.nix` file.
+This folder contains NixOS configuration files that are **common** to all host and user combinations. It includes four subfolders: `config`, `gui`, `packages`, and `network`.
 
 ## Folder Structure
 
@@ -16,6 +16,7 @@ common/
 │   ├── boot_luks.nix
 │   ├── btrfs_scrub.nix
 │   ├── btrfs_snapshots.nix
+│   ├── energy_profiles.nix
 │   ├── os_compatibility.nix
 │   ├── os_optimization.nix
 │   ├── secrets.nix
@@ -59,10 +60,11 @@ This folder stores **Operating System-related** configurations:
 - **`audio.nix`** for centralized audio configuration with PipeWire, wireplumber session manager, rtkit for real-time priority, ALSA support (32-bit and 64-bit), PulseAudio compatibility layer, JACK support for professional audio applications, and audio utilities (pulseaudio CLI tools, pwvucontrol GUI). This file is automatically imported by desktop environment configurations (Hyprland, GNOME, KDE).
 - **`audio_airplay.nix`** for optional AirPlay/RAOP streaming support to send audio to AirPlay-compatible devices (Apple HomePod, Denon Home speakers, etc.). Configures PipeWire's libpipewire-module-raop-discover and Avahi mDNS for device discovery. Import this only in host configurations that need AirPlay functionality.
 - **`audio_chromecast.nix`** for optional Google Cast (Chromecast) streaming support to send audio to Cast-compatible devices (Google Home/Nest speakers, Chromecast, etc.). Runs pulseaudio-dlna as a systemd user service that creates a virtual audio sink for each device discovered on the LAN (works with PipeWire through the pipewire-pulse compatibility layer), and configures Avahi mDNS for device discovery plus the firewall ports needed for streaming. Import this only in host configurations that need Google Cast functionality.
-- **`battery_management.nix`** for configuring TLP battery management and power saving features. It includes battery charge thresholds, CPU scaling governors, and energy performance policies for both AC and battery modes.
+- **[`battery_management.nix`](config/battery_management.nix)** for TLP battery thresholds and three energy profiles: Performance, Balanced, and manually selected Saver. Automatic operation selects Performance on AC and Balanced on battery; desktops use Performance automatically. Imports `energy_profiles.nix` and enables UPower's low-battery hibernation protection.
 - **`boot_luks.nix`** for configuring boot parameters with LUKS encryption support and Plymouth boot splash settings; it also enables the TPM2 userspace stack automatically when a LUKS device is set to unlock via TPM2 (see [LUKS_KEYS.md](../hosts/disk_configurations/LUKS_KEYS.md)).
 - **`btrfs_scrub.nix`** for a periodic `btrfs scrub`, which re-reads every allocated block and verifies its checksum to catch silent corruption (bit rot) before you run into it while opening a file. Metadata is repaired from its second copy when the profile is DUP or RAID, while errors in single-profile data can only be reported. Import this only in hosts whose filesystem is Btrfs: elsewhere the build fails on an assertion.
 - **`btrfs_snapshots.nix`** for hourly snapper timeline snapshots on the `/` and `/home` subvolumes, with a daily cleanup. `/nix` is left out on purpose, since the Nix store is rolled back through the NixOS generations. It also installs btrfs-assistant, a Qt GUI to browse and restore snapshots and to manage subvolumes. Import this only in hosts where `/` and `/home` are Btrfs subvolumes.
+- **[`energy_profiles.nix`](config/energy_profiles.nix)** provides the `energy-profile auto|performance|balanced|saver|status` command and its dedicated Polkit authorization for active local users in `wheel`. Requires TLP 1.9 or newer and is imported automatically by `battery_management.nix`. Manual choices last until Automatic is selected or the system reboots, using only TLP's native runtime state. See the [energy profile guide](config/README.md#energy-profiles).
 - **`os_compatibility.nix`** for enabling compatibility with pre-compiled binaries on NixOS. It uses nix-ld to provide standard Linux library paths and common shared libraries, allowing execution of non-NixOS binaries without patching. This file is automatically imported by `system.nix`.
 - **`os_optimization.nix`** for system optimization settings including automatic Nix garbage collection, Nix store optimization, systemd journal limits, SSD TRIM support, and zram configuration. This file is automatically imported by `system.nix`.
 - **`secrets.nix`** for secrets management with sops-nix: hosts decrypt the files in `secrets/` with the age key derived from their own SSH host key, and the editing tools are installed system-wide. Required by every host - see [SECRETS.md](config/SECRETS.md).

@@ -85,6 +85,10 @@ La cartella **`common`** contiene file di configurazione di NixOS condivisi da t
 - **`packages`** – Specifica quali pacchetti installare e quali servizi abilitare.  
 - **`network`** – Configurazioni relative alla rete. Le connessioni WiFi si dichiarano per host e le loro credenziali vivono cifrate con sops nella cartella `secrets/` (vedi [SECRETS.it.md](nixos_configs_template/common/config/SECRETS.it.md)).
 
+Importando [`battery_management.nix`](nixos_configs_template/common/config/battery_management.nix) si installa anche `energy-profile` tramite [`energy_profiles.nix`](nixos_configs_template/common/config/energy_profiles.nix), con TLP 1.9 o successivo. Automatico seleziona Performance con alimentatore e Bilanciato in batteria. I comandi `energy-profile performance`, `energy-profile balanced` ed `energy-profile saver` applicano una scelta manuale temporanea; `energy-profile auto` ripristina l'automatismo e `energy-profile status` restituisce JSON. A ogni riavvio si torna in Automatico usando soltanto lo stato temporaneo nativo di TLP, senza un ulteriore file di stato. Gli utenti del gruppo `wheel` con una sessione locale attiva possono cambiare profilo tramite l'azione Polkit dedicata.
+
+Bilanciato consente il turbo e usa `balance_performance`; Risparmio, selezionabile manualmente, usa `balance_power` e disabilita il turbo. I governor predefiniti sono pensati per i driver `intel_pstate`/`amd-pstate` in modalità attiva. Personalizza `services.tlp.settings` per host con altri driver (per esempio `schedutil` con `acpi-cpufreq`) o nomi differenti dei profili firmware; `tlp-stat -p` mostra i valori supportati. Il profilo firmware predefinito è `performance` con alimentatore e `balanced` per entrambi i profili batteria.
+
 ---
 
 #### `hosts`

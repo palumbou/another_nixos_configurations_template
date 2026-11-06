@@ -2,7 +2,7 @@
 
 > **Lingue disponibili**: [English](README.md) | [Italiano (corrente)](README.it.md)
 
-Questa cartella contiene file di configurazione NixOS che sono **comuni** a tutte le combinazioni di host e utente. Include tre sottocartelle `gui`, `packages` e `network` e un file `system.nix`.
+Questa cartella contiene file di configurazione NixOS che sono **comuni** a tutte le combinazioni di host e utente. Include quattro sottocartelle: `config`, `gui`, `packages` e `network`.
 
 ## Struttura della cartella
 
@@ -16,6 +16,7 @@ common/
 │   ├── boot_luks.nix
 │   ├── btrfs_scrub.nix
 │   ├── btrfs_snapshots.nix
+│   ├── energy_profiles.nix
 │   ├── os_compatibility.nix
 │   ├── os_optimization.nix
 │   ├── secrets.nix
@@ -59,10 +60,11 @@ Questa cartella archivia configurazioni **relative al Sistema Operativo**:
 - **`audio.nix`** per la configurazione audio centralizzata con PipeWire, session manager wireplumber, rtkit per la priorità real-time, supporto ALSA (32-bit e 64-bit), layer di compatibilità PulseAudio, supporto JACK per applicazioni audio professionali e utility audio (strumenti CLI pulseaudio, GUI pwvucontrol). Questo file viene importato automaticamente dalle configurazioni degli ambienti desktop (Hyprland, GNOME, KDE).
 - **`audio_airplay.nix`** per il supporto opzionale allo streaming AirPlay/RAOP per inviare audio a dispositivi compatibili AirPlay (Apple HomePod, speaker Denon Home, ecc.). Configura il modulo libpipewire-module-raop-discover di PipeWire e Avahi mDNS per il rilevamento dei dispositivi. Importare solo nelle configurazioni host che necessitano della funzionalità AirPlay.
 - **`audio_chromecast.nix`** per il supporto opzionale allo streaming Google Cast (Chromecast) per inviare audio a dispositivi compatibili Cast (speaker Google Home/Nest, Chromecast, ecc.). Esegue pulseaudio-dlna come servizio utente systemd che crea un sink audio virtuale per ogni dispositivo rilevato in LAN (funziona con PipeWire tramite il layer di compatibilità pipewire-pulse) e configura Avahi mDNS per il rilevamento dei dispositivi oltre alle porte firewall necessarie per lo streaming. Importare solo nelle configurazioni host che necessitano della funzionalità Google Cast.
-- **`battery_management.nix`** per configurare la gestione della batteria TLP e le funzionalità di risparmio energetico. Include soglie di carica della batteria, regolatori di frequenza CPU e politiche di prestazione energetiche per le modalità AC e batteria.
+- **[`battery_management.nix`](config/battery_management.nix)** per le soglie di carica TLP e tre profili energetici: Performance, Bilanciato e Risparmio selezionabile manualmente. Automatico seleziona Performance con alimentatore e Bilanciato in batteria; sui fissi usa Performance. Importa `energy_profiles.nix` e abilita la protezione UPower con ibernazione per batteria scarica.
 - **`boot_luks.nix`** per configurare i parametri di boot con supporto alla crittografia LUKS e le impostazioni di Plymouth per la schermata di avvio; abilita inoltre automaticamente lo stack userspace TPM2 quando un device LUKS è impostato per sbloccarsi via TPM2 (vedi [LUKS_KEYS.it.md](../hosts/disk_configurations/LUKS_KEYS.it.md)).
 - **`btrfs_scrub.nix`** per uno scrub btrfs periodico, che rilegge ogni blocco allocato e ne verifica il checksum per intercettare la corruzione silenziosa (bit rot) prima di incontrarla aprendo un file. I metadati vengono riparati dalla seconda copia quando il profilo è DUP o RAID, mentre gli errori sui dati in profilo single possono solo essere segnalati. Importare solo negli host il cui filesystem è Btrfs: altrove la build fallisce su un'asserzione.
 - **`btrfs_snapshots.nix`** per snapshot timeline di snapper ogni ora sui subvolumi `/` e `/home`, con pulizia giornaliera. `/nix` resta escluso di proposito, dato che il Nix store si ripristina tramite le generation di NixOS. Installa inoltre btrfs-assistant, una GUI Qt per sfogliare e ripristinare gli snapshot e per gestire i subvolumi. Importare solo negli host in cui `/` e `/home` sono subvolumi Btrfs.
+- **[`energy_profiles.nix`](config/energy_profiles.nix)** fornisce il comando `energy-profile auto|performance|balanced|saver|status` e l'autorizzazione Polkit dedicata agli utenti `wheel` con sessione locale attiva. Richiede TLP 1.9 o successivo ed è importato automaticamente da `battery_management.nix`. Le scelte manuali durano fino al ritorno in Automatico o al riavvio, usando soltanto lo stato temporaneo nativo di TLP. Vedi la [guida ai profili energetici](config/README.it.md#profili-energetici).
 - **`os_compatibility.nix`** per abilitare la compatibilità con binari precompilati su NixOS. Utilizza nix-ld per fornire i percorsi delle librerie standard di Linux e le librerie condivise comuni, consentendo l'esecuzione di binari non-NixOS senza patch. Questo file viene importato automaticamente da `system.nix`.
 - **`os_optimization.nix`** per le impostazioni di ottimizzazione del sistema incluse garbage collection automatica di Nix, ottimizzazione del Nix store, limiti del journal di systemd, supporto TRIM per SSD e configurazione zram. Questo file viene importato automaticamente da `system.nix`.
 - **`secrets.nix`** per la gestione dei segreti con sops-nix: gli host decifrano i file in `secrets/` con la chiave age derivata dalla propria chiave SSH host, e i tool di editing vengono installati a sistema. Richiesto da ogni host - vedi [SECRETS.it.md](config/SECRETS.it.md).
