@@ -88,9 +88,22 @@ settings = {
   allowDiscards = true;
   keyFile = "/dev/disk/by-id/usb-STICK1-0:0";  # the stick itself
   keyFileSize = 4096;
-  keyFileTimeout = 10;                         # no stick inserted → passphrase prompt
+  keyFileTimeout = 10;                         # no stick inserted -> passphrase prompt
 };
 ```
+
+> **If you already use TPM2 with a PIN**
+>
+> Enrolling a USB key with `cryptsetup luksAddKey` adds an independent keyslot and does not, by itself, change boot-time behavior.
+>
+> To obtain the behavior shown in this example, configure `keyFile`, `keyFileSize` and `keyFileTimeout`, and remove `tpm2-device=auto` from `crypttabExtraOpts`, keeping any other options:
+>
+> - **USB present and valid:** automatic unlock, without a PIN.
+> - **USB absent or invalid:** prompt for the LUKS passphrase, not the TPM PIN.
+>
+> The previously enrolled TPM keyslot and token are not deleted.
+>
+> Adding `keyFile` while keeping `tpm2-device=auto` does not guarantee the sequence "USB -> TPM with PIN -> passphrase": systemd may interpret the file as a TPM-sealed key.
 
 The udev rule (`/dev/usbkey`) remains a good idea if you plan to add a second stick later: you would only add one more line to it.
 

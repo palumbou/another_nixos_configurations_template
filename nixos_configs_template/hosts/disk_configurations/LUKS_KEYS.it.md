@@ -88,9 +88,22 @@ settings = {
   allowDiscards = true;
   keyFile = "/dev/disk/by-id/usb-CHIAVETTA1-0:0";  # la chiavetta stessa
   keyFileSize = 4096;
-  keyFileTimeout = 10;                             # chiavetta assente → prompt passphrase
+  keyFileTimeout = 10;                             # chiavetta assente -> prompt passphrase
 };
 ```
+
+> **Se usi già TPM2 con PIN**
+>
+> Registrare una chiave USB con `cryptsetup luksAddKey` aggiunge uno slot indipendente e non cambia, da solo, il comportamento all'avvio.
+>
+> Per ottenere il comportamento di questo esempio, configura `keyFile`, `keyFileSize` e `keyFileTimeout` e rimuovi `tpm2-device=auto` da `crypttabExtraOpts`, conservando eventuali altre opzioni:
+>
+> - **USB presente e valida:** sblocco automatico, senza PIN.
+> - **USB assente o non valida:** richiesta della passphrase LUKS, non del PIN TPM.
+>
+> Lo slot e il token TPM già registrati non vengono cancellati.
+>
+> Aggiungere invece `keyFile` mantenendo `tpm2-device=auto` non garantisce la sequenza "USB -> TPM con PIN -> passphrase": systemd può interpretare il file come una chiave sigillata dal TPM.
 
 La regola udev (`/dev/usbkey`) resta una buona idea se prevedi di aggiungere una seconda chiavetta in futuro: basterà aggiungerle una riga.
 
