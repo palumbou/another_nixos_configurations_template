@@ -1,144 +1,107 @@
-# Hosts Folder
+# Hosts
 
 > **Available languages**: [English (current)](README.md) | [Italiano](README.it.md)
 
-The **`hosts`** folder contains configurations for each of your machines (hosts). Each host resides in its own subfolder named after that host. This folder also includes:
+Host examples are separated by purpose:
 
-- **`disk_configurations/`** - Disko templates for declarative disk partitioning and filesystem setup
-- **`secure_boot/`** - Secure Boot configuration files using Lanzaboote for automatic signing
-- Individual host folders (e.g., **`ABC/`**) containing host-specific configuration files
-
-Each host folder typically includes:
-
-- **`configuration.nix`** - Base configuration file with imports for GUI, packages, users, and optional features
-- **`external-hardware-configuration.nix`** (optional) - Configuration for external or host-specific hardware (printers, scanners, etc.)
-- **`hardware-configuration.nix`** - Hardware-specific configuration generated during installation
-- **`nm_configurations.nix`** (optional) - NetworkManager connection files to import during build
-
-## Folder Structure
-
-```bash
+```text
 hosts/
-├── ABC/                          # Example host folder
-│   ├── configuration.nix
-│   ├── external-hardware-configuration.nix
-│   ├── hardware-configuration.nix
-│   └── nm_configurations.nix
-├── disk_configurations/          # Disko templates for disk setup
+├── client/ABC/
+│   ├── configuration.nix.template
+│   ├── hardware-configuration.nix.template
+│   ├── external-hardware-configuration.nix.template
+│   ├── nm_configurations.nix.template
+│   └── syncthing.nix.template
+├── server/ABC/
+│   ├── configuration.nix.template
+│   ├── hardware-configuration.nix.template
+│   ├── external-hardware-configuration.nix.template
+│   ├── nm_configurations.nix.template
+│   └── syncthing.nix.template
+├── disk_configurations/
 │   ├── btrfs/
 │   └── ext4/
-└── secure_boot/                  # Secure Boot with Lanzaboote
-    ├── lon.nix
-    └── secure_boot.nix
+└── secure_boot/
 ```
 
-The **`ABC`** folder is a sample. Copy it, rename it to match your actual hostname, and then modify its files as needed.
+Copy the relevant `ABC` example within its category and rename it for the host. Prepare selected `.nix.template` files as `.nix` files with the public parameter values described in [`env.conf`](../../env.conf) and the [HOWTO](../../HOWTO.md).
 
----
+## Imports and public values
 
-## Optional: Secure Boot Configuration
+The client imports the client role, client administrator customizations, client network/package baseline, the encrypted-boot/Plymouth helper, SOPS and local hardware/network/Syncthing files. The server imports the server role, minimal administrator, separate worker account, SOPS and local files. Keep those required imports in place.
 
-The **`secure_boot`** folder provides configuration files to enable Secure Boot on your NixOS system using **Lanzaboote**, a community tool that automates the signing of boot files.
+`${HOST_IMPORTS}` holds optional imports only: local desktop, Xfce RDP, package groups, Docker/libvirt, Btrfs maintenance and other selected capabilities. `${HOST_EXTRA_CONFIG}` holds boot settings only. Select these explicitly; editing `env.conf` alone does not change any Nix file.
 
-**What is Secure Boot?**  
-Secure Boot is a UEFI firmware feature that ensures only cryptographically signed bootloaders and kernels can run, protecting against boot-level malware and unauthorized modifications.
+Paths from either host category are:
 
-**Why use Lanzaboote?**  
-Lanzaboote integrates Secure Boot signing directly into the NixOS rebuild process, eliminating the need to manually sign boot files after each system update.
+| Target | Relative path |
+| --- | --- |
+| Common modules | `../../../common/` |
+| Roles | `../../../roles/` |
+| Accounts | `../../../users/ADMIN/` and `../../../users/WORKER/` |
+| Encrypted data | `../../../secrets/` |
+| Shared Disko recipes | `../../disk_configurations/` |
+| Secure Boot | `../../secure_boot/secure_boot.nix` |
+| Host-local modules | `./hardware-configuration.nix`, `./nm_configurations.nix`, `./syncthing.nix` |
 
-**How to enable:**  
-1. Follow the detailed instructions in [`secure_boot/README.md`](secure_boot/README.md)
-2. Uncomment the line `#../secure_boot/secure_boot.nix` in your host's `configuration.nix`
-3. Complete the key generation and enrollment steps described in the README
-4. Enable Secure Boot in your UEFI firmware after verification
+Render host name and installation `system.stateVersion`, account IDs, limits and feature switches with the correct Nix types. Keep `NIXOS_VERSION` at the release of the first installation. Zram defaults are client `30`/`lz4` or server `50`/`zstd` with priority `100`; resolve empty public values before rendering. `MAX_JOBS` and `BUILD_CORES` control build concurrency.
 
----
+## Hardware, disks and boot
 
-## Optional: Disk Configuration with Disko
+Obtain `hardware-configuration.nix` from `nixos-generate-config` on the target, the original installer output or an appropriate [nixos-hardware](https://github.com/NixOS/nixos-hardware) module. The public template's `CPU_VENDOR` and `PLATFORM` fields are generic inputs; they do not detect storage, modules or firmware.
 
-The **`disk_configurations`** folder contains templates for declarative disk partitioning using Disko. Refer to [`disk_configurations/README.md`](disk_configurations/README.md) for detailed information about available templates (Btrfs, ext4, LUKS encryption, etc.) and usage instructions.
+On an installed machine, preserve working filesystem and bootloader declarations. For a new installation, select a prepared [Disko layout](disk_configurations/README.md), import its pinned Disko module and recipe, and choose the matching bootloader. An empty `DISK_LAYOUT` resolves to `single-disk-ext4` for clients and `btrfs-worker-luks` for servers. These defaults use UEFI; GRUB requires an explicitly selected BIOS recipe. Explicit `DISK_LAYOUT=none` requires a real `hardware-configuration.nix` with the destination filesystems; the generic template is insufficient. [Lanzaboote Secure Boot](secure_boot/README.md) is optional.
 
----
+The server Btrfs/LUKS layout has a 1 GiB EFI partition, `SWAP_SIZE` random-key encrypted swap (default `16G`), and passphrase-protected LUKS2 with root, home, Nix-store and `WORK_ROOT` subvolumes. The server disables hibernation and resume. Formatting is an explicit installation step, never a consequence of choosing a module during an ordinary rebuild.
 
-## `configuration.nix` File
+Use the optional `external-hardware-configuration.nix` for printers, scanners and other target peripherals. Review its sample declarations before importing it.
 
-1. **Uncomment the imports** you need. For example, choose only one GUI (`gnome.nix`, `hyprland.nix` or `kde.nix`). Uncomment relevant packages/services from `../../common/packages/`. 
+## Network, SSH and RDP
 
-2. **Optional features**: Uncomment `../secure_boot/secure_boot.nix` for Secure Boot support, or `../disk_configurations/...` if using Disko for disk management.
+`nm_configurations.nix` owns WiFi and service access ranges. Render allowed IPv4/IPv6 lists from the public SSH and RDP CIDRs. Rules use the actual configured service ports; empty server lists open no SSH/RDP ports. The client keeps its baseline SSH policy unless a subnet restriction is configured. See the [network guide](../common/network/README.md).
 
-3. **User configuration**: Point to the correct user config, e.g., `../../users/XYZ/user.nix`.
+For WiFi, render `ENABLE_WIFI` and `WIFI_SSID_NIX` and prepare encrypted `wifi_env` containing `WIFI_PSK` in the host secret file. The host SOPS default file is `../../../secrets/<hostname>.yaml`; shared administrator key data comes from `../../../secrets/common.yaml`. Follow the [SOPS guide](../common/config/SECRETS.md).
 
-4. **Set the bootloader device** by replacing `/dev/disk/by-id/wwn-0x500001234567890a` with your actual disk identifier:
-    
-        boot.loader.grub.enable = true;
-        boot.loader.grub.device = "/dev/disk/by-id/wwn-0x500001234567890a";
-        boot.loader.grub.useOSProber = false;
+Local desktop choice and Xfce RDP are independent. The optional [RDP module](../common/gui/README.md) disallows root login and requires a non-empty PAM password. Configure the password and allowed networks before relying on RDP; SSH public keys do not authenticate an RDP session.
 
-   You can find this by:
-   - Installing NixOS and copying from `/etc/nixos/configuration.nix`, or  
-   - Running `nixos-generate-config` on your machine.
+## Worker account, work directory and power
 
-5. **Set the hostname**:
-    
-        networking.hostName = "nixos"; # Replace with your own hostname
+The essential administrator belongs to `wheel`. The separate worker identity has its own UID/private GID, no `wheel` or Docker/libvirt privileges, and a private home. Administrator and worker share `WORK_GROUP` for explicit work-data access. `WORK_ROOT` is root-owned with mode `2750`; its `data` directory and selected work directories use worker ownership, group inheritance and default ACLs. Existing trees are not recursively changed. See the [account guide](../users/README.md).
 
-6. **Enable selected Syncthing folders** specified for the host (optional).
+The server continues work with the lid closed, disables suspend/hibernation and has no idle sleep action. Optional UPower battery handling uses PowerOff at its configured action threshold; `ENABLE_BATTERY=false` keeps the daemon disabled even if Xfce requests it. The client battery module uses Hibernate at its 7% action threshold only when `boot.resumeDevice` is non-empty; otherwise it uses PowerOff. Charge limits are host-selected: `CHARGE_LIMIT_MODE` accepts `none` (default, no charge limits set) or `thresholds`, which uses `CHARGE_START_THRESHOLD` and `CHARGE_STOP_THRESHOLD` (public defaults 75/80). Choose values supported by the actual TLP hardware plugin; the shared module imposes no charge threshold.
 
-    If you use Syncthing to sync folders between your computers, you can use this option to enable the synchronization of specific folders during the system build.
+### Manual example: Lenovo non-ThinkPad
 
-    Replace "NAME FOLDER" with the name of the folder you want to sync.
+For a supported model, [TLP's Lenovo non-ThinkPad documentation](https://linrunner.de/tlp/settings/bc-vendors.html#lenovo-non-thinkpad-series) describes conservation mode using 0/1 values. The firmware fixes the charge limit according to the model; this is not a guarantee of 80%.
 
-        services.syncthing.settings.folders.NAME FOLDER.enable = true;
+Keep `CHARGE_LIMIT_MODE=none` in `env.conf` so the generic threshold block stays inactive. Add and uncomment this example manually only in the relevant host's `configuration.nix`:
 
-  - **Use one option per folder:** add more lines for all folders you want to enable.
-  - **Note:** the corresponding folder configurations must be specified in the Syncthing configuration file (`../../common/packages/syncthing.nix`).
+```nix
+# Optional host-only settings for a supported Lenovo non-ThinkPad model.
+# services.tlp.settings = {
+#   START_CHARGE_THRESH_BAT0 = 0;
+#   STOP_CHARGE_THRESH_BAT0 = 1;
+# };
+```
 
----
+On a server, set `services.tlp.enable = true;` if needed. Set `services.tlp.settings.TLP_DISABLE_DEFAULTS = 1;` only if TLP should apply charge control without its other defaults.
 
-## `hardware-configuration.nix` File
+## Btrfs maintenance
 
-This file holds hardware-specific settings for the host.  
-You can acquire it by:
+The shared snapshot core configures `/` and `/home` independently when each is Btrfs. Clients explicitly grant the selected administrator access to home snapshots. A server with a Btrfs `WORK_ROOT` adds a work snapshot policy with no non-root users/groups or synchronized ACL access.
 
-- Installing NixOS from an [official ISO](https://nixos.org/download) and copying `/etc/nixos/hardware-configuration.nix`.
-- Running `nixos-generate-config` on the target host.
-- Importing it from [nixos-hardware](https://github.com/NixOS/nixos-hardware), if a matching profile exists.
+Scrub and snapshots are independent optional modules. The separate optional Btrfs Assistant module installs only the GUI package; the selected desktop supplies Polkit and its authentication agent. The snapshot core works without the GUI or a desktop. A separate Nix-store subvolume is excluded from parent root/home snapshots, as are EFI and swap. A single-root layout without a separate `/nix` subvolume can include the Nix store in root snapshots. See the [configuration guide](../common/config/README.md).
 
----
+## Host-specific Syncthing
 
-## `external-hardware-configuration.nix` File (Optional)
+Keep Syncthing in the host's `syncthing.nix`. Set `ENABLE_SYNCTHING` explicitly. An empty `SYNCTHING_DEVICE_ID` declares neither peer nor folder. A configured peer needs its actual device ID, a fixed reachable TCP endpoint, matching `SYNCTHING_FOLDER_ID` and absolute `SYNCTHING_FOLDER_PATH`. The server’s synchronized data folder must be `WORK_ROOT/data`; a client may choose another absolute data path. Discovery, relays and NAT traversal are disabled, so select an address reachable by your network policy.
 
-This file contains configuration for external or host-specific hardware that is not part of the standard NixOS hardware detection, such as:
+Clients run the service under the administrator identity; servers use a dedicated `syncthing` account, with service state outside `WORK_ROOT` and work-group access only when the system service is enabled. Synchronization uses `sendreceive`, preserves Unix permissions, excludes common dependency/cache directories and propagates changes and deletions in both directions.
 
-- **Network printers** (CUPS configuration, drivers, declarative printer definitions)
-- **Scanners** (SANE configuration)
-- **Other peripherals** specific to the host
+The listener is `tcp4://:22222`; no default ports are opened. Configure incoming access manually in the host network policy only where needed. The HTTPS GUI binds `127.0.0.1:8843`. Reach it through a tunnel, adapting account, host and SSH port:
 
-A template file (`external-hardware-configuration.nix.template`) is provided with an example printer configuration including drivers for common brands (Brother, HP, Epson, Samsung) and network discovery via Avahi/mDNS.
+```bash
+ssh -p 22 -L 8843:127.0.0.1:8843 admin@example-host
+```
 
-To use it:
-1. Copy the template and rename it to `external-hardware-configuration.nix`
-2. Customize it for your hardware
-3. Uncomment `./external-hardware-configuration.nix` in your `configuration.nix`
-
----
-
-## `nm_configurations.nix` File (Optional)
-
-Declares the host's WiFi networks through NetworkManager's `ensureProfiles`: profiles are generated directly inside NetworkManager at activation, and the pre-shared keys are read from the sops-encrypted secrets file (`secrets/common.yaml`, `$WIFI_*_PSK` variables) - nothing sensitive in the Nix store, no `.nmconnection` files to manage. See [`SECRETS.md`](../common/config/SECRETS.md) for the full guide.
-
-1. Copy `nm_configurations.nix.template` to `nm_configurations.nix` and declare the networks this host uses (set `id`/`ssid`, pick the matching `$WIFI_*_PSK` variable).
-2. Add the corresponding `WIFI_*_PSK=` lines to `wifi_env` in `secrets/common.yaml` (`sops secrets/common.yaml`).
-3. Uncomment the line `./nm_configurations.nix` in your `configuration.nix`.
-
-> **Note:** you can also manage WiFi through [`networking.wireless.networks`](https://search.nixos.org/options?channel=26.05&from=0&size=50&sort=relevance&type=packages&query=networking.wireless.networks.), but that approach enables `wpa_supplicant` and disables WiFi control in NetworkManager.
-
----
-
-## Summary
-
-1. **Copy the `ABC` folder**, rename it to your host's name.  
-2. **Edit** `configuration.nix`, `hardware-configuration.nix`, and optionally `nm_configurations.nix`.  
-3. **Uncomment** what you need and set correct identifiers (bootloader device, hostname, etc.).
-
-With this in place, `hosts/ABC` should be ready for NixOS builds.
+Then open `https://127.0.0.1:8843` locally. See the account and SOPS guides before activation.

@@ -27,7 +27,8 @@ hosts/
     │   ├── btrfs-only-root-subvolume.nix
     │   ├── btrfs-subvolumes.nix
     │   ├── btrfs-subvolumes-luks.nix
-    │   └── btrfs-subvolumes-luks-no_swap.nix
+    │   ├── btrfs-subvolumes-luks-no_swap.nix
+    │   └── btrfs-worker-luks.nix
     └── ext4/
         ├── single-disk-ext4.nix
         ├── single-disk-ext4-bios.nix
@@ -38,11 +39,29 @@ hosts/
 - **`btrfs`**: Template che utilizzano il filesystem Btrfs (opzionalmente con subvolumi e LUKS).  
 - **`ext4`**: Template che utilizzano il filesystem ext4, con boot BIOS o EFI, eventualmente cifrato.
 
-> **Nota**: i file in questa cartella sono ricette Disko usate **in fase di installazione**. Se ne copia una sull'installer, si modifica il nome del device e poi si tiene la copia modificata dentro `hosts/<nome>/`. Nulla qui dentro viene importato vivo da un host.
+> **Nota**: i file in questa cartella sono ricette Disko usate **in fase di installazione**. Se ne copia una sull'installer, si modifica il nome del device e poi si tiene la copia modificata dentro `hosts/client/<nome>/` o `hosts/server/<nome>/`. Importa la ricetta preparata insieme al modulo Disko.
 >
-> Le controparti **a runtime** vivono in `common/config/` e si importano come qualsiasi altro modulo: [`btrfs_scrub.nix`](../../common/config/btrfs_scrub.nix) per il controllo periodico di integrità e [`btrfs_snapshots.nix`](../../common/config/btrfs_snapshots.nix) per gli snapshot timeline di snapper. Vanno importati solo se si è scelto un template Btrfs, perché su altri filesystem fanno fallire la build. Vedi [common/config/README.it.md](../../common/config/README.it.md).
+> Le controparti **a runtime** vivono in `common/config/` e si importano come qualsiasi altro modulo: [`btrfs_scrub.nix`](../../common/config/btrfs_scrub.nix) per il controllo periodico di integrità e [`btrfs_snapshots.nix`](../../common/config/btrfs_snapshots.nix) per gli snapshot timeline di snapper. Seleziona scrub solo per host Btrfs; il modulo snapshot configura root/home separatamente quando i rispettivi mount sono Btrfs. La GUI Btrfs Assistant è un modulo di pacchetti opzionale separato. Vedi [common/config/README.it.md](../../common/config/README.it.md).
 
 ---
+
+
+## Selezione del layout pubblico
+
+`DISK_LAYOUT` vuoto indica `single-disk-ext4` per un client oppure `btrfs-worker-luks` per un server. Durante la preparazione manuale risolvi questo valore e importa la ricetta corrispondente insieme a `common/config/disko.nix`. Entrambi i valori predefiniti sono UEFI; GRUB richiede la selezione esplicita di una ricetta BIOS. `none` esplicito richiede una dichiarazione hardware reale comprensiva dei filesystem della destinazione; il template hardware generico non basta. Scegliere una ricetta non esegue partizionamento o formattazione.
+
+## Layout server Btrfs/LUKS
+
+[`btrfs/btrfs-worker-luks.nix`](btrfs/btrfs-worker-luks.nix) è una ricetta separata per i server:
+
+- Partizione EFI da 1 GiB montata in `/boot`.
+- Partizione swap di dimensione `SWAP_SIZE` (predefinita `16G`) con nuova chiave di cifratura casuale a ogni avvio.
+- Spazio rimanente protetto da LUKS2 con passphrase interattiva; nessun file chiave specifico di un host è incorporato.
+- Subvolumi Btrfs montati in `/`, `/home`, `/nix` e `WORK_ROOT`, con `compress=zstd` e `noatime`.
+
+La swap con chiave casuale non consente di riprendere un'immagine di ibernazione del boot precedente; l'host server disabilita ibernazione e resume. Permessi della directory di lavoro e policy snapshot opzionale sono dichiarati nel modulo account worker e nella configurazione host server, non nella ricetta disco.
+
+Sostituisci `${DISK_DEVICE}`, `${SWAP_SIZE}` e `${WORK_ROOT}` con i valori pubblici scelti. Le ricette con `device = "/dev/${DISK_DEVICE}"` richiedono la parte successiva a `/dev/`, per esempio `disk/by-id/REPLACE_WITH_TARGET_DISK`. Verifica il disco reale con `lsblk`. Un host in `hosts/server/<nome>/` può importare la ricetta preparata da `../../disk_configurations/btrfs/btrfs-worker-luks.nix`, oppure copiarla localmente e importarla come `./disk-config.nix`. Importa anche il modulo Disko fissato alla revisione prevista.
 
 ## Utilizzo
 
@@ -67,7 +86,7 @@ Per istruzioni complete, leggi la [Disko Quickstart Guide](https://github.com/ni
    - **Attenzione**: l’operazione rimuove tutti i dati esistenti dal disco.  
    ```bash
    sudo nix --experimental-features "nix-command flakes" \
-        run github:nix-community/disko/latest -- \
+        run github:nix-community/disko/v1.13.0 -- \
         --mode destroy,format,mount /tmp/disk-config.nix
    ```
    Sostituisci `/tmp/disk-config.nix` con il percorso al tuo template modificato.  
@@ -89,7 +108,7 @@ Per istruzioni complete, leggi la [Disko Quickstart Guide](https://github.com/ni
         ```nix
         imports = [
           ./hardware-configuration.nix
-          "${builtins.fetchTarball "https://github.com/nix-community/disko/archive/master.tar.gz"}/module.nix"
+          "${builtins.fetchTarball "https://github.com/nix-community/disko/archive/refs/tags/v1.13.0.tar.gz"}/module.nix"
           ./disk-config.nix
         ];
         ```
@@ -153,27 +172,38 @@ Per dettagli aggiuntivi, consultare [manuale di installazione NixOS](https://nix
 
 ## Cifratura LUKS
 
-I template con “luks” nel nome includono **cifratura disco** tramite LUKS. Ad esempio:
+Tutti e cinque i layout LUKS di questa cartella usano **`askPassword = true;` come impostazione predefinita**. Disko chiede la passphrase interattivamente per le proprie operazioni di creazione/apertura del volume durante l’installazione. Agli avvii successivi digita la stessa passphrase, salvo aver configurato esplicitamente lo sblocco tramite chiavetta USB o TPM2.
+
 ```nix
 type = "luks";
 name = "crypted";
-passwordFile = "/tmp/secret.key";
+askPassword = true;
 settings = {
   allowDiscards = true;
 };
 ```
-Puoi generare `/tmp/secret.key` con:
-```bash
-echo -n "tuapassword" > /tmp/secret.key
+
+Il caso predefinito non richiede `/tmp/secret.key` o altri file della passphrase principale.
+
+`passwordFile` è un'alternativa opzionale per fornire da un file la passphrase durante le operazioni Disko di creazione/apertura. Per usarla, sostituisci l'impostazione interattiva con:
+
+```nix
+askPassword = false;
+passwordFile = "/tmp/secret.key";
 ```
+
+Prepara quel file soltanto per questa alternativa. Rimuovi o disabilita `askPassword` quando scegli `passwordFile`. Se rimane configurato `askPassword = true;`, questo prevale e il file viene ignorato. Disko non cancella automaticamente il file della passphrase. `passwordFile` da solo non configura lo sblocco automatico al boot.
+
 Per aprire manualmente la partizione cifrata, se necessario:
+
 ```bash
-cryptsetup luksOpen /dev/nvme0n1p2 data
+cryptsetup luksOpen /dev/disk/by-id/REPLACE_WITH_LUKS_PARTITION data
 mount /dev/mapper/data /mnt
 ```
-In questo modo il disco cifrato diventa disponibile in `/dev/mapper/data`.
 
-Per una guida completa alla gestione delle chiavi - keyslot multipli, sblocco con una o più chiavette USB (registrate alla formattazione o aggiunte dopo), sblocco automatico via TPM2 (con PIN opzionale) e le opzioni di boot (`keyFile`, `keyFileTimeout`, …) - vedi [LUKS_KEYS.it.md](LUKS_KEYS.it.md).
+Il volume cifrato diventa disponibile in `/dev/mapper/data`.
+
+Per la variante opzionale con file, i keyslot multipli, le chiavette USB e lo sblocco TPM2, vedi [LUKS_KEYS.it.md](LUKS_KEYS.it.md). La guida distingue l’inserimento della passphrase per le operazioni Disko dalle opzioni di boot come `keyFile` e `keyFileTimeout`.
 
 ---
 

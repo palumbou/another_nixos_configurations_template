@@ -6,6 +6,9 @@ This guide explains how to upgrade your NixOS system to a newer version, both fo
 
 ---
 
+
+For this configuration tree, always pass the selected host file to `nixos-rebuild`. Examples use `/etc/nixos/nixos_configs/hosts/client/example/configuration.nix`; for a server use `hosts/server/example/configuration.nix`. Keep `system.stateVersion` in the host file at the original installation release; updating channels or modules does not change it. See the [preparation guide](HOWTO.md).
+
 ## Table of Contents
 
 - [Understanding NixOS Versions](#understanding-nixos-versions)
@@ -123,7 +126,7 @@ Minor upgrades are updates within the same NixOS version (e.g., package updates,
 
 2. **Rebuild the system**:
    ```bash
-   sudo nixos-rebuild switch
+   sudo nixos-rebuild switch -I nixos-config=/etc/nixos/nixos_configs/hosts/client/example/configuration.nix
    ```
 
 3. **Verify the update**:
@@ -163,17 +166,17 @@ Check for deprecated options or breaking changes:
 
 ```bash
 # Test the configuration without applying
-sudo nixos-rebuild dry-build
+sudo nixos-rebuild dry-build -I nixos-config=/etc/nixos/nixos_configs/hosts/client/example/configuration.nix
 ```
 
 #### Step 3: Apply the Upgrade
 
 ```bash
 # Upgrade the system
-sudo nixos-rebuild switch --upgrade
+sudo nixos-rebuild switch --upgrade -I nixos-config=/etc/nixos/nixos_configs/hosts/client/example/configuration.nix
 
 # Alternative: build first, then switch
-sudo nixos-rebuild boot --upgrade
+sudo nixos-rebuild boot --upgrade -I nixos-config=/etc/nixos/nixos_configs/hosts/client/example/configuration.nix
 sudo reboot
 ```
 
@@ -239,7 +242,7 @@ sudo nix-store --optimise
 2. **Rollback**:
    ```bash
    # Rollback to previous generation
-   sudo nixos-rebuild switch --rollback
+   sudo nixos-rebuild switch --rollback -I nixos-config=/etc/nixos/nixos_configs/hosts/client/example/configuration.nix
    ```
 
 ### Configuration Errors
@@ -248,7 +251,7 @@ If you encounter configuration errors:
 
 ```bash
 # Check for syntax errors
-sudo nixos-rebuild dry-build
+sudo nixos-rebuild dry-build -I nixos-config=/etc/nixos/nixos_configs/hosts/client/example/configuration.nix
 
 # Review the error messages carefully
 # Common issues:
@@ -277,7 +280,7 @@ sudo systemctl restart service-name
 nix-collect-garbage -d
 
 # Try rebuilding
-sudo nixos-rebuild switch --upgrade
+sudo nixos-rebuild switch --upgrade -I nixos-config=/etc/nixos/nixos_configs/hosts/client/example/configuration.nix
 
 # If a specific package fails, check:
 # - Release notes for that package
@@ -292,7 +295,7 @@ If you accidentally changed `stateVersion` and things broke:
 1. **Immediately change it back** to the original value
 2. **Rebuild**:
    ```bash
-   sudo nixos-rebuild switch
+   sudo nixos-rebuild switch -I nixos-config=/etc/nixos/nixos_configs/hosts/client/example/configuration.nix
    ```
 3. **Check service states**:
    ```bash

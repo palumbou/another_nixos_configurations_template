@@ -21,7 +21,7 @@ To use any of these themes, you need to enable them individually in their respec
 To enable a theme, import its configuration file in the specific software configuration file:
 
 ```nix
-# In ../common/gui/hyprland.nix
+# In common/gui/hyprland.nix
 {
   imports = [
     # Relative path to the theme you want to use

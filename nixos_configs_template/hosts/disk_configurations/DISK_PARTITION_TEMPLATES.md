@@ -2,7 +2,7 @@
 
 > **Available languages**: [English (current)](DISK_PARTITION_TEMPLATES.md) | [Italiano](DISK_PARTITION_TEMPLATES.it.md)
 
-This document provides an overview of the eight available disk partitioning templates using the **Disko** module for NixOS. Each template provides a specific and declarative way to automatically configure partitions, filesystems, and optionally LUKS encryption.
+This document provides an overview of the nine available disk partitioning templates using the **Disko** module for NixOS. Each template provides a specific and declarative way to automatically configure partitions, filesystems, and optionally LUKS encryption.
 
 ## Btrfs Templates
 
@@ -25,21 +25,29 @@ This document provides an overview of the eight available disk partitioning temp
 - Similar to the previous template (`btrfs-subvolumes-luks.nix`) but without a swap partition.
 - LUKS encryption of the entire root partition with Btrfs filesystem divided into subvolumes.
 
+### 5. `btrfs-worker-luks.nix`
+
+- GPT with a 1 GiB EFI partition mounted at `/boot`.
+- `SWAP_SIZE` swap partition, default `16G`, encrypted with a random key each boot.
+- LUKS2 with an interactive passphrase for the remaining space.
+- Btrfs root, home, Nix-store and work subvolumes, with work mounted at `WORK_ROOT` and zstd/noatime options.
+- No hibernation with random-key swap; the server host disables hibernation and resume.
+
 ## Ext4 Templates
 
-### 5. `single-disk-ext4.nix`
+### 6. `single-disk-ext4.nix`
 - GPT partition table with 1GB EFI partition (ESP), formatted with FAT32 and mounted at `/boot`.
 - Single root partition using the remaining space, formatted with Ext4 filesystem.
 
-### 6. `single-disk-ext4-bios.nix`
+### 7. `single-disk-ext4-bios.nix`
 - GPT partition table with a 1MB BIOS boot partition (compatible with GRUB booting in BIOS mode).
 - Single root partition occupying all remaining disk space with Ext4 filesystem.
 
-### 7. `single-disk-ext4-luks.nix`
+### 8. `single-disk-ext4-luks.nix`
 - GPT partition table with a 500MB EFI partition (ESP) mounted at `/boot`.
 - LUKS encryption on a single partition occupying the rest of the disk, formatted with Ext4 filesystem.
 
-### 8. `single-disk-ext4-bios-luks.nix`
+### 9. `single-disk-ext4-bios-luks.nix`
 - GPT partition table with a 1MB BIOS boot partition (compatible with GRUB booting in BIOS mode) and a separate unencrypted 1GB ext4 partition mounted at `/boot`.
 - LUKS encryption on the root partition occupying the rest of the disk, formatted with Ext4 filesystem.
 
@@ -50,7 +58,7 @@ This document provides an overview of the eight available disk partitioning temp
 
 ```bash
 sudo nix --experimental-features "nix-command flakes" \
-     run github:nix-community/disko/latest -- \
+     run github:nix-community/disko/v1.13.0 -- \
      --mode destroy,format,mount /path/to/template.nix
 ```
 

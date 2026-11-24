@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ config, lib, ... }:
 {
   imports = [ ./energy_profiles.nix ];
 
@@ -16,13 +16,6 @@
       # `energy-profile auto` or a reboot restores source-based selection.
       TLP_AUTO_SWITCH = 2;
 
-      # Battery charge thresholds.
-      # Some laptops expose the battery as BAT0 (Lenovo, Dell), others as BAT1
-      # (e.g. Framework): both are set, TLP ignores the one that doesn't exist.
-      START_CHARGE_THRESH_BAT0 = 75;
-      STOP_CHARGE_THRESH_BAT0 = 80;
-      START_CHARGE_THRESH_BAT1 = 75;
-      STOP_CHARGE_THRESH_BAT1 = 80;
 
       # These governors target intel_pstate / amd-pstate in active mode.
       # Hosts with a different scaling driver can override the defaults below
@@ -53,15 +46,16 @@
   };
 
   # UPower: last-resort protection against a dying battery.
-  # Hibernates automatically at 7% while discharging, so a drained battery
-  # results in a clean hibernation instead of a hard power loss.
+  # Hibernate only when a resume device is configured; otherwise power off.
   # Keep percentageAction below any user-space battery watcher threshold
   # to avoid racing with it. No-op on hosts without a battery.
   services.upower = {
     enable = true;
+    usePercentageForPolicy = true;
     percentageLow = 15; # battery is considered low
     percentageCritical = 10; # battery is considered critical
     percentageAction = 7; # threshold that triggers the action below
-    criticalPowerAction = "Hibernate";
+    criticalPowerAction =
+      if config.boot.resumeDevice != "" then "Hibernate" else "PowerOff";
   };
 }

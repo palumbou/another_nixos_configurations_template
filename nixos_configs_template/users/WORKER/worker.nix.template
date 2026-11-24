@@ -1,0 +1,63 @@
+{ config, lib, pkgs, ... }:
+{
+  assertions = [
+    {
+      assertion = "${ADMIN_USER}" != "${WORKER_USER}" && ${ADMIN_UID} != ${WORKER_UID};
+      message = "Administrator and worker accounts must have distinct names and UIDs.";
+    }
+    {
+      assertion = ${ADMIN_GID} != ${WORKER_GID}
+        && ${ADMIN_GID} != ${WORK_GID}
+        && ${WORKER_GID} != ${WORK_GID}
+        && "${WORK_GROUP}" != "${ADMIN_USER}"
+        && "${WORK_GROUP}" != "${WORKER_USER}";
+      message = "Administrator, worker and shared work groups must be distinct.";
+    }
+  ];
+
+  users.groups."${WORKER_USER}".gid = ${WORKER_GID};
+
+  # Shared data access grants no administrative privileges.
+  users.groups."${WORK_GROUP}" = {
+    gid = ${WORK_GID};
+    members = [ "${ADMIN_USER}" "${WORKER_USER}" ] ++ lib.optional
+      (config.services.syncthing.enable && config.services.syncthing.systemService)
+      config.services.syncthing.user;
+  };
+
+  users.users."${WORKER_USER}" = {
+    isNormalUser = true;
+    description = "Work account";
+    uid = ${WORKER_UID};
+    group = "${WORKER_USER}";
+    home = "/home/${WORKER_USER}";
+    createHome = true;
+    homeMode = "0700";
+    shell = pkgs.bashInteractive;
+    hashedPasswordFile = config.sops.secrets.worker_hashedPassword.path;
+  };
+
+  # The host selects its own default SOPS file.
+  sops.secrets.worker_hashedPassword.neededForUsers = true;
+
+  systemd.tmpfiles.rules = [
+    # d creates persistent directories; age '-' disables automatic cleanup.
+    # 2750 lets root manage the container while the group can list/traverse it.
+    "d ${WORK_ROOT} 2750 root ${WORK_GROUP} -"
+
+    # 2770 grants owner/group rwx and uses setgid for inherited group ownership.
+    # Synchronize data only, keeping the snapshot container outside the folder.
+    "d ${WORK_ROOT}/data 2770 ${WORKER_USER} ${WORK_GROUP} -"
+    "d ${WORK_ROOT}/data/workspaces 2770 ${WORKER_USER} ${WORK_GROUP} -"
+    "d ${WORK_ROOT}/data/documents 2770 ${WORKER_USER} ${WORK_GROUP} -"
+    "d ${WORK_ROOT}/data/results 2770 ${WORKER_USER} ${WORK_GROUP} -"
+
+    # a+ applies ACLs to these directories without walking existing contents.
+    # d: marks defaults inherited by new files/directories; m: is the ACL mask.
+    # Explicit application modes such as 0600 can still restrict group access.
+    "a+ ${WORK_ROOT}/data - - - - d:u::rwx,d:g::rwx,d:m::rwx,d:o::---"
+    "a+ ${WORK_ROOT}/data/workspaces - - - - d:u::rwx,d:g::rwx,d:m::rwx,d:o::---"
+    "a+ ${WORK_ROOT}/data/documents - - - - d:u::rwx,d:g::rwx,d:m::rwx,d:o::---"
+    "a+ ${WORK_ROOT}/data/results - - - - d:u::rwx,d:g::rwx,d:m::rwx,d:o::---"
+  ];
+}

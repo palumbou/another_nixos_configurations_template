@@ -1,0 +1,72 @@
+{ config, lib, pkgs, ... }:
+{
+  imports = [ ./admin.nix ];
+
+  # Preserve imperative account changes on clients.
+  users.mutableUsers = true;
+
+  users.users."${ADMIN_USER}" = {
+    extraGroups = [ "audio" "input" "video" ]
+      ++ lib.optionals config.networking.networkmanager.enable [ "networkmanager" ]
+      ++ lib.optionals config.virtualisation.docker.enable [ "docker" ]
+      ++ lib.optionals config.virtualisation.libvirtd.enable [ "kvm" "libvirtd" ]
+      ++ lib.optionals (
+        config.virtualisation.libvirtd.enable
+        && !config.virtualisation.libvirtd.qemu.runAsRoot
+      ) [ "qemu-libvirtd" ]
+      ++ lib.optionals config.hardware.i2c.enable [ "i2c" ];
+
+    packages = with pkgs; [
+      ansible
+      easyeffects
+      firefox
+      fzf
+      hunspell
+      hunspellDicts.${DICTIONARY}
+      hunspellDicts.en_US
+      libreoffice-qt6
+      mpv
+      fd
+      gnumake
+      neovim
+      nixd
+      nixfmt
+      nodejs
+      ripgrep
+      tree-sitter
+      remmina
+      spotify
+      starship
+      telegram-desktop
+      yazi
+      zoxide
+    ];
+  };
+
+  systemd.tmpfiles.rules = [
+    "d /home/${ADMIN_USER}/Documents 0755 ${ADMIN_USER} ${ADMIN_USER} -"
+    "d /home/${ADMIN_USER}/Downloads 0755 ${ADMIN_USER} ${ADMIN_USER} -"
+    "d /home/${ADMIN_USER}/Images 0755 ${ADMIN_USER} ${ADMIN_USER} -"
+    "d /home/${ADMIN_USER}/Videos 0755 ${ADMIN_USER} ${ADMIN_USER} -"
+
+    # Install the source directory before enabling this optional dotfiles rule.
+    # "C+ /home/${ADMIN_USER}/.config 0755 ${ADMIN_USER} ${ADMIN_USER} - ${BASEPATHUSER}/nixos_configs/users/${ADMIN_USER}/dotfiles"
+  ];
+
+  programs.zoxide.enable = true;
+  environment.shellAliases = {
+    zz = "zoxide query -l";
+  };
+  environment.variables.DICTIONARY = "${DICTIONARY},en_US";
+
+  # Prefer systemd binaries when resolving the client's sudo commands.
+  security.sudo.extraConfig = ''
+    Defaults:${ADMIN_USER} secure_path="${lib.makeBinPath [ pkgs.systemd ]}:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin"
+  '';
+
+  # The host module supplies synchronization settings; identity belongs here.
+  services.syncthing = {
+    user = "${ADMIN_USER}";
+    group = "${ADMIN_USER}";
+  };
+}

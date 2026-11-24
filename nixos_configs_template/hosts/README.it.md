@@ -1,144 +1,107 @@
-# Cartella Hosts
+# Host
 
 > **Lingue disponibili**: [English](README.md) | [Italiano (corrente)](README.it.md)
 
-La cartella **`hosts`** contiene le configurazioni per ognuna delle tue macchine (host). Ogni host risiede nella propria sottocartella denominata come quell'host. Questa cartella include anche:
+Gli esempi host sono separati per funzione:
 
-- **`disk_configurations/`** - Template Disko per il partizionamento dichiarativo del disco e la configurazione del filesystem
-- **`secure_boot/`** - File di configurazione Secure Boot utilizzando Lanzaboote per la firma automatica
-- Cartelle di singoli host (ad esempio, **`ABC/`**) contenenti file di configurazione specifici per l'host
-
-Ogni cartella host include tipicamente:
-
-- **`configuration.nix`** - File di configurazione di base con import per GUI, pacchetti, utenti e funzionalità opzionali
-- **`external-hardware-configuration.nix`** (opzionale) - Configurazione per hardware esterno o specifico dell'host (stampanti, scanner, ecc.)
-- **`hardware-configuration.nix`** - Configurazione specifica dell'hardware generata durante l'installazione
-- **`nm_configurations.nix`** (opzionale) - File di connessione NetworkManager da importare durante la build
-
-## Struttura della cartella
-
-```bash
+```text
 hosts/
-├── ABC/                          # Cartella host di esempio
-│   ├── configuration.nix
-│   ├── external-hardware-configuration.nix
-│   ├── hardware-configuration.nix
-│   └── nm_configurations.nix
-├── disk_configurations/          # Template Disko per configurazione disco
+├── client/ABC/
+│   ├── configuration.nix.template
+│   ├── hardware-configuration.nix.template
+│   ├── external-hardware-configuration.nix.template
+│   ├── nm_configurations.nix.template
+│   └── syncthing.nix.template
+├── server/ABC/
+│   ├── configuration.nix.template
+│   ├── hardware-configuration.nix.template
+│   ├── external-hardware-configuration.nix.template
+│   ├── nm_configurations.nix.template
+│   └── syncthing.nix.template
+├── disk_configurations/
 │   ├── btrfs/
 │   └── ext4/
-└── secure_boot/                  # Secure Boot con Lanzaboote
-    ├── lon.nix
-    └── secure_boot.nix
+└── secure_boot/
 ```
 
-La cartella **`ABC`** è un esempio. Copiala, rinominala per farla corrispondere al tuo hostname effettivo, e poi modifica i suoi file secondo necessità.
+Copia l'esempio `ABC` pertinente nella sua categoria e rinominalo per l'host. Prepara i file `.nix.template` selezionati come file `.nix` con i valori pubblici descritti in [`env.conf`](../../env.conf) e nella [guida HOWTO](../../HOWTO.it.md).
 
----
+## Import e valori pubblici
 
-## Opzionale: Configurazione Secure Boot
+Il client importa ruolo client, personalizzazioni dell'amministratore client, base rete/pacchetti client, helper avvio cifrato/Plymouth, SOPS e file locali di hardware/rete/Syncthing. Il server importa ruolo server, amministratore minimale, account worker separato, SOPS e file locali. Mantieni questi import obbligatori.
 
-La cartella **`secure_boot`** fornisce file di configurazione per abilitare Secure Boot sul tuo sistema NixOS utilizzando **Lanzaboote**, uno strumento della community che automatizza la firma dei file di boot.
+`${HOST_IMPORTS}` contiene soltanto import opzionali: desktop locale, Xfce RDP, gruppi di pacchetti, Docker/libvirt, manutenzione Btrfs e altre funzioni selezionate. `${HOST_EXTRA_CONFIG}` contiene soltanto impostazioni di avvio. Sceglili esplicitamente; modificare `env.conf` da solo non cambia alcun file Nix.
 
-**Cos'è Secure Boot?**  
-Secure Boot è una funzionalità del firmware UEFI che garantisce che solo bootloader e kernel firmati crittograficamente possano essere eseguiti, proteggendo da malware a livello di boot e modifiche non autorizzate.
+I percorsi da entrambe le categorie host sono:
 
-**Perché usare Lanzaboote?**  
-Lanzaboote integra la firma Secure Boot direttamente nel processo di rebuild di NixOS, eliminando la necessità di firmare manualmente i file di boot dopo ogni aggiornamento del sistema.
+| Destinazione | Percorso relativo |
+| --- | --- |
+| Moduli comuni | `../../../common/` |
+| Ruoli | `../../../roles/` |
+| Account | `../../../users/ADMIN/` e `../../../users/WORKER/` |
+| Dati cifrati | `../../../secrets/` |
+| Ricette Disko condivise | `../../disk_configurations/` |
+| Secure Boot | `../../secure_boot/secure_boot.nix` |
+| Moduli locali dell'host | `./hardware-configuration.nix`, `./nm_configurations.nix`, `./syncthing.nix` |
 
-**Come abilitare:**  
-1. Segui le istruzioni dettagliate in [`secure_boot/README.it.md`](secure_boot/README.it.md)
-2. Decommenta la riga `#../secure_boot/secure_boot.nix` nel `configuration.nix` del tuo host
-3. Completa i passaggi di generazione e registrazione delle chiavi descritti nel README
-4. Abilita Secure Boot nel firmware UEFI dopo la verifica
+Prepara nome host e `system.stateVersion` dell'installazione, ID degli account, limiti e interruttori usando i tipi Nix corretti. Mantieni `NIXOS_VERSION` alla versione della prima installazione. I valori zram predefiniti sono client `30`/`lz4` o server `50`/`zstd`, con priorità `100`; risolvi i valori pubblici vuoti prima della sostituzione. `MAX_JOBS` e `BUILD_CORES` controllano la concorrenza delle build.
 
----
+## Hardware, dischi e avvio
 
-## Opzionale: Configurazione Disco con Disko
+Ottieni `hardware-configuration.nix` da `nixos-generate-config` sulla macchina reale, dall'installer originale o da un modulo [nixos-hardware](https://github.com/NixOS/nixos-hardware) appropriato. I campi `CPU_VENDOR` e `PLATFORM` del template pubblico sono input generici; non rilevano storage, moduli o firmware.
 
-La cartella **`disk_configurations`** contiene template per il partizionamento dichiarativo del disco usando Disko. Consulta [`disk_configurations/README.it.md`](disk_configurations/README.it.md) per informazioni dettagliate sui template disponibili (Btrfs, ext4, crittografia LUKS, ecc.) e istruzioni d'uso.
+Su una macchina installata conserva le dichiarazioni funzionanti di filesystem e bootloader. Per una nuova installazione scegli un [layout Disko](disk_configurations/README.it.md) preparato, importa modulo Disko fissato alla revisione prevista e ricetta e scegli il bootloader coerente. `DISK_LAYOUT` vuoto si risolve in `single-disk-ext4` sui client e `btrfs-worker-luks` sui server. Questi valori predefiniti sono UEFI; GRUB richiede una ricetta BIOS scelta esplicitamente. `DISK_LAYOUT=none` esplicito richiede un vero `hardware-configuration.nix` con i filesystem della destinazione; il template generico non basta. [Secure Boot con Lanzaboote](secure_boot/README.it.md) è opzionale.
 
----
+Il layout server Btrfs/LUKS prevede EFI da 1 GiB, swap cifrata con chiave casuale di dimensione `SWAP_SIZE` (predefinita `16G`) e LUKS2 con passphrase per subvolumi root, home, Nix store e `WORK_ROOT`. Il server disabilita ibernazione e resume. La formattazione è un passo di installazione esplicito, mai una conseguenza della selezione di un modulo durante una normale ricostruzione.
 
-## File `configuration.nix`
+Usa `external-hardware-configuration.nix` opzionale per stampanti, scanner e altre periferiche di destinazione. Controlla le dichiarazioni di esempio prima di importarlo.
 
-1. **Decommenta gli import** di cui hai bisogno. Ad esempio, scegli solo un'interfaccia grafica (`gnome.nix`, `hyprland.nix` o `kde.nix`). Decommenta i pacchetti/servizi rilevanti da `../../common/packages/`.
+## Rete, SSH e RDP
 
-2. **Funzionalità opzionali**: Decommenta `../secure_boot/secure_boot.nix` per il supporto Secure Boot, o `../disk_configurations/...` se usi Disko per la gestione del disco.
+`nm_configurations.nix` gestisce WiFi e intervalli di accesso ai servizi. Prepara le liste IPv4/IPv6 consentite a partire dai CIDR pubblici SSH e RDP. Le regole usano le porte effettive dei servizi; liste server vuote non aprono porte SSH/RDP. Il client conserva la policy SSH di base salvo configurazione di un filtro per subnet. Vedi la [guida di rete](../common/network/README.it.md).
 
-3. **Configurazione utente**: Indica la configurazione utente corretta, ad esempio `../../users/XYZ/user.nix`.
+Per WiFi prepara `ENABLE_WIFI` e `WIFI_SSID_NIX` e inserisci `wifi_env` cifrato con `WIFI_PSK` nel file segreti dell'host. Il file SOPS predefinito dell'host è `../../../secrets/<hostname>.yaml`; i dati condivisi della chiave amministrativa provengono da `../../../secrets/common.yaml`. Segui la [guida SOPS](../common/config/SECRETS.it.md).
 
-4. **Imposta il dispositivo del bootloader** sostituendo `/dev/disk/by-id/wwn-0x500001234567890a` con l'identificatore effettivo del tuo disco:
-    
-        boot.loader.grub.enable = true;
-        boot.loader.grub.device = "/dev/disk/by-id/wwn-0x500001234567890a";
-        boot.loader.grub.useOSProber = false;
+La scelta del desktop locale e Xfce RDP sono indipendenti. Il [modulo RDP](../common/gui/README.it.md) opzionale impedisce il login root e richiede una password PAM non vuota. Prepara password e reti consentite prima di affidarti a RDP; le chiavi SSH pubbliche non autenticano una sessione RDP.
 
-   Puoi trovarlo:
-   - Installando NixOS e copiandolo da `/etc/nixos/configuration.nix`, oppure  
-   - Eseguendo `nixos-generate-config` sulla tua macchina.
+## Account worker, directory di lavoro e alimentazione
 
-5. **Imposta l'hostname**:
-    
-        networking.hostName = "nixos"; # Sostituisci con il tuo hostname
+L'amministratore essenziale appartiene a `wheel`. L'identità worker separata ha UID/GID privato propri, nessun privilegio `wheel` o Docker/libvirt e una home privata. Amministratore e worker condividono `WORK_GROUP` per accedere esplicitamente ai dati di lavoro. `WORK_ROOT` appartiene a root con modo `2750`; la directory `data` e le directory di lavoro selezionate usano proprietà worker, ereditarietà del gruppo e ACL predefinite. Gli alberi esistenti non vengono modificati ricorsivamente. Vedi la [guida account](../users/README.it.md).
 
-6. **Abilita le cartelle Syncthing selezionate** specificate per l'host (opzionale).
+Il server continua il lavoro con il coperchio chiuso, disabilita sospensione/ibernazione e non avvia il riposo per inattività. La gestione batteria UPower opzionale usa PowerOff alla soglia di azione prevista; con `ENABLE_BATTERY=false` il demone rimane disabilitato anche se Xfce lo richiede. Il modulo batteria client usa Hibernate alla soglia del 7% solo quando `boot.resumeDevice` è non vuoto; altrimenti usa PowerOff. I limiti di ricarica sono scelti dall’host: `CHARGE_LIMIT_MODE` accetta `none` (predefinito, nessun limite impostato) oppure `thresholds`, che usa `CHARGE_START_THRESHOLD` e `CHARGE_STOP_THRESHOLD` (valori pubblici predefiniti 75/80). Scegli soglie supportate dal plugin TLP dell’hardware reale; il modulo comune non impone soglie di ricarica.
 
-    Se utilizzi Syncthing per sincronizzare cartelle tra i tuoi computer, puoi usare questa opzione per abilitare la sincronizzazione di cartelle specifiche durante la build del sistema.
+### Esempio manuale: Lenovo non ThinkPad
 
-    Sostituisci "NAME FOLDER" con il nome della cartella che vuoi sincronizzare.
+Per un modello supportato, la [documentazione TLP per Lenovo non ThinkPad](https://linrunner.de/tlp/settings/bc-vendors.html#lenovo-non-thinkpad-series) descrive la modalità conservazione con valori 0/1. Il firmware fissa il limite di carica secondo il modello; questo non garantisce una soglia dell'80%.
 
-        services.syncthing.settings.folders.NAME FOLDER.enable = true;
+Mantieni `CHARGE_LIMIT_MODE=none` in `env.conf` così il blocco delle soglie generiche resta inattivo. Aggiungi e decommenta manualmente questo esempio soltanto nel `configuration.nix` dell'host pertinente:
 
-  - **Usa un'opzione per cartella:** aggiungi più righe per tutte le cartelle che vuoi abilitare.
-  - **Nota:** le configurazioni delle cartelle corrispondenti devono essere specificate nel file di configurazione Syncthing (`../../common/packages/syncthing.nix`).
+```nix
+# Optional host-only settings for a supported Lenovo non-ThinkPad model.
+# services.tlp.settings = {
+#   START_CHARGE_THRESH_BAT0 = 0;
+#   STOP_CHARGE_THRESH_BAT0 = 1;
+# };
+```
 
----
+Su un server imposta `services.tlp.enable = true;` se necessario. Imposta `services.tlp.settings.TLP_DISABLE_DEFAULTS = 1;` soltanto se TLP deve applicare i limiti di carica senza gli altri suoi valori predefiniti.
 
-## File `hardware-configuration.nix`
+## Manutenzione Btrfs
 
-Questo file contiene le impostazioni specifiche dell'hardware per l'host.  
-Puoi ottenerlo:
+Il modulo snapshot condiviso configura `/` e `/home` separatamente quando il rispettivo mount è Btrfs. I client concedono esplicitamente all'amministratore selezionato accesso agli snapshot home. Un server con `WORK_ROOT` Btrfs aggiunge una policy snapshot di lavoro senza utenti/gruppi non root o accesso ACL sincronizzato.
 
-- Installando NixOS da una [ISO ufficiale](https://nixos.org/download) e copiando `/etc/nixos/hardware-configuration.nix`.
-- Eseguendo `nixos-generate-config` sull'host di destinazione.
-- Importandolo da [nixos-hardware](https://github.com/NixOS/nixos-hardware), se esiste un profilo corrispondente.
+Scrub e snapshot sono moduli opzionali indipendenti. Il modulo Btrfs Assistant opzionale separato installa soltanto il pacchetto della GUI; il desktop selezionato fornisce Polkit e il relativo agent di autenticazione. Il modulo snapshot funziona senza GUI o desktop. Un subvolume Nix store separato è escluso dagli snapshot root/home del genitore, così come EFI e swap. Un layout root unico senza subvolume `/nix` separato può includere il Nix store negli snapshot root. Vedi la [guida alla configurazione](../common/config/README.it.md).
 
----
+## Syncthing specifico dell'host
 
-## File `external-hardware-configuration.nix` (Opzionale)
+Mantieni Syncthing nel file `syncthing.nix` dell'host. Imposta esplicitamente `ENABLE_SYNCTHING`. Con `SYNCTHING_DEVICE_ID` vuoto non vengono dichiarati peer o cartella. Un peer configurato richiede ID dispositivo reale, endpoint TCP fisso raggiungibile, `SYNCTHING_FOLDER_ID` condiviso corrispondente e `SYNCTHING_FOLDER_PATH` assoluto. La cartella dati sincronizzata sul server deve essere `WORK_ROOT/data`; un client può scegliere un altro percorso dati assoluto. Discovery, relay e NAT traversal sono disabilitati, quindi scegli un indirizzo raggiungibile secondo la policy di rete.
 
-Questo file contiene la configurazione per hardware esterno o specifico dell'host che non fa parte del rilevamento hardware standard di NixOS, come:
+I client eseguono il servizio con l'identità amministrativa; i server usano un account `syncthing` dedicato, con stato del servizio fuori da `WORK_ROOT` e accesso al gruppo di lavoro solo quando è attivo il servizio di sistema. La sincronizzazione usa `sendreceive`, conserva i permessi Unix, esclude directory comuni di dipendenze/cache e propaga modifiche ed eliminazioni in entrambe le direzioni.
 
-- **Stampanti di rete** (configurazione CUPS, driver, definizioni dichiarative delle stampanti)
-- **Scanner** (configurazione SANE)
-- **Altre periferiche** specifiche dell'host
+Il listener è `tcp4://:22222`; non vengono aperte porte predefinite. Configura manualmente accessi in ingresso nella policy di rete dell'host soltanto dove servono. La GUI HTTPS ascolta su `127.0.0.1:8843`. Raggiungila tramite tunnel, adattando account, host e porta SSH:
 
-È fornito un file template (`external-hardware-configuration.nix.template`) con un esempio di configurazione stampante che include driver per i marchi più comuni (Brother, HP, Epson, Samsung) e il discovery di rete tramite Avahi/mDNS.
+```bash
+ssh -p 22 -L 8843:127.0.0.1:8843 admin@example-host
+```
 
-Per utilizzarlo:
-1. Copia il template e rinominalo in `external-hardware-configuration.nix`
-2. Personalizzalo per il tuo hardware
-3. Decommenta `./external-hardware-configuration.nix` nel tuo `configuration.nix`
-
----
-
-## File `nm_configurations.nix` (Opzionale)
-
-Dichiara le reti WiFi del host tramite `ensureProfiles` di NetworkManager: i profili vengono generati direttamente dentro NetworkManager all'attivazione, e le chiavi precondivise sono lette dal file di segreti cifrato con sops (`secrets/common.yaml`, variabili `$WIFI_*_PSK`) - niente di sensibile nel Nix store, niente file `.nmconnection` da gestire. Vedi [`SECRETS.it.md`](../common/config/SECRETS.it.md) per la guida completa.
-
-1. Copia `nm_configurations.nix.template` in `nm_configurations.nix` e dichiara le reti usate da questo host (imposta `id`/`ssid`, scegli la variabile `$WIFI_*_PSK` corrispondente).
-2. Aggiungi le righe `WIFI_*_PSK=` corrispondenti a `wifi_env` in `secrets/common.yaml` (`sops secrets/common.yaml`).
-3. Decommenta la riga `./nm_configurations.nix` nel tuo `configuration.nix`.
-
-> **Nota**: puoi anche gestire il WiFi tramite [`networking.wireless.networks`](https://search.nixos.org/options?channel=26.05&from=0&size=50&sort=relevance&type=packages&query=networking.wireless.networks.), ma questo approccio abilita `wpa_supplicant` e disabilita il controllo WiFi in NetworkManager.
-
----
-
-## Riepilogo
-
-1. **Copia la cartella `ABC`**, rinominala con il nome del tuo host.  
-2. **Modifica** `configuration.nix`, `hardware-configuration.nix` ed eventualmente `nm_configurations.nix`.  
-3. **Decommenta** ciò di cui hai bisogno e imposta gli identificatori corretti (dispositivo del bootloader, hostname, ecc.).
-
-A questo punto, `hosts/ABC` dovrebbe essere pronto per le build di NixOS.
+Poi apri localmente `https://127.0.0.1:8843`. Consulta le guide account e SOPS prima dell'attivazione.

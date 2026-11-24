@@ -1,129 +1,27 @@
-# Cartella Common
+# Moduli comuni
 
 > **Lingue disponibili**: [English](README.md) | [Italiano (corrente)](README.it.md)
 
-Questa cartella contiene file di configurazione NixOS che sono **comuni** a tutte le combinazioni di host e utente. Include quattro sottocartelle: `config`, `gui`, `packages` e `network`.
+I moduli NixOS riutilizzabili sono raggruppati per funzione. I [ruoli](../roles/README.it.md) selezionano le basi condivise; ogni host aggiunge i moduli opzionali tramite gli import.
 
-## Struttura della cartella
+| Directory | Contenuto |
+| --- | --- |
+| [`config/`](config/README.it.md) | Impostazioni di sistema, audio, compatibilità, ottimizzazioni, profili energetici, avvio cifrato, manutenzione Btrfs, SOPS e sudo. |
+| [`gui/`](gui/README.it.md) | KDE, GNOME, Hyprland, Xfce RDP opzionale e [temi](gui/themes/README.it.md). |
+| [`network/`](network/README.it.md) | Impostazioni NetworkManager client e server, Bluetooth e basi del firewall. |
+| [`packages/`](packages/README.it.md) | Strumenti indipendenti per foto, video, sviluppo, registrazione, Compose, Distrobox e virtualizzazione; Btrfs Assistant, gaming e pacchetti hardware opzionali. |
+| [`services/`](services/README.it.md) | Demoni locali Docker e libvirt e OpenSSH server. |
 
-```bash
-common/
-├── config/
-│   ├── audio.nix
-│   ├── audio_airplay.nix
-│   ├── audio_chromecast.nix
-│   ├── battery_management.nix
-│   ├── boot_luks.nix
-│   ├── btrfs_scrub.nix
-│   ├── btrfs_snapshots.nix
-│   ├── energy_profiles.nix
-│   ├── os_compatibility.nix
-│   ├── os_optimization.nix
-│   ├── secrets.nix
-│   ├── sudo.nix
-│   └── system.nix.template
-├── gui/
-│   ├── gnome.nix
-│   ├── hyprland.nix.template
-│   ├── kde.nix
-│   └── themes/
-│       ├── grub/
-│       │   └── grub_catppuccin.nix
-│       ├── hyprland/
-│       │   └── hyprland_catppuccin.nix
-│       └── plymouth/
-│           ├── plymouth_breeze-plymouth.nix
-│           ├── plymouth_catppucin.nix
-│           ├── plymouth_nixos-bgrt.nix
-│           └── plymouth_plymouth-themes.nix
-├── network/
-│   ├── default_bluetooth.nix
-│   └── default_network.nix
-└── packages/
-    ├── default_packages_services.nix.template
-    ├── extra_packages_services.nix
-    ├── external_monitor.nix
-    ├── gamestation_packages.nix
-    ├── grub.nix
-    ├── kde_packages.nix
-    ├── syncthing.nix.template
-    ├── unstable_temporary_packages.nix
-    └── workstation_packages_services.nix
-```
+## Composizione
 
----
+Un host in `hosts/client/<nome>/` o `hosts/server/<nome>/` importa i moduli con `../../../common/<categoria>/<file>.nix`. Prepara i file `.nix.template` selezionati come `.nix` e sostituisci i segnaposto documentati usando i valori pubblici descritti in [`env.conf`](../../env.conf). Vedi la [guida HOWTO](../../HOWTO.it.md) per la preparazione manuale.
 
-### Cartella `config`
+I desktop locali sono opzionali e indipendenti da gruppi di applicazioni e demoni. Distrobox importa il proprio runtime Docker; gli strumenti Compose si possono selezionare separatamente. Virt Manager gestisce host remoti senza un demone libvirt locale. Il precedente modulo workstation corrisponde ai sette moduli di pacchetti dedicati più Docker e libvirt.
 
-Questa cartella archivia configurazioni **relative al Sistema Operativo**:
+## Separazione tra host e utenti
 
-- **`audio.nix`** per la configurazione audio centralizzata con PipeWire, session manager wireplumber, rtkit per la priorità real-time, supporto ALSA (32-bit e 64-bit), layer di compatibilità PulseAudio, supporto JACK per applicazioni audio professionali e utility audio (strumenti CLI pulseaudio, GUI pwvucontrol). Questo file viene importato automaticamente dalle configurazioni degli ambienti desktop (Hyprland, GNOME, KDE).
-- **`audio_airplay.nix`** per il supporto opzionale allo streaming AirPlay/RAOP per inviare audio a dispositivi compatibili AirPlay (Apple HomePod, speaker Denon Home, ecc.). Configura il modulo libpipewire-module-raop-discover di PipeWire e Avahi mDNS per il rilevamento dei dispositivi. Importare solo nelle configurazioni host che necessitano della funzionalità AirPlay.
-- **`audio_chromecast.nix`** per il supporto opzionale allo streaming Google Cast (Chromecast) per inviare audio a dispositivi compatibili Cast (speaker Google Home/Nest, Chromecast, ecc.). Esegue pulseaudio-dlna come servizio utente systemd che crea un sink audio virtuale per ogni dispositivo rilevato in LAN (funziona con PipeWire tramite il layer di compatibilità pipewire-pulse) e configura Avahi mDNS per il rilevamento dei dispositivi oltre alle porte firewall necessarie per lo streaming. Importare solo nelle configurazioni host che necessitano della funzionalità Google Cast.
-- **[`battery_management.nix`](config/battery_management.nix)** per le soglie di carica TLP e tre profili energetici: Performance, Bilanciato e Risparmio selezionabile manualmente. Automatico seleziona Performance con alimentatore e Bilanciato in batteria; sui fissi usa Performance. Importa `energy_profiles.nix` e abilita la protezione UPower con ibernazione per batteria scarica.
-- **`boot_luks.nix`** per configurare i parametri di boot con supporto alla crittografia LUKS e le impostazioni di Plymouth per la schermata di avvio; abilita inoltre automaticamente lo stack userspace TPM2 quando un device LUKS è impostato per sbloccarsi via TPM2 (vedi [LUKS_KEYS.it.md](../hosts/disk_configurations/LUKS_KEYS.it.md)).
-- **`btrfs_scrub.nix`** per uno scrub btrfs periodico, che rilegge ogni blocco allocato e ne verifica il checksum per intercettare la corruzione silenziosa (bit rot) prima di incontrarla aprendo un file. I metadati vengono riparati dalla seconda copia quando il profilo è DUP o RAID, mentre gli errori sui dati in profilo single possono solo essere segnalati. Importare solo negli host il cui filesystem è Btrfs: altrove la build fallisce su un'asserzione.
-- **`btrfs_snapshots.nix`** per snapshot timeline di snapper ogni ora sui subvolumi `/` e `/home`, con pulizia giornaliera. `/nix` resta escluso di proposito, dato che il Nix store si ripristina tramite le generation di NixOS. Installa inoltre btrfs-assistant, una GUI Qt per sfogliare e ripristinare gli snapshot e per gestire i subvolumi. Importare solo negli host in cui `/` e `/home` sono subvolumi Btrfs.
-- **[`energy_profiles.nix`](config/energy_profiles.nix)** fornisce il comando `energy-profile auto|performance|balanced|saver|status` e l'autorizzazione Polkit dedicata agli utenti `wheel` con sessione locale attiva. Richiede TLP 1.9 o successivo ed è importato automaticamente da `battery_management.nix`. Le scelte manuali durano fino al ritorno in Automatico o al riavvio, usando soltanto lo stato temporaneo nativo di TLP. Vedi la [guida ai profili energetici](config/README.it.md#profili-energetici).
-- **`os_compatibility.nix`** per abilitare la compatibilità con binari precompilati su NixOS. Utilizza nix-ld per fornire i percorsi delle librerie standard di Linux e le librerie condivise comuni, consentendo l'esecuzione di binari non-NixOS senza patch. Questo file viene importato automaticamente da `system.nix`.
-- **`os_optimization.nix`** per le impostazioni di ottimizzazione del sistema incluse garbage collection automatica di Nix, ottimizzazione del Nix store, limiti del journal di systemd, supporto TRIM per SSD e configurazione zram. Questo file viene importato automaticamente da `system.nix`.
-- **`secrets.nix`** per la gestione dei segreti con sops-nix: gli host decifrano i file in `secrets/` con la chiave age derivata dalla propria chiave SSH host, e i tool di editing vengono installati a sistema. Richiesto da ogni host - vedi [SECRETS.it.md](config/SECRETS.it.md).
-- **`sudo.nix`** per abilitare e gestire sudo, come l'aggiunta di regole personalizzate che consentono agli utenti nel gruppo **`wheel`** (amministratori) di eseguire specifici comandi di sistema **senza richiedere password** (opzione NOPASSWD). Questo file viene importato automaticamente da `system.nix`.
-- **`system.nix`** contiene impostazioni relative alla localizzazione e alla versione specifica di NixOS che stai utilizzando. Importa automaticamente `sudo.nix`, `os_compatibility.nix` e `os_optimization.nix`. In genere importerai questo file nel `configuration.nix` di ciascun host per garantire impostazioni coerenti a livello di locale e di sistema su tutti gli host.
+Profili WiFi, intervalli di rete consentiti, dispositivi/cartelle Syncthing e hardware specifico appartengono a `hosts/client/<nome>/` o `hosts/server/<nome>/`. Gli account appartengono a [`users/`](../users/README.it.md). Mantieni password, hash, chiavi private e PSK WiFi nei file cifrati dei segreti; vedi [SECRETS.it.md](config/SECRETS.it.md).
 
----
+Gli snapshot Btrfs si configurano con il modulo di base `config/btrfs_snapshots.nix`, che rileva il filesystem. Seleziona root e home soltanto quando il rispettivo mount è Btrfs e crea i contenitori degli snapshot necessari a Snapper. Le ACL home client e la policy della directory di lavoro worker appartengono all'host; il modulo di base non dipende da desktop o utenti. Il modulo opzionale `packages/btrfs_assistant.nix` installa soltanto il pacchetto della GUI; il desktop selezionato fornisce Polkit e il relativo agent di autenticazione. Scrub è un modulo separato riservato a Btrfs.
 
-### Cartella `gui`
-
-Questa cartella archivia le configurazioni per gli ambienti grafici che puoi scegliere di abilitare:
-
-- **`gnome.nix`** – Gnome  
-- **`hyprland.nix`** – Hyprland  
-- **`kde.nix`** – KDE Plasma (versione 6)
-- **`themes/`** - Una sottocartella contenente temi per vari software (GRUB, Hyprland, Plymouth, ...)
-
-Le configurazioni di Gnome e KDE provengono dalle installazioni di NixOS, mentre la configurazione Hyprland è personalizzata, includendo pacchetti di base per un setup funzionale (display manager, file manager, terminale, barra di stato e launcher).
-
-> **Nota**: Assicurati di modificare le variabili
-> - in **`gnome.nix`** e **`kde.nix`**, sostituisci `${KEY_LAYOUT}` con il codice [ISO 639](https://en.wikipedia.org/wiki/List_of_ISO_639_language_codes) desiderato per il layout della tastiera  
-> - in **`hyprland.nix`**, sostituisci `${FONT}` con il tuo font preferito e seleziona il tema desiderato
-
----
-
-### Cartella `packages`
-
-Questa cartella include configurazioni per pacchetti e servizi. Ogni file ha il proprio scopo:
-
-- **`default_packages_services.nix`**  
-  Pacchetti e servizi di base che dovrebbero essere abilitati su tutti gli host di default.
-- **`extra_packages_services.nix`**  
-  Pacchetti e servizi per configurazioni specifiche (ad es. l'installazione di **solaar** per dispositivi Logitech).
-- **`external_monitor.nix`**  
-  Supporto per monitor esterni tramite DDC/CI: abilita il bus I2C (`hardware.i2c.enable`) e installa `ddcutil` (controllo brightness/contrasto/input via DDC/CI) e `v4l-utils` (gestione webcam e dispositivi video). Aggiunge automaticamente l'utente al gruppo `i2c` se il bus è abilitato (condizione definita in `users/<username>/user.nix`).
-- **`gamestation_packages.nix`**  
-  Pacchetti e servizi per il gaming: Steam tramite il modulo NixOS (che abilita anche le librerie grafiche 32-bit e le regole udev steam-hardware necessarie a Steam Input per i controller) e il launcher Heroic per Epic Games Store/GOG/Amazon.
-- **`grub.nix`**  
-  Configurazione del boot loader (GRUB) (ad es. abilitare il tema "catppuccin").
-- **`kde_packages.nix`**  
-  Programmi aggiuntivi per migliorare l'ambiente KDE Plasma. Questo file viene importato automaticamente se scegli KDE in `gui/kde.nix`.
-- **`syncthing.nix`**  
-  Configurazione di **Syncthing**. Leggi il file per maggiori informazioni.
-- **`unstable_temporary_packages.nix`**  
-  Pacchetti dal canale unstable o per test temporanei. Scarica automaticamente i pacchetti da nixos-unstable senza configurazione manuale del canale. Utile per pacchetti all'avanguardia, testare nuovo software o pacchetti non ancora disponibili in stable. Completamente reversibile - rimuovendo l'import si puliscono automaticamente i pacchetti unstable.
-- **`workstation_packages_services.nix`**  
-  Pacchetti e servizi potenzialmente utili a tutti gli utenti su un host workstation.
-
-> **Nota:** Queste categorie e i pacchetti/servizi inclusi si basano su necessità personali, non su documentazione ufficiale.
-
----
-
-### Cartella `network`
-
-Questa cartella contiene configurazioni **relative alla rete**:
-
-- **`default_bluetooth.nix`**  
-  Configurazione di base per il supporto Bluetooth con blueman come gestore bluetooth.
-- **`default_network.nix`**  
-  Configurazione di base per NetworkManager, gli strumenti WireGuard e il firewall.
-
-Le connessioni WiFi si dichiarano per host in `nm_configurations.nix` tramite `ensureProfiles` di NetworkManager, con le chiavi precondivise cifrate con sops in `secrets/common.yaml` - vedi [SECRETS.it.md](config/SECRETS.it.md) e il [README di network](network/README.it.md).
+`battery_management.nix` importa `energy_profiles.nix` e offre la selezione automatica Performance/Balanced più Saver manuale temporaneo, con autorizzazione Polkit dedicata agli amministratori locali attivi. Mantieni gli override specifici di driver e firmware; vedi la [guida ai profili energetici](config/README.it.md#profili-energetici).

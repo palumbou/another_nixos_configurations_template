@@ -4,17 +4,22 @@
 
 Questa guida spiega le opzioni LUKS usate dai template Disko di questa cartella e come combinare **più passphrase**, una o più **chiavette USB** e/o il **chip TPM2** (con PIN opzionale) per sbloccare il disco cifrato - registrandoli **già alla formattazione (installazione)** oppure **in un secondo momento, a sistema già installato**.
 
+Tutti e cinque i layout LUKS forniti usano `askPassword = true;` come impostazione predefinita: la passphrase viene chiesta nelle operazioni Disko di creazione/apertura durante l’installazione e poi a ogni boot, salvo configurare esplicitamente USB o TPM2. Nel caso predefinito non devi creare `/tmp/secret.key`. La variante `passwordFile` descritta sotto è opzionale e richiede di rimuovere o disabilitare `askPassword`.
+
 ---
+
+
+Il layout server `btrfs-worker-luks.nix` usa una chiave casuale separata per la swap, che non viene sbloccata con gli slot della partizione LUKS. Nei comandi, sostituisci `/dev/disk/by-id/REPLACE_WITH_LUKS_PARTITION` con la partizione LUKS reale verificata con `lsblk`.
 
 ## Come funzionano le chiavi LUKS
 
 Un volume LUKS2 ha fino a **32 keyslot indipendenti**. Ogni slot contiene una chiave (una passphrase o il contenuto di un file-chiave); **ognuno di essi da solo sblocca il disco**, e ogni slot può essere aggiunto o revocato senza toccare gli altri. È questo che rende possibile lo scenario "passphrase + due chiavette USB con chiavi diverse": tre slot, tre vie d'accesso indipendenti. Se perdi una chiavetta, revochi solo il suo slot.
 
-Con i template di questa cartella la disposizione degli slot è deterministica:
+La passphrase iniziale e le chiavi aggiuntive opzionali occupano keyslot indipendenti:
 
 | Slot | Chiave                             | Da dove arriva                                              |
 |------|------------------------------------|-------------------------------------------------------------|
-| 0    | la tua passphrase                  | `passwordFile` alla formattazione                            |
+| 0    | la tua passphrase                  | `askPassword` predefinito, oppure `passwordFile` opzionale alla formattazione                            |
 | 1…n  | chiavi extra (es. chiavette USB)   | `additionalKeyFiles` alla formattazione, o `luksAddKey` dopo |
 | 1…n  | TPM2 (chiave custodita dal chip, PIN opzionale) | `systemd-cryptenroll` a sistema avviato |
 
@@ -22,15 +27,32 @@ Con i template di questa cartella la disposizione degli slot è deterministica:
 
 ## Riferimento opzioni
 
-### `passwordFile`
+### `askPassword` — impostazione interattiva predefinita
 
-Usato **solo durante la formattazione**: quando Disko esegue `cryptsetup luksFormat`, il contenuto di questo file diventa la passphrase registrata nel keyslot 0. Dopo l'installazione il file non esiste più e non serve - a ogni avvio digiterai quella passphrase al prompt. Va creato appena prima di lanciare Disko:
+Tutti e cinque i layout LUKS forniti impostano `askPassword = true;`. Disko chiede la passphrase per la creazione/apertura del volume durante l’installazione, quindi il caso predefinito non richiede un file della passphrase principale:
+
+```nix
+askPassword = true;
+```
+
+Senza configurazioni opzionali di boot con chiavetta USB o TPM2, l'initrd chiede quella passphrase a ogni avvio. `askPassword` sceglie il metodo di inserimento per le operazioni Disko; l’initrd installato riceve separatamente il device e `settings` per lo sblocco al boot.
+
+### `passwordFile` — alternativa opzionale
+
+Usala soltanto quando vuoi fornire la passphrase iniziale da un file. Prima di aggiungere `passwordFile`, sostituisci `askPassword = true;` con `askPassword = false;` oppure rimuovi l'impostazione interattiva attiva. Sono alternative: se rimane configurato `askPassword = true;`, questo prevale e `passwordFile` viene ignorato:
+
+```nix
+askPassword = false;
+passwordFile = "/tmp/secret.key";
+```
+
+Disko usa il file per le proprie **operazioni di creazione/apertura del volume durante l’installazione**. Alla creazione, il file fornisce la passphrase iniziale; all’apertura, fornisce la passphrase per sbloccare il volume. L’initrd installato non usa automaticamente questo file: device e `settings` determinano lo sblocco al boot. Il flusso interattivo predefinito non richiede un file della passphrase principale; preparane uno appena prima di Disko soltanto per questa alternativa con file:
 
 ```bash
 echo -n "latuapassphrase" > /tmp/secret.key
 ```
 
-`echo -n` è importante: cryptsetup confronta i **byte esatti**, e un newline finale diventerebbe parte della passphrase. Sull'installer NixOS `/tmp` vive in RAM, quindi il file sparisce al riavvio.
+L’esempio usa `echo -n` per scrivere una passphrase testuale senza newline finale. La stessa stringa può essere digitata al prompt di boot. Disko non cancella automaticamente il file; rimuovilo volontariamente quando le sue operazioni non ne hanno più bisogno. Un percorso sotto `/tmp` in questi esempi appartiene all’ambiente live dell’installer.
 
 ### `settings.*` - comportamento al boot
 
@@ -51,13 +73,13 @@ Una lista di file che Disko registra come **keyslot aggiuntivi subito dopo il `l
 
 ## Scenari
 
-I mattoni sono sempre gli stessi - `passwordFile` (slot 0), `additionalKeyFiles` (slot extra alla formattazione), `cryptsetup luksAddKey` (slot extra in seguito), `settings.keyFile` (sblocco automatico al boot). Quello che cambia tra gli scenari è come li combini.
+I mattoni sono `askPassword` (predefinito interattivo) oppure `passwordFile` (alternativa opzionale con file) per la passphrase iniziale, `additionalKeyFiles` (slot extra alla formattazione), `cryptsetup luksAddKey` (slot extra in seguito), `settings.keyFile` (sblocco automatico al boot). Quello che cambia tra gli scenari è come li combini.
 
 ### 1. Più passphrase, nessuna chiavetta
 
 Utile per una passphrase di emergenza/riserva (conservata in un password manager o stampata e messa in un posto sicuro), o per due persone che usano la stessa macchina con passphrase diverse. Non serve alcuna opzione NixOS aggiuntiva: il prompt di boot confronta ciò che digiti con **tutti** i keyslot, quindi qualunque passphrase registrata sblocca il disco.
 
-**Alla formattazione** - scrivi la passphrase aggiuntiva in un file e registrala con `additionalKeyFiles`:
+**Alla formattazione, variante opzionale con file** — questo esempio sostituisce il caso interattivo predefinito con `askPassword = false;` e `passwordFile`. Scrivi passphrase iniziale e aggiuntiva in file temporanei e registra la seconda con `additionalKeyFiles`:
 
 ```bash
 echo -n "latuapassphrase"     > /tmp/secret.key   # slot 0
@@ -65,6 +87,7 @@ echo -n "passphrasediriserva" > /tmp/second.key   # slot 1
 ```
 
 ```nix
+askPassword = false;
 passwordFile = "/tmp/secret.key";
 additionalKeyFiles = [ "/tmp/second.key" ];
 ```
@@ -74,7 +97,7 @@ Poiché il file è creato con `echo -n` (niente newline finale), la stessa ident
 **A sistema già installato** - tutto interattivo, niente da configurare né rebuild:
 
 ```bash
-sudo cryptsetup luksAddKey /dev/nvme0n1p2
+sudo cryptsetup luksAddKey /dev/disk/by-id/REPLACE_WITH_LUKS_PARTITION
 ```
 
 Chiede una passphrase esistente per autorizzare, poi due volte quella nuova.
@@ -113,6 +136,8 @@ Il setup più semplice e robusto memorizza la chiave nei **primi 4096 byte raw d
 
 #### A. Registrare le chiavette alla formattazione
 
+Questa è la variante opzionale con file. Per mantenere il caso interattivo predefinito senza file della passphrase principale, installa normalmente e registra le chiavette in seguito come nella sezione B.
+
 1. Individua le chiavette e scrivi una chiave casuale su ciascuna (si può fare anche prima, su qualunque macchina):
 
    ```bash
@@ -121,7 +146,7 @@ Il setup più semplice e robusto memorizza la chiave nei **primi 4096 byte raw d
    sudo dd if=/dev/urandom of=/dev/disk/by-id/usb-CHIAVETTA2-0:0 bs=4096 count=1
    ```
 
-2. Dall'installer, appena prima di lanciare Disko, crea il file della passphrase e scarica i byte-chiave di ogni chiavetta in un file temporaneo:
+2. Per questa variante opzionale con file, crea dall’installer il file della passphrase principale appena prima di Disko e scarica i byte-chiave di ogni chiavetta in un file temporaneo:
 
    ```bash
    echo -n "latuapassphrase" > /tmp/secret.key
@@ -129,9 +154,10 @@ Il setup più semplice e robusto memorizza la chiave nei **primi 4096 byte raw d
    dd if=/dev/disk/by-id/usb-CHIAVETTA2-0:0 of=/tmp/usbkey2.key bs=4096 count=1
    ```
 
-3. Nella copia del template del tuo host, decommenta/imposta:
+3. Nella copia dell’host, sostituisci `askPassword = true;` con la configurazione a file seguente; non lasciare attivi entrambi i metodi di inserimento:
 
    ```nix
+   askPassword = false;
    passwordFile = "/tmp/secret.key";
    additionalKeyFiles = [ "/tmp/usbkey1.key" "/tmp/usbkey2.key" ];
    settings = {
@@ -150,10 +176,10 @@ Il setup più semplice e robusto memorizza la chiave nei **primi 4096 byte raw d
 
    ```bash
    sudo dd if=/dev/urandom of=/dev/disk/by-id/usb-CHIAVETTA1-0:0 bs=4096 count=1
-   sudo cryptsetup luksAddKey /dev/nvme0n1p2 /dev/disk/by-id/usb-CHIAVETTA1-0:0 --new-keyfile-size 4096
+   sudo cryptsetup luksAddKey /dev/disk/by-id/REPLACE_WITH_LUKS_PARTITION /dev/disk/by-id/usb-CHIAVETTA1-0:0 --new-keyfile-size 4096
    ```
 
-   (`/dev/nvme0n1p2` è la partizione LUKS - trova la tua con `lsblk -f | grep crypto_LUKS`.)
+   (`/dev/disk/by-id/REPLACE_WITH_LUKS_PARTITION` è la partizione LUKS - trova la tua con `lsblk -f | grep crypto_LUKS`.)
 
 2. Aggiungi le stesse righe `settings` viste sopra al file Disko del host. Su un host già installato è **sicuro**: `settings` cambia solo la configurazione di boot generata, Disko non riformatta mai nulla al rebuild.
 
@@ -178,25 +204,25 @@ Il chip TPM2 sulla scheda madre può custodire una chiave e rilasciarla **solo s
 
 A differenza di passphrase e chiavette USB, il TPM **non si può registrare alla formattazione**. Non è un limite di Disko ma la natura del TPM: la registrazione sigilla la chiave contro i valori PCR del boot *corrente*, e durante l'installazione quelli misurati riflettono l'installer USB - al primo riavvio non combacerebbero e cadresti comunque sulla passphrase. Il flusso completo è:
 
-1. **Formatta e installa normalmente** con la passphrase (i template così come sono).
+1. **Formatta e installa normalmente** con il valore interattivo predefinito `askPassword = true;`; non serve un file della passphrase principale.
 2. **Primo avvio**, digitando la passphrase.
 3. **Registrazione dal sistema avviato** - chiede una passphrase esistente per autorizzare e, con `--tpm2-with-pin=yes`, imposti anche il PIN lì, interattivamente. Occupa un keyslot in più accanto alla passphrase:
 
    ```bash
    # lega lo sblocco allo stato Secure Boot (PCR 7)
-   sudo systemd-cryptenroll /dev/nvme0n1p2 --tpm2-device=auto --tpm2-pcrs=7
+   sudo systemd-cryptenroll /dev/disk/by-id/REPLACE_WITH_LUKS_PARTITION --tpm2-device=auto --tpm2-pcrs=7
 
    # più robusto: richiede anche un PIN digitato al boot
-   sudo systemd-cryptenroll /dev/nvme0n1p2 --tpm2-device=auto --tpm2-pcrs=7 --tpm2-with-pin=yes
+   sudo systemd-cryptenroll /dev/disk/by-id/REPLACE_WITH_LUKS_PARTITION --tpm2-device=auto --tpm2-pcrs=7 --tpm2-with-pin=yes
    ```
 
-4. **Decommenta la riga già pronta nel file Disko del host** e ricostruisci (`nixos-rebuild switch`):
+4. **Aggiungi o decommenta la riga seguente dentro `settings` del contenuto LUKS nel file Disko dell’host**, poi ricostruisci (`nixos-rebuild switch`):
 
    ```nix
    crypttabExtraOpts = [ "tpm2-device=auto" ];
    ```
 
-   Non c'è altro da configurare: `common/config/boot_luks.nix` abilita da solo lo stack userspace TPM2 (`security.tpm2.enable`) non appena vede un device LUKS con un'opzione `tpm2-*`, così il file Disko resta l'unica fonte di verità. È impostato con `lib.mkDefault`, quindi un host può comunque forzarlo esplicitamente in caso di bisogno.
+   Quando importato dall’host, `common/config/boot_luks.nix` abilita lo stack userspace TPM2 (`security.tpm2.enable`) non appena vede un device LUKS con un'opzione `tpm2-*`, così il file Disko resta l'unica fonte di verità. È impostato con `lib.mkDefault`, quindi un host può comunque forzarlo esplicitamente in caso di bisogno.
 
 5. **Dal riavvio successivo** il TPM sblocca il disco (chiedendo il PIN, se registrato con PIN) al posto della passphrase lunga - che resta nel suo keyslot come recovery.
 
@@ -218,16 +244,16 @@ Note:
 
 ```bash
 # prova una chiave senza toccare nulla
-sudo cryptsetup open --test-passphrase /dev/nvme0n1p2 --key-file /dev/disk/by-id/usb-CHIAVETTA1-0:0 --keyfile-size 4096 && echo OK
+sudo cryptsetup open --test-passphrase /dev/disk/by-id/REPLACE_WITH_LUKS_PARTITION --key-file /dev/disk/by-id/usb-CHIAVETTA1-0:0 --keyfile-size 4096 && echo OK
 
 # vedi quali keyslot sono occupati
-sudo cryptsetup luksDump /dev/nvme0n1p2
+sudo cryptsetup luksDump /dev/disk/by-id/REPLACE_WITH_LUKS_PARTITION
 
 # persa una chiavetta? revoca solo il suo slot (scopri quale slot è di chi con --test-passphrase --key-slot N)
-sudo cryptsetup luksKillSlot /dev/nvme0n1p2 2
+sudo cryptsetup luksKillSlot /dev/disk/by-id/REPLACE_WITH_LUKS_PARTITION 2
 
 # backup dell'header - da conservare FUORI da questo disco
-sudo cryptsetup luksHeaderBackup /dev/nvme0n1p2 --header-backup-file luks-header.img
+sudo cryptsetup luksHeaderBackup /dev/disk/by-id/REPLACE_WITH_LUKS_PARTITION --header-backup-file luks-header.img
 ```
 
 ---
@@ -236,4 +262,4 @@ sudo cryptsetup luksHeaderBackup /dev/nvme0n1p2 --header-backup-file luks-header
 
 - **Mai** conservare un file-chiave di boot su una partizione non cifrata dello stesso disco (es. `/boot`): è la chiave appoggiata sopra la cassaforte. Solo supporti rimovibili.
 - I file-chiave di cryptsetup sono confrontati **byte per byte**: crea le passphrase testuali con `echo -n` e mantieni coerenti la dimensione registrata e il `keyFileSize` di boot (4096 negli esempi).
-- I file `/tmp/*.key` usati durante l'installazione vivono nella RAM dell'installer e spariscono al riavvio.
+- I file opzionali `/tmp/*.key` degli esempi di installazione con file appartengono all’ambiente live dell’installer; Disko non cancella automaticamente i file forniti. Rimuovili quando non servono più. Il flusso `askPassword` predefinito non richiede un file della passphrase principale.

@@ -1,0 +1,16 @@
+{ ... }:
+{
+  services.openssh = {
+    enable = true;
+    ports = [ ${SSH_PORT} ];
+    openFirewall = false;
+
+    settings = {
+      PermitRootLogin = "no";
+      PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
+      PubkeyAuthentication = true;
+      AuthenticationMethods = "publickey";
+    };
+  };
+}

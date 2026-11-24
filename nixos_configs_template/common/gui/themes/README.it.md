@@ -21,10 +21,10 @@ Per utilizzare questi temi, è necessario abilitarli singolarmente nei rispettiv
 Per abilitare un tema, importa il suo file di configurazione nel file specifico del software corrispondente:
 
 ```nix
-# Nel file ../common/gui/hyprland.nix
+# In common/gui/hyprland.nix
 {
   imports = [
-    # Percorso relativo al tema che vuoi utilizzare
+    # Relative path to the selected theme.
     ./themes/hyprland/hyprland_catppuccin.nix
   ];
 }

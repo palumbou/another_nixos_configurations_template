@@ -242,14 +242,14 @@ sudo sbctl enroll-keys --microsoft
 
 ### Phase C - Enable Lanzaboote
 
-#### 1. Import `secure-boot.nix` in your host configuration
+#### 1. Import `secure_boot.nix` in your host configuration
 
-In your `configuration.nix` (e.g., `hosts/ABC/configuration.nix`), add:
+In your `configuration.nix` (e.g., `hosts/client/<name>/configuration.nix`), add:
 
 ```nix
 imports = [
   ./hardware-configuration.nix
-  ../secure_boot/secure_boot.nix
+  ../../secure_boot/secure_boot.nix
 ];
 ```
 

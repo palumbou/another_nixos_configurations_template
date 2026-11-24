@@ -2,64 +2,61 @@
 
 > **Language versions**: [English (current)](README.md) | [Italiano](README.it.md)
 
-This folder contains configuration files for various package groups and services, organized by functional category.
+These reusable modules group packages by purpose. Choose each optional group in the host configuration; graphical tools and local service daemons can be selected independently.
 
-## Available Files
+## Available modules
 
-- **`default_packages_services.nix`** - Essential default packages and services for basic system functionality
-- **`extra_packages_services.nix`** - Additional packages and services for extended functionality
-- **`external_monitor.nix`** - External monitor support via DDC/CI: enables the I2C bus and installs `ddcutil` (brightness/contrast/input control) and `v4l-utils` (webcam and video capture device management). Automatically adds the user to the `i2c` group when the bus is enabled
-- **`gamestation_packages.nix`** - Gaming packages and services: Steam via the NixOS module (32-bit graphics libraries and steam-hardware udev rules for controller support) and the Heroic launcher for Epic Games Store/GOG/Amazon games
-- **`grub.nix`** - GRUB bootloader configuration (must be imported when using GRUB as bootloader)
-- **`kde_packages.nix`** - Packages specific to the KDE Plasma environment (already imported in file ../gui/kde.nix)
-- **`syncthing.nix`** - Configuration for the Syncthing file synchronization service
-- **`unstable_temporary_packages.nix`** - Packages from the unstable channel or for temporary testing. Automatically fetches packages from nixos-unstable without manual channel configuration
-- **`workstation_packages_services.nix`** - Packages and services tailored for workstation setups
+| File | Packages and behavior |
+| --- | --- |
+| `default_packages_services.nix.template` | Client baseline: command-line, networking, disk, development and multimedia utilities; firmware updates; unfree packages allowed; client OpenSSH policy described below. |
+| `photo_editing.nix` | Darktable and GIMP. |
+| `video_editing.nix` | DaVinci Resolve. |
+| `development.nix` | Visual Studio Code. |
+| `recording.nix` | Enables the NixOS OBS Studio module. |
+| `container_tools.nix` | Docker Compose tools. The local Docker daemon is selected separately. |
+| `distrobox.nix` | Distrobox, local Docker daemon and Flatpak integration; sets `DBX_CONTAINER_MANAGER = "docker"`. |
+| `virtualization_tools.nix` | Virt Manager and SPICE USB redirection. Can manage remote libvirt hosts; does not enable a local libvirt daemon. |
+| `btrfs_assistant.nix` | Installs the optional Btrfs Assistant GUI package, separately from the snapshot core. The selected desktop supplies Polkit; graphical prompts need its running authentication agent. |
+| `extra_packages_services.nix` | Solaar for Logitech devices. |
+| `external_monitor.nix` | Enables I2C and installs `ddcutil` for DDC/CI monitor controls and `v4l-utils` for video devices. The user module assigns the `i2c` group conditionally. |
+| `gamestation_packages.nix` | Steam through its NixOS module, including 32-bit graphics support and controller udev rules. Heroic is a commented optional package. Remote Play and dedicated-server firewall openings are disabled. |
+| `grub.nix` | Shared GRUB settings and theme; import when the selected boot configuration uses GRUB. |
+| `kde_packages.nix` | Filelight, Kate, KCalc, Partition Manager, Print Manager and Konsave; already imported by `../gui/kde.nix`. |
+| `unstable_temporary_packages.nix` | Empty package list for temporary additions, with an optional pinned nixos-unstable package set. Using that package set needs no manual channel configuration. |
+
+The former workstation bundle is split across the seven focused package modules and the [Docker and libvirt service modules](../services/README.md). Import all nine to retain the complete workstation selection, or choose the required capabilities.
+
+The client baseline `default_packages_services.nix` and the server role `roles/server.nix` both set `nixpkgs.config.allowUnfree = true;`. Optional applications, fonts and firmware use this profile-wide policy.
 
 ## Usage
 
-Import the desired files in your host-specific `configuration.nix` file:
+Prepare `.nix.template` files as `.nix` files and replace their placeholders with host values. In `default_packages_services.nix.template`, replace `${SSH_PORT}` with a numeric port while preserving the client authentication policy.
+
+From `hosts/client/<name>/configuration.nix`:
 
 ```nix
 imports = [
-  # ...other imports...
-  ../common/packages/default_packages_services.nix
-  ../common/packages/workstation_packages_services.nix
-  ../common/packages/syncthing.nix
-  # ...other packages as needed...
+  ../../../common/packages/default_packages_services.nix
+  ../../../common/packages/photo_editing.nix
+  ../../../common/packages/video_editing.nix
+  ../../../common/packages/development.nix
+  ../../../common/packages/recording.nix
+  ../../../common/packages/container_tools.nix
+  ../../../common/packages/distrobox.nix
+  ../../../common/packages/virtualization_tools.nix
+  ../../../common/services/docker.nix
+  ../../../common/services/libvirt.nix
 ];
 ```
 
+`distrobox.nix` already imports `docker.nix`; NixOS supports keeping both imports. To use only Compose, import `container_tools.nix`. For local Docker without Distrobox, import `../services/docker.nix`. A local virtual-machine host needs `../services/libvirt.nix`; graphical management tools remain optional.
+
+Account identities belong in `users/ADMIN/admin.nix` and `users/WORKER/worker.nix`; client customizations and conditional hardware/daemon groups belong in `users/ADMIN/client.nix`. The service modules contain no machine-specific user names, keys or access rules.
+
+## Client OpenSSH policy
+
+The client baseline enables OpenSSH on `${SSH_PORT}`, allows password authentication for regular users, disables keyboard-interactive authentication, and disables direct root login. After verifying key access from every required machine, you can set `PasswordAuthentication = false` explicitly. Server profiles use the separate [server SSH module](../services/README.md).
+
 ## Customization
 
-Each file is designed to be modular and include a coherent set of related packages. You can:
-
-- Modify existing files to add or remove packages
-- Create new files for package groups specific to your use case
-- Use conditions to install packages only on certain hosts
-
-### Example Modification
-
-If you want to customize the `workstation_packages_services.nix` file to add a new package:
-
-```nix
-# In workstation_packages_services.nix
-{ config, pkgs, ... }:
-{
-  # Add workstation packages
-  environment.systemPackages = with pkgs; [
-    gimp    # Image editor
-    # Add your new package
-    vscode  # Visual Studio Code editor
-  ];
-
-  # Other workstation-related configuration
-}
-
-```
-
-### Considerations
-
-- It's advisable to keep files organized by category for easy maintenance
-- Consider dependencies between packages when modifying files
-- Files in this folder should only contain configurations you want to share across multiple hosts
+Add or remove packages within a coherent category, or create a module and import it only on relevant hosts. Keep hardware choices, user accounts and host-specific settings in their respective modules. Review dependencies and license requirements when changing a selection.

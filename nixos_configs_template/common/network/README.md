@@ -1,88 +1,46 @@
 # Network
 
-This folder contains network configurations that can be shared across your NixOS hosts.
-
 > **Available languages**: [English (current)](README.md) | [Italiano](README.it.md)
 
-## Structure
+Shared modules provide network foundations; profiles and permitted service networks belong to each host.
 
-```bash
-network/
-├── default_bluetooth.nix   # Bluetooth support configuration
-└── default_network.nix     # Main NetworkManager + WireGuard configuration
-```
+| Module | Purpose |
+| --- | --- |
+| `default_network.nix` | Client NetworkManager, firewall and WireGuard tools. |
+| `server_network.nix` | Server NetworkManager, nftables and firewall; imported by the server role. |
+| `default_bluetooth.nix` | Bluetooth hardware and firmware configuration. A graphical manager is selected separately. |
 
-## Available Files
+From a host under `hosts/client/<name>/` or `hosts/server/<name>/`, common imports use `../../../common/network/`. The server role already imports its server network module. See [roles](../../roles/README.md) and [services](../services/README.md).
 
-- **`default_network.nix`** - Configures NetworkManager, WireGuard tools, and the firewall
+## Host profiles and access rules
 
-## Usage
+Both host categories contain `nm_configurations.nix.template`. Prepare it as `nm_configurations.nix` and keep its local import in the host's `configuration.nix`. It owns WiFi and SSH/RDP CIDR filters.
 
-### Base Network Configuration
-
-To enable NetworkManager and WireGuard tools on your host, import `default_network.nix` in your `configuration.nix`:
+If `RDP_ALLOWED_CIDRS` is empty, use the SSH CIDRs for RDP. Then split `SSH_ALLOWED_CIDRS` and the effective RDP CIDRs into their IPv4 and IPv6 families and render their `*_ALLOWED_IPV4_NIX`/`*_ALLOWED_IPV6_NIX` tokens as Nix lists. For example, documentation-only networks render as:
 
 ```nix
-imports = [
-  # ...other imports...
-  ../common/network/default_network.nix
-];
+  ssh4 = [ "192.0.2.0/24" ];
+  ssh6 = [ "2001:db8::/32" ];
+  rdp4 = [];
+  rdp6 = [];
 ```
 
-### WiFi Connections (declarative, with sops-nix)
+Use networks appropriate to the actual host. The module builds nftables rules from these lists and reads the actual OpenSSH ports and xrdp port from NixOS configuration, so changing `SSH_PORT` or `RDP_PORT` keeps the filter aligned.
 
-WiFi profiles are declared per host through NetworkManager's `ensureProfiles`: a small systemd service generates the connections **directly inside NetworkManager** at every activation - no `.nmconnection` files to copy around. The pre-shared keys never enter the Nix store: they live sops-encrypted in `secrets/common.yaml` (one `WIFI_*_PSK` variable per network) and get substituted at activation from the decrypted environment file. See [`SECRETS.md`](../config/SECRETS.md) for the full guide and `hosts/ABC/nm_configurations.nix.template` for a ready-made example:
+A configured SSH subnet filter disables OpenSSH's automatic firewall opening. Keep the same service ports out of global/interface `allowedTCPPorts`, port ranges and trusted interfaces, which could bypass a source restriction. IPv4 and IPv6 are handled separately.
 
-```nix
-{ config, ... }:
+The server's SSH and RDP modules open no ports automatically. Empty CIDR lists add no accept rules. The client baseline retains its existing OpenSSH firewall policy unless a subnet filter is supplied. RDP needs an allowed range, supplied directly or inherited from SSH.
 
-{
-  sops.secrets.wifi_env = {
-    sopsFile = ../../secrets/common.yaml;
-  };
+## WiFi with encrypted credentials
 
-  networking.networkmanager.ensureProfiles = {
-    environmentFiles = [ config.sops.secrets.wifi_env.path ];
-    profiles = {
-      "HomeWiFi" = {
-        connection = { id = "HomeWiFi"; type = "wifi"; };
-        wifi = { mode = "infrastructure"; ssid = "HomeWiFi"; };
-        wifi-security = { key-mgmt = "wpa-psk"; psk = "$WIFI_HOME_PSK"; };
-        ipv4.method = "auto";
-        ipv6.method = "disabled";
-      };
-    };
-  };
-}
-```
+Set `ENABLE_WIFI=true` and render `WIFI_SSID_NIX` as a complete escaped Nix string. SSIDs are public host configuration. The host file `../../../secrets/<hostname>.yaml` holds the encrypted `wifi_env` value containing `WIFI_PSK`; follow [SECRETS.md](../config/SECRETS.md). Disabled WiFi needs `ENABLE_WIFI=false` and `WIFI_SSID_NIX=""`.
 
-Then import the host's `nm_configurations.nix` in its `configuration.nix` as usual.
+NetworkManager's `ensureProfiles` reads the decrypted environment file at activation. The template keeps IPv4 and IPv6 automatic and uses `"$WIFI_PSK"` for the PSK; leave that runtime variable intact. Host-key recipients must be prepared before activation.
 
-The rendered profiles (with the real PSKs) live in `/run/NetworkManager/system-connections/` - a RAM-backed tmpfs, root-only - and are regenerated at every activation: nothing secret ever touches the persistent disk in cleartext, and everything evaporates at shutdown. For the same reason, avoid editing these profiles via GUI or `nmcli connection modify` (NetworkManager would persist a copy under `/etc/`): the source of truth is the Nix configuration plus the sops secrets file.
+The declarative profiles are applied under `/run/NetworkManager/system-connections/`. Keep the Nix host configuration and encrypted secret as the source of truth. Editing profiles with the GUI or `nmcli connection modify` can persist additional copies under `/etc/`.
 
-## Security Notes
+## Syncthing and VPN
 
-- WiFi credentials are sops-encrypted in the repository and decrypted only at activation under `/run/secrets` (see [`SECRETS.md`](../config/SECRETS.md)); never write PSKs in cleartext in `.nix` files.
+Syncthing lives in each host's `syncthing.nix` and disables automatic port openings. Permit its selected TCP listener only from the intended peer networks in the host's network policy; its HTTPS GUI listens on loopback and can be reached through SSH tunneling. See the [host guide](../../hosts/README.md).
 
-### WireGuard VPN
-
-`default_network.nix` includes `wireguard-tools` for managing WireGuard VPN tunnels.
-The WireGuard kernel module is built-in since Linux 5.6+, and NetworkManager has native WireGuard support - no extra plugin is required.
-
-To configure a WireGuard interface, you can either:
-- Use `wg-quick` with a config file in `/etc/wireguard/wg0.conf`
-- Use NetworkManager's native WireGuard connection type
-
-If this host acts as a WireGuard server or listener, uncomment `allowedUDPPorts` in the firewall section of `default_network.nix`:
-
-```nix
-networking.firewall.allowedUDPPorts = [ 51820 ];
-```
-
-## Customization
-
-You can extend the network configuration by:
-
-- Declaring new WiFi profiles in the hosts' `nm_configurations.nix` (PSKs go in `secrets/common.yaml`)
-- Modifying `default_network.nix` to change default settings or enable the WireGuard firewall port
-- Creating alternative configurations for other networking systems (like systemd-networkd)
+The client module includes `wireguard-tools`. NetworkManager supports WireGuard connections directly; alternatively use `wg-quick`. Add an explicit UDP firewall rule only on a host that listens for incoming VPN traffic.

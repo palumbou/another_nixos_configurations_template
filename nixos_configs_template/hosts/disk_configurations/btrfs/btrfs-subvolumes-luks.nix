@@ -32,8 +32,9 @@
                 # Indicates a LUKS-encrypted container
                 type = "luks";
                 name = "crypted";  # Name for the opened LUKS device
-                # Allows a password file rather than interactive entry
-                passwordFile = "/tmp/secret.key"; # Set to enable interactive or file-based decryption
+                # Request the LUKS passphrase during initial formatting.
+                askPassword = true;
+                extraFormatArgs = [ "--type" "luks2" ];
                 settings = {
                   allowDiscards = true; # Enables TRIM commands on this encrypted partition
                   # Unlock at boot with a USB key instead of typing the passphrase (see LUKS_KEYS.md):

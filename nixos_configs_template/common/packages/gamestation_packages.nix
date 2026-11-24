@@ -2,7 +2,7 @@
 {
   # Steam via the NixOS module (instead of the bare package): it also enables
   # 32-bit graphics libraries and the steam-hardware udev rules, required by
-  # Steam Input to access controllers (e.g. 8BitDo and Xbox gamepads).
+  # Steam Input to access controllers (e.g. 8BitDo Ultimate 2C via 2.4G dongle).
   programs.steam = {
     enable = true;
     remotePlay.openFirewall = false;      # Set to true to open ports for Steam Remote Play
@@ -11,6 +11,6 @@
 
   # Add gamestation packages
   environment.systemPackages = with pkgs; [
-    heroic            # Launcher for Epic Games Store, GOG and Amazon Prime games
+    #heroic            # Launcher for Epic Games Store, GOG and Amazon Prime games
   ];
 }

@@ -1,0 +1,43 @@
+{ config, lib, ... }:
+let
+  ssh4 = ${SSH_ALLOWED_IPV4_NIX};
+  ssh6 = ${SSH_ALLOWED_IPV6_NIX};
+  rdp4 = ${RDP_ALLOWED_IPV4_NIX};
+  rdp6 = ${RDP_ALLOWED_IPV6_NIX};
+  wifiEnabled = ${ENABLE_WIFI};
+  wifiSsid = ${WIFI_SSID_NIX};
+  filterSsh = ssh4 != [] || ssh6 != [];
+  anyFilter = filterSsh || rdp4 != [] || rdp6 != [];
+  rules = family: sources: ports:
+    lib.optionalString (sources != [] && ports != []) ''
+      ${family} saddr { ${lib.concatStringsSep ", " sources} } tcp dport { ${lib.concatStringsSep ", " (map toString ports)} } accept
+    '';
+  sshPorts = lib.optionals config.services.openssh.enable config.services.openssh.ports;
+  rdpPorts = lib.optional config.services.xrdp.enable config.services.xrdp.port;
+in
+{
+  # The host owns connection profiles and service access ranges.
+  networking.nftables.enable = lib.mkIf anyFilter true;
+  services.openssh.openFirewall = lib.mkIf filterSsh false;
+  networking.firewall.extraInputRules =
+    rules "ip" ssh4 sshPorts + rules "ip6" ssh6 sshPorts
+    + rules "ip" rdp4 rdpPorts + rules "ip6" rdp6 rdpPorts;
+
+  sops.secrets.wifi_env = lib.mkIf wifiEnabled {
+    sopsFile = ../../../secrets/${HOSTNAME}.yaml;
+    restartUnits = [ "NetworkManager-ensure-profiles.service" ];
+  };
+  networking.networkmanager.ensureProfiles = lib.mkIf wifiEnabled {
+    environmentFiles = [ config.sops.secrets.wifi_env.path ];
+    profiles.wifi = {
+      connection = { id = wifiSsid; type = "wifi"; };
+      wifi = { mode = "infrastructure"; ssid = wifiSsid; };
+      wifi-security = { key-mgmt = "wpa-psk"; psk = "$WIFI_PSK"; };
+      ipv4.method = "auto";
+      ipv6.method = "auto";
+    };
+  };
+  systemd.services = lib.mkIf wifiEnabled {
+    NetworkManager-ensure-profiles.serviceConfig.RemainAfterExit = true;
+  };
+}

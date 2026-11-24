@@ -1,117 +1,94 @@
-# Secrets Management with sops-nix
+# Secrets with sops-nix
 
-> **Available languages**: [English (current)](SECRETS.md) | [Italiano](SECRETS.it.md)
+[English](SECRETS.md) | [Italiano](SECRETS.it.md)
 
-Everything you write in a NixOS configuration ends up in the Nix store, which is **world-readable by every user and process on the machine** - and your copy of `nixos_configs` typically lives in a versioned folder, synced between machines or backed up. Passwords, WiFi keys and tokens must therefore never appear in cleartext in `.nix` files. This template solves it with [sops-nix](https://github.com/Mic92/sops-nix): **secrets stay inside `nixos_configs`, but encrypted** - you can version, sync or back it up without exposing them; each host decrypts them at system activation using a key derived from its own SSH host key, and the decrypted values appear only under `/run/secrets*` (RAM), with the right owner and permissions.
+Nix configuration and build outputs may enter the readable Nix store. Keep password hashes, Wi-Fi credentials and tokens out of Nix source. The pinned [sops-nix](https://github.com/Mic92/sops-nix) module in `secrets.nix` decrypts encrypted YAML during activation, before account creation where required. Secret values are read from runtime files rather than interpolated into store files.
 
----
+## Files and ownership
 
-## Architecture
+| File/key | Scope | Consumer |
+| --- | --- | --- |
+| `.sops.yaml` | Public age recipients and file rules | SOPS editing/encryption |
+| `secrets/common.yaml`: `admin_hashedPassword` | Shared administrator credential | `users/<admin>/admin.nix`; `neededForUsers = true` |
+| `secrets/common.yaml`: `admin_ssh_publicKey` | Shared administrator authorized public key | Host runtime SSH key template |
+| `secrets/<hostname>.yaml`: `worker_hashedPassword` | Worker account on this host | `users/<worker>/worker.nix`; `neededForUsers = true` |
+| `secrets/<hostname>.yaml`: `worker_ssh_publicKey` | Worker-only authorized public key | Server host runtime SSH key template |
+| `secrets/<hostname>.yaml`: `wifi_env` | This host's Wi-Fi environment | Host `nm_configurations.nix` |
 
-Three pieces, each with one job:
+The common file is readable by the editor and every authorized host. A host file is readable by the editor and that host only. Keep a separate rule for each host. Client host files can retain unused worker example keys or remove them if the client declares no worker secrets. Public SSH keys are encrypted here for consistent account provisioning; their private counterparts never belong in the configuration tree.
 
-| File | Role | Inside `nixos_configs` |
-|------|------|-------------|
-| `.sops.yaml` | **Who** can decrypt: age *public* keys + rules per file | Plaintext (safe: only public keys) |
-| `secrets/common.yaml` | **What** the secrets are: fleet-wide values | Encrypted (keys visible, values encrypted) |
-| `common/config/secrets.nix` | The machinery: sops-nix module (pinned), host key path, editing tools | Plain module, identical for every host |
+Every host imports `common/config/secrets.nix` and selects `sops.defaultSopsFile = ../../../secrets/<hostname>.yaml`. The administrator password explicitly uses `../../secrets/common.yaml` relative to its account module. The worker password uses the host default. Both password secrets use `neededForUsers` and are available before account creation under `/run/secrets-for-users`; normal secrets and rendered templates use `/run/secrets*`.
 
-Consumers then declare the secrets they need, right where they use them:
+## Prepare recipients
 
-- `users/XYZ/user.nix` declares `user_hashedPassword` (with `neededForUsers = true`, decrypted before users are created) and reads it via `hashedPasswordFile`;
-- `hosts/<host>/nm_configurations.nix` declares `wifi_env` and feeds it to `networking.networkmanager.ensureProfiles` as an environment file: WiFi profiles are generated **directly inside NetworkManager**, with the PSKs referenced as `$WIFI_*` variables - no `.nmconnection` files to copy around.
+Work from the root of your configured tree, where `.sops.yaml`, `secrets/`, `users/` and `hosts/` will live. On a system without the tools, start `nix-shell -p sops age ssh-to-age mkpasswd`.
 
-Physically, **nothing secret ever touches the persistent disk in cleartext**: on disk lives only the encrypted `secrets/common.yaml`; the decrypted values sit in `/run/secrets*` (RAM) and the rendered WiFi profiles in `/run/NetworkManager/system-connections/` (RAM as well, 0600 permissions). At shutdown everything evaporates and gets regenerated at the next boot.
-
-Because `user.nix` is imported by every host, **every host must import `common/config/secrets.nix`** (the `sops.*` options must exist everywhere they are referenced).
-
-Key model - this is the part worth understanding once:
-
-- Each **host** decrypts with the age key mathematically derived from its SSH host key (`/etc/ssh/ssh_host_ed25519_key`). Nothing to generate or distribute: the machine already owns it.
-- The **administrator** (you) has a personal age key pair for *editing* secrets, in `~/.config/sops/age/keys.txt`. The private key never enters `nixos_configs` (nor any other shared location); only its public half goes into `.sops.yaml`.
-- Private keys never travel. Adding a reader always means: add its *public* key to `.sops.yaml`, then `sops updatekeys`.
-
----
-
-## Initial setup (once)
-
-1. **Admin key**:
-
-   ```bash
-   mkdir -p ~/.config/sops/age && chmod 700 ~/.config/sops/age
-   age-keygen -o ~/.config/sops/age/keys.txt
-   chmod 600 ~/.config/sops/age/keys.txt
-   ```
-
-   Note the printed public key (`age1...`). Copy `keys.txt` manually to any other workstation where you will edit secrets - never inside `nixos_configs` nor through shared or public channels.
-
-2. **Rules**: rename `.sops.yaml.template` to `.sops.yaml` and paste your admin public key (host keys will join later, see below).
-
-3. **First secrets file**:
-
-   ```bash
-   cp secrets/common.yaml.template secrets/common.yaml
-   # fill in the values, then:
-   sops -e -i secrets/common.yaml
-   ```
-
-From then on, always edit with `sops secrets/common.yaml`: it decrypts into your editor and re-encrypts on save. The tools (`sops`, `age`, `ssh-to-age`) are installed system-wide by `secrets.nix`; on a live installer use `nix-shell -p sops age ssh-to-age`.
-
----
-
-## Daily use
-
-- **Edit a value**: `sops secrets/common.yaml`.
-- **Add a WiFi network**: add a `WIFI_<NAME>_PSK=...` line inside `wifi_env`, then declare the profile in the host's `nm_configurations.nix` (copy an existing block, set `id`/`ssid` and the `psk = "$WIFI_<NAME>_PSK"` variable). Each host lists only the networks it uses; the environment file carries them all.
-- **Change the user password**: generate a hash with `mkpasswd -m sha-512`, paste it as the `user_hashedPassword` value.
-
----
-
-## Adding a host
-
-**Already-installed host**: derive its public key on the machine itself, add it, re-encrypt:
+Create an editor age key outside this tree:
 
 ```bash
-# on the new host
-ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
-# on your workstation: add the printed age1... to .sops.yaml, then
-sops updatekeys secrets/common.yaml
+mkdir -p ~/.config/sops/age
+chmod 700 ~/.config/sops/age
+age-keygen -o ~/.config/sops/age/keys.txt
+chmod 600 ~/.config/sops/age/keys.txt
 ```
 
-Do this **before** the first `nixos-rebuild switch` that uses secrets on that host: builds succeed regardless, but activation cannot decrypt until the key is in place.
+Record the printed public recipient. Protect and back up the private key separately. `secrets.nix` configures each host to decrypt with its existing `/etc/ssh/ssh_host_ed25519_key`. Obtain only its public recipient on that host:
 
-**Fresh installation**: the SSH host key normally appears at first boot - too late for the installer. Generate it in advance, right after Disko has mounted the disk at `/mnt` and before `nixos-install`:
+```bash
+ssh-to-age < /etc/ssh/ssh_host_ed25519_key.pub
+```
+
+For a fresh installation, prepare the target's SSH host key after mounting it at `/mnt` and before installation, without overwriting an existing key:
 
 ```bash
 sudo mkdir -p /mnt/etc/ssh
 sudo ssh-keygen -t ed25519 -N "" -f /mnt/etc/ssh/ssh_host_ed25519_key
 sudo ssh-to-age < /mnt/etc/ssh/ssh_host_ed25519_key.pub
-# add the printed key to .sops.yaml, run "sops updatekeys secrets/common.yaml",
-# then continue the installation normally
 ```
 
-The installed system finds its host key already present and decrypts from the very first boot.
+Copy `.sops.yaml.template` to `.sops.yaml`. Replace `REPLACE_WITH_EDITOR_AGE_RECIPIENT` and `REPLACE_WITH_HOST_AGE_RECIPIENT` with those public recipients. Replace `${HOSTNAME}` in its host rule with the hostname. The markers are deliberately invalid recipients and must be configured manually. Add an anchor/rule for each further host; include every permitted host in the common rule while keeping each host file limited to its own recipient.
 
----
+## Create encrypted YAML
 
-## Removing a machine or a person
+For a generic host named `example-node`:
 
-1. Remove its key from `.sops.yaml` and run `sops updatekeys secrets/common.yaml`.
-2. **Rotate the values themselves** (`sops secrets/common.yaml`): removing a key stops *future* reads, but whoever held it may have already seen the old values. New WiFi password, new hash.
+```bash
+cp secrets/common.yaml.template secrets/common.yaml
+cp secrets/ABC.yaml.template secrets/example-node.yaml
+mkpasswd -m sha-512
+```
 
----
+If the host example already has the hostname in its filename, copy that file instead of `ABC.yaml.template`. Replace the YAML markers with your chosen password hashes, complete public SSH key lines and Wi-Fi passphrase. Use the interactive `mkpasswd` prompt rather than putting a password on a command line. Never use the placeholder values as credentials. The `wifi_env` block contains `WIFI_PSK=...`; the host NetworkManager profile references exactly `$WIFI_PSK`.
 
-## Troubleshooting
+Encrypt both files before they are committed, synchronized or used by NixOS:
 
-- *Activation says it cannot decrypt* → that host's key is missing from `.sops.yaml` (or `updatekeys` was not run). Existing logins survive thanks to `users.mutableUsers = true`; fix the key and rebuild.
-- *Who can currently decrypt?* → the `sops.age` recipients listed at the bottom of the encrypted file itself.
-- *Check a file decrypts for you*: `sops -d secrets/common.yaml >/dev/null && echo ok`.
+```bash
+sops --encrypt --in-place secrets/common.yaml
+sops --encrypt --in-place secrets/example-node.yaml
+```
 
----
+After encryption, edit only with `sops secrets/common.yaml` or `sops secrets/example-node.yaml`. Review encrypted-file metadata to confirm the expected recipients. Protect editor backups and temporary plaintext according to the editor you use. Plaintext templates contain examples only; deploy encrypted `.yaml` files, not the `.yaml.template` files.
 
-## Beyond the basic setup
+## Runtime SSH authorized keys
 
-- **Host-specific secrets**: add `secrets/<host>.yaml` with its own `creation_rules` entry (admin + that host only).
-- **Many hosts / a team**: key groups per environment in `.sops.yaml`; `sops updatekeys` keeps rotation manageable.
-- **CI/CD and cloud**: sops supports **KMS backends** (AWS/GCP/Azure) - same files, key custody moves to IAM-controlled services.
-- **A central secret manager**: [OpenBao](https://openbao.org/) (the open-source fork of Vault) via sops' Vault-compatible backend.
+The host declares `admin_ssh_publicKey` from the common file and, on a server host, `worker_ssh_publicKey` from the host file. `sops.templates` renders `ssh-authorized-keys/<admin>` owned by the administrator with mode `0400`. A server host also renders `ssh-authorized-keys/<worker>` owned by the worker, containing both the administrator and worker public keys. This allows the administrator to log in as either account while the worker key grants access only to the worker.
+
+OpenSSH reads `/run/secrets/rendered/ssh-authorized-keys/%u`, where `%u` is the requested account. These files are rendered during activation; no public-key value needs evaluation-time decryption. Existing host examples include these declarations and `AllowUsers`. A standalone account module does not supply the SSH templates by itself. Preserve a working administrative access route until the new configuration has been verified.
+
+## Updates and removal
+
+- Change a password by running `mkpasswd -m sha-512` and updating the matching key with SOPS. Shared administrator changes apply to every host consuming the common file; worker changes affect the selected host.
+- Change a host's Wi-Fi value inside its `wifi_env`; `restartUnits` refreshes `NetworkManager-ensure-profiles.service`. Add a corresponding profile if you add another variable/network.
+- Add a host recipient to `.sops.yaml`, then run `sops updatekeys secrets/common.yaml` and `sops updatekeys secrets/<hostname>.yaml` for the relevant files before activation.
+- Remove a recipient from the rules, update affected files and rotate the values it could previously read. Removing a recipient does not revoke old decrypted copies or repository history.
+
+## Check before activation
+
+A parse, evaluation or build does not prove that the target can decrypt. Check recipients and the host's public identity before installation/rebuild. When you intentionally test decryption with your editor key, discard stdout rather than displaying the values:
+
+```bash
+sops --decrypt secrets/common.yaml > /dev/null
+sops --decrypt secrets/example-node.yaml > /dev/null
+```
+
+This proves editor access only; host access must be checked using that host's configured identity. Failure to decrypt `neededForUsers` secrets can block account provisioning and activation. `users.mutableUsers = true` on clients does not guarantee recovery from a failed activation. Correct the recipients/key path before proceeding.

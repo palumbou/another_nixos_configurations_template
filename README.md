@@ -12,10 +12,10 @@ I also wanted an operating system that would facilitate company-wide client mana
 
 Initially, in early 2023, I started exploring NixOS but set it aside due to lack of time, switching to Fedora KDE (which I loved and could configure in under an hour from scratch). By the end of 2024, eager to invest time in developing dotfiles for a completely customized and replicable graphical environment, I decided to go one step further. Instead of just revisiting my desktop environment, I wanted to rebuild my entire OS configuration, so I returned to NixOS.
 
-I spent countless hours reading the official manual, watching YouTube videos, and studying other users’ configuration files on GitHub (all sources are listed in the [Sources](#sources) section). Then I chose to write all configuration files from scratch, structuring folders and files to meet my needs while keeping the principle of **“Keep It Simple”** and **“Less Is More”** in mind.
+I spent countless hours reading the official manual, watching YouTube videos, and studying other users’ configuration files on GitHub (all sources are listed in the [Sources](#sources--references) section). Then I chose to write all configuration files from scratch, structuring folders and files to meet my needs while keeping the principle of **“Keep It Simple”** and **“Less Is More”** in mind.
 
 **Why share these files?**  
-I decided to turn my configs into a readable, heavily commented template that anyone could copy and modify as needed. I also created a script to automate their customization.
+I decided to turn my configs into a readable, heavily commented template that anyone could copy and modify as needed.
 
 ---
 
@@ -41,85 +41,54 @@ In 2023, I made the mistake of jumping straight into **Flakes** and **Home Manag
 
 ## Folder and File Structure
 
-Below is the directory structure I’ve planned, along with the files included. Each subfolder has its own dedicated README explaining the files and subfolders in detail:
-```bash
-nixos_configs/                    # Parent folder
-└── common/                       # Configuration files and subfolders common to all hosts/users
-    ├── config/                   # Operating system-related configurations
-    ├── gui/                      # GUI-related configuration
-    │   └── themes/               # Themes for various software (GRUB, Hyprland, Plymouth)
-    ├── packages/                 # Configuration for software packages to install
-    └── network/                  # Network-related configuration files
-└── hosts/                        # Subfolders for each defined host
-    ├── ABC/                      # Configuration files for host 'ABC'
-    ├── disk_configurations/      # Disko templates for declarative disk setup
-    │   ├── btrfs/                # Btrfs filesystem templates
-    │   └── ext4/                 # ext4 filesystem templates
-    └── secure_boot/              # Secure Boot configuration with Lanzaboote
-└── users/                        # Subfolders for each defined user
-    └── XYZ/                      # Configuration files for user 'XYZ'
-        └── dotfiles/             # Dotfiles for user 'XYZ'
-└── secrets/                      # sops-encrypted secrets (see nixos_configs_template/common/config/SECRETS.md)
-└── .sops.yaml                    # sops rules: which keys decrypt which files
+The reusable configuration tree is under `nixos_configs_template/`. Copy it to a location of your choice and prepare the selected templates manually; the resulting tree can be called `nixos_configs/`. Keep the relative directory structure intact.
+
+```text
+nixos_configs_template/
+├── common/
+│   ├── config/                   # System settings, power, snapshots and SOPS
+│   ├── gui/                      # Local desktops and optional Xfce RDP
+│   ├── network/                  # Client and server networking
+│   ├── packages/                 # Independent application groups
+│   └── services/                 # Docker, libvirt and server SSH
+├── roles/                        # base.nix, client.nix, server.nix
+├── hosts/
+│   ├── client/ABC/               # Client host example
+│   ├── server/ABC/               # Server host example
+│   ├── disk_configurations/      # Shared Disko layouts
+│   └── secure_boot/              # Lanzaboote configuration
+├── users/
+│   ├── ADMIN/                    # admin.nix and optional client.nix
+│   └── WORKER/                   # worker.nix
+├── secrets/                      # Encrypted data prepared separately
+└── .sops.yaml                    # Recipient rules prepared separately
 ```
 
-### The `nixos_configs` Folder
+### Preparing a host
 
-The `nixos_configs` folder contains all the configuration files needed for your environment.  
-It must be **copied onto the target system**, and you’ll need to replace the path within the configuration files wherever file-copy paths are referenced. This ensures you have the correct absolute path for the build process to pull the specified files.
+Read [`env.conf`](env.conf) for the public parameter names and example values. Copy either `hosts/client/ABC` or `hosts/server/ABC` to a host directory within the same category. Prepare selected `.nix.template` files as `.nix` files and replace only their documented placeholders with values for that host. No substitution occurs merely by editing `env.conf`. The [HOWTO](HOWTO.md) explains typed values, optional import lists and installation.
 
-Inside `nixos_configs`, there are three subfolders:
+A host at `hosts/client/<name>/` or `hosts/server/<name>/` imports common modules, roles and users through `../../../`. Shared Disko layouts and Secure Boot modules are reached through `../../disk_configurations/` and `../../secure_boot/`. Obtain a hardware declaration for the actual target with `nixos-generate-config` or an appropriate [nixos-hardware](https://github.com/NixOS/nixos-hardware) module; the public CPU and platform fields are examples, not a substitute for hardware detection.
 
-1. [`common`](#common)
-2. [`hosts`](#hosts)
-3. [`users`](#users)
+### `common`
 
----
+The [common guide](nixos_configs_template/common/README.md) links the five module categories. Local desktop selection (`none`, KDE, GNOME or Hyprland), optional Xfce RDP, application groups and local daemons are independent choices. A host without a desktop can still enable Docker, libvirt, Syncthing, snapshots and CLI tools.
 
-#### `common`
+Importing [`battery_management.nix`](nixos_configs_template/common/config/battery_management.nix) also installs `energy-profile` through [`energy_profiles.nix`](nixos_configs_template/common/config/energy_profiles.nix), requiring TLP 1.9 or newer. Automatic operation selects Performance on AC and Balanced on battery. Use `energy-profile performance`, `energy-profile balanced` or `energy-profile saver` temporarily; `energy-profile auto` restores automatic operation and `energy-profile status` returns JSON. Reboot restores automatic operation through TLP's native state. Active local users in `wheel` can change profiles through its dedicated Polkit action.
 
-The **`common`** folder contains NixOS configuration files that are shared by all hosts and users. Inside it, there are four subfolders:
+Balanced allows turbo and uses `balance_performance`; manually selected Saver uses `balance_power` with turbo disabled. Governor defaults target active `intel_pstate`/`amd-pstate` drivers. Override `services.tlp.settings` for other drivers or firmware profile names and inspect `tlp-stat -p` for supported values. Firmware defaults are `performance` on AC and `balanced` for both battery profiles.
 
-- **`config`** – Contains operating system-related configurations such as boot parameters with LUKS encryption, Plymouth boot splash, sudo rules, and system settings.
-- **`gui`** – Contains possible GUI configurations (currently Hyprland and KDE), from which you can choose, and a `themes` subfolder with themes for various software.  
-- **`packages`** – Specifies which packages to install and which services to enable.  
-- **`network`** – Network-related configurations. WiFi connections are declared per host and their credentials live sops-encrypted in the `secrets/` folder (see [SECRETS.md](nixos_configs_template/common/config/SECRETS.md)).
+Btrfs snapshots use the separate filesystem-aware core module. The optional `btrfs_assistant.nix` module installs the GUI package separately. The selected desktop provides Polkit; graphical privilege prompts also need its running authentication agent. See the [configuration guide](nixos_configs_template/common/config/README.md) and [package guide](nixos_configs_template/common/packages/README.md).
 
-Importing [`battery_management.nix`](nixos_configs_template/common/config/battery_management.nix) also installs `energy-profile` through [`energy_profiles.nix`](nixos_configs_template/common/config/energy_profiles.nix), requiring TLP 1.9 or newer. Automatic operation selects Performance on AC and Balanced on battery. Use `energy-profile performance`, `energy-profile balanced`, or `energy-profile saver` for a temporary manual choice; `energy-profile auto` restores automatic operation, and `energy-profile status` returns JSON. Every reboot restores automatic operation using TLP's own runtime state, without an additional state file. Local, active users in `wheel` can change profiles through the dedicated Polkit action.
+### `roles` and `hosts`
 
-Balanced mode allows turbo and uses `balance_performance`; the manually selected saver uses `balance_power` with turbo disabled. The governor defaults target active `intel_pstate`/`amd-pstate` drivers. Override `services.tlp.settings` per host for other scaling drivers (for example, `schedutil` with `acpi-cpufreq`) or firmware profile names; inspect `tlp-stat -p` for supported values. The defaults use firmware `performance` on AC and `balanced` for both battery profiles.
+[Roles](nixos_configs_template/roles/README.md) compose shared modules: `base.nix` supplies locale, time zone and keyboard settings; `client.nix` adds binary compatibility, optimizations and client sudo rules; `server.nix` adds essential CLI tools, server SSH and server networking. The host selects its role, users, hardware, storage, boot and optional features. Keep `system.stateVersion` at the release used for the original installation.
 
----
+The [host guide](nixos_configs_template/hosts/README.md) covers the client and server examples. WiFi, SSH/RDP access restrictions and Syncthing live in each host directory. The [Disko guide](nixos_configs_template/hosts/disk_configurations/README.md) includes a server layout with a 1 GiB EFI partition, random-key encrypted swap and passphrase-protected LUKS2 Btrfs subvolumes for root, home, the Nix store and the work directory. [Secure Boot](nixos_configs_template/hosts/secure_boot/README.md) remains optional.
 
-#### `hosts`
+### `users` and secrets
 
-The **`hosts`** folder stores individual host configurations, each in its own subfolder named after the host. Inside every host's subfolder, you'll find:
-
-- **`configuration.nix`** – The base configuration for that specific host. Here you specify which common packages and services to import from `common/packages` as well as which users you want to define.
-- **A `Disko` configuration file** *(optional)* – Refer to the [README](./nixos_configs_template/hosts/disk_configurations/README.md) inside the `disk_configurations` folder for more information.
-- **A `Secure Boot` configuration** *(optional)* – Refer to the [README](./nixos_configs_template/hosts/secure_boot/README.md) inside the `secure_boot` folder for detailed instructions on enabling Secure Boot with Lanzaboote.
-- **`hardware-configuration.nix`** – Defines hardware-specific settings. You can obtain this file by:
-  - Copying it from `/etc/nixos` after installing NixOS from an [official ISO](https://nixos.org/download/).
-  - Generating it via `nixos-generate-config` on the host.
-  - Importing it from the official [nixos-hardware repository](https://github.com/NixOS/nixos-hardware), which hosts a collection of hardware-specific configurations.
-
-- (Optional) The file `nm_configurations.nix` for importing specific Network Manager connections needed by that host.
-
-To add a new host, create a new folder named after the host and place both `configuration.nix` and `hardware-configuration.nix` inside it. In `configuration.nix`, be sure to reference:
-
-- The desired `common/packages` configurations.
-- The `users` you want to enable for that host.
-
----
-
-#### `users`
-
-The **`users`** folder contains configurations for individual users, each in its own subfolder named after the user. Within each user subfolder:
-
-- **`USERNAME.nix`** – The NixOS configuration file for that user.
-- A **`dotfiles`** subfolder – Holds the user’s personal dotfiles, which will be copied into the user’s `~/.config/` directory.
-
-You’ll reference a user’s configuration in the chosen host’s `configuration.nix` file to make that user available when the system is built.
+[Account modules](nixos_configs_template/users/README.md) separate the administrator identity, optional client customizations and worker identity. The worker account uses a dedicated work group and directory. Prepare SSH public-key data through the shared and host encrypted values consumed by each host configuration and keep passwords, password hashes, WiFi PSKs and private keys outside `env.conf` and plain Nix files. Follow the [SOPS guide](nixos_configs_template/common/config/SECRETS.md) to prepare encrypted values and recipients. Syncthing device and folder declarations belong to the selected host.
 
 ---
 
@@ -155,8 +124,6 @@ This project is still a **work in progress**; the next steps (see [To-Do](#to-do
 - **Import KDE Profile**  
   Automatically import the KDE profile during the build, rather than requiring a manual import.
 
-- **Improve the `nixos_config_generator.sh` Script**  
-  Add functionality to generate configuration and hardware files via `nixos-generate-config`.
 
 ---
 

@@ -32,8 +32,9 @@
                 # Designate this partition as a LUKS container
                 type = "luks";
                 name = "crypted";       # Name for the LUKS volume
-                # Use a password file instead of interactive entry
-                passwordFile = "/tmp/secret.key";
+                # Request the passphrase interactively during installation.
+                askPassword = true;
+                extraFormatArgs = [ "--type" "luks2" ];
                 settings = {
                   allowDiscards = true; # Enables TRIM operations on the encrypted volume
                   # Unlock at boot with a USB key instead of typing the passphrase (see LUKS_KEYS.md):

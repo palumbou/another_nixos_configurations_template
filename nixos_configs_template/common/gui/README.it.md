@@ -1,70 +1,41 @@
-# GUI
+# Interfacce grafiche
 
 > **Lingue disponibili**: [English](README.md) | [Italiano (corrente)](README.it.md)
 
-Questa cartella contiene configurazioni per diverse interfacce grafiche utente (GUI) che possono essere utilizzate nei tuoi host NixOS.
+Desktop locale e sessioni Xfce remote sono scelte indipendenti. Scegli `none`, KDE, GNOME o Hyprland per il desktop locale. Un host senza desktop non richiede un modulo grafico locale.
 
-## File Disponibili
-
-- **`gnome.nix`** - Configurazione per l'ambiente desktop GNOME
-- **`hyprland.nix`** - Configurazione per l'ambiente desktop basato su Wayland Hyprland
-- **`kde.nix`** - Configurazione per l'ambiente desktop KDE Plasma
-
-## Temi
-
-Questa cartella contiene anche una cartella **`themes`** con vari temi per software considerati nei file di configurazione, organizzati per applicazione:
-
-- **`grub`** - Temi per il bootloader GRUB
-- **`hyprland`** - Temi per il gestore di finestre Hyprland
-- **`plymouth`** - Temi per la schermata di avvio Plymouth
-
-Per utilizzare questi temi, è necessario abilitarli singolarmente nei rispettivi file di installazione. Vedi il [README.it.md](./themes/README.it.md) nella cartella **`themes`** per maggiori dettagli.
+| File | Funzione |
+| --- | --- |
+| `gnome.nix` | Desktop GNOME e relativo display manager. |
+| `kde.nix` | KDE Plasma, relativo display manager e gruppo di pacchetti KDE. |
+| `hyprland.nix.template` | Ambiente Wayland Hyprland, strumenti di sessione e tema; sostituisci `${FONT}`. |
+| `xfce-rdp.nix` | Sessioni Xfce tramite xrdp, senza avviare un display manager locale. |
 
 ## Utilizzo
 
-Per utilizzare uno di questi ambienti desktop, importa il file corrispondente nel file `configuration.nix` del tuo host:
+Da `hosts/client/<nome>/configuration.nix` o `hosts/server/<nome>/configuration.nix`, scegli un desktop locale con un import opzionale:
 
 ```nix
-# Per GNOME
 imports = [
-  # ...altri import...
-  ../common/gui/gnome.nix
-];
-
-# Per KDE Plasma
-imports = [
-  # ...altri import...
-  ../common/gui/kde.nix
-];
-
-# OPPURE per Hyprland
-imports = [
-  # ...altri import...
-  ../common/gui/hyprland.nix
+  ../../../common/gui/kde.nix
 ];
 ```
 
-## Personalizzazione
+Per Xfce remoto opzionale aggiungi `../../../common/gui/xfce-rdp.nix` indipendentemente dal desktop locale. L'host imposta `RDP_PORT`; i CIDR IPv4/IPv6 consentiti appartengono a `nm_configurations.nix` dell'host. Il modulo RDP non apre automaticamente porte firewall, impedisce il login diretto di root e richiede una password PAM non vuota. Configura separatamente la password dell'account non root desiderato; le chiavi SSH non sono credenziali RDP.
 
-Ogni file contiene sia i pacchetti necessari per l'ambiente desktop che le configurazioni specifiche. Puoi modificare questi file per:
+`xfce-rdp.nix` usa una sessione D-Bus dedicata e lascia il server X locale disabilitato per impostazione predefinita. Un eventuale desktop locale selezionato può comunque abilitare il proprio servizio grafico locale.
 
-- Aggiungere o rimuovere pacchetti specifici per l'ambiente
-- Modificare impostazioni di default
-- Abilitare o disabilitare funzionalità specifiche
+## Temi e configurazione locale
 
-### Configurazione Specifica per Hyprland
+[`themes/`](themes/README.it.md) contiene temi GRUB, Hyprland e Plymouth. Scegli un tema per applicazione e controlla pacchetti e valori predefiniti di ogni desktop. Il layout tastiera proviene da `system.nix.template` condiviso tramite `KEY_LAYOUT`.
 
-Quando usi Hyprland, devi aggiungere manualmente la seguente riga al tuo file `~/.config/hypr/hyprland.conf` per abilitare l'agente di autenticazione polkit (necessario per virt-manager, montaggio dischi e altre operazioni privilegiate):
+Evita di selezionare più moduli desktop locali completi senza verificarne display manager e impostazioni di sessione. La scelta del desktop non seleziona gruppi di applicazioni opzionali, Docker o libvirt.
+
+Per Hyprland includi la configurazione di avvio dell'agent Polkit di sistema in `~/.config/hypr/hyprland.conf`:
 
 ```conf
-# Importa configurazioni di sistema da NixOS
+# Import NixOS system-wide configuration.
 source = /etc/hyprland/hyprland.d/polkit.conf
 ```
 
-Aggiungi questa riga all'inizio del tuo file di configurazione, dopo le altre direttive `source`. L'agente polkit si avvierà automaticamente all'avvio di Hyprland.
-
-### Note sull'Utilizzo
-
-- **Evita di importare più file GUI contemporaneamente** in un singolo host per prevenire conflitti.
-- Se desideri utilizzare componenti di più ambienti desktop, considera la creazione di un file personalizzato che importi solo pacchetti specifici da ciascun ambiente.
-- I file sono organizzati per essere modulari e indipendenti dalle configurazioni utente, permettendoti di condividerli tra più host.
+Posizionala vicino alle altre direttive `source`. Un agent di autenticazione serve per le richieste di privilegi del desktop, come Virt Manager, mount dei dischi e Btrfs Assistant.

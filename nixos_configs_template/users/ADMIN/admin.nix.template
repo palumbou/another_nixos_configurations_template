@@ -1,0 +1,41 @@
+{ config, ... }:
+{
+  users.groups."${ADMIN_USER}" = {
+    gid = ${ADMIN_GID};
+    members = [ "${ADMIN_USER}" ];
+  };
+
+  users.users."${ADMIN_USER}" = {
+    isNormalUser = true;
+    description = "System administrator";
+    uid = ${ADMIN_UID};
+    group = "${ADMIN_USER}";
+    extraGroups = [ "wheel" ];
+    home = "/home/${ADMIN_USER}";
+    createHome = true;
+    hashedPasswordFile = config.sops.secrets.admin_hashedPassword.path;
+  };
+
+  # Decrypt the shared password hash before account creation.
+  sops.secrets.admin_hashedPassword = {
+    sopsFile = ../../secrets/common.yaml;
+    neededForUsers = true;
+  };
+
+  # Provide the same basic shell conveniences on clients and workers.
+  environment.shellAliases = {
+    "cd.." = "cd ..";
+    "cd..." = "cd ../..";
+    "cd...." = "cd ../../..";
+    "cd....." = "cd ../../../..";
+    l = "ls -l -a -h --color=auto";
+    ll = "ls -l -a -h --color=auto";
+    la = "ls -a";
+    grep = "grep --color=auto";
+  };
+
+  environment.variables = {
+    HISTSIZE = "3000";
+    HISTFILESIZE = "3000";
+  };
+}

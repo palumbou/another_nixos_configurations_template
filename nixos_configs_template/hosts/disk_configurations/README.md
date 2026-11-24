@@ -27,7 +27,8 @@ hosts/
     │   ├── btrfs-only-root-subvolume.nix
     │   ├── btrfs-subvolumes.nix
     │   ├── btrfs-subvolumes-luks.nix
-    │   └── btrfs-subvolumes-luks-no_swap.nix
+    │   ├── btrfs-subvolumes-luks-no_swap.nix
+    │   └── btrfs-worker-luks.nix
     └── ext4/
         ├── single-disk-ext4.nix
         ├── single-disk-ext4-bios.nix
@@ -38,11 +39,29 @@ hosts/
 - **`btrfs`**: Templates using a Btrfs filesystem (with optional subvolumes and LUKS).  
 - **`ext4`**: Templates using the ext4 filesystem, with BIOS or EFI boot, optionally encrypted.
 
-> **Note**: the files in this folder are **install-time** Disko recipes. You copy one onto the installer, edit its device name, and then keep your edited copy inside `hosts/<name>/`. Nothing here is imported live by a host.
+> **Note**: the files in this folder are **install-time** Disko recipes. You copy one onto the installer, edit its device name, and then keep your edited copy inside `hosts/client/<name>/` or `hosts/server/<name>/`. Import that prepared recipe together with the Disko module.
 >
-> The **runtime** counterparts live in `common/config/` and are imported like any other module: [`btrfs_scrub.nix`](../../common/config/btrfs_scrub.nix) for periodic integrity checks and [`btrfs_snapshots.nix`](../../common/config/btrfs_snapshots.nix) for snapper timeline snapshots. Import them only if you picked a Btrfs template, since they fail the build on other filesystems. See [common/config/README.md](../../common/config/README.md).
+> The **runtime** counterparts live in `common/config/` and are imported like any other module: [`btrfs_scrub.nix`](../../common/config/btrfs_scrub.nix) for periodic integrity checks and [`btrfs_snapshots.nix`](../../common/config/btrfs_snapshots.nix) for snapper timeline snapshots. Select scrub for Btrfs hosts only; the snapshot core configures root/home independently when their mounts are Btrfs. The Btrfs Assistant GUI is a separate optional package module. See [common/config/README.md](../../common/config/README.md).
 
 ---
+
+
+## Public layout selection
+
+An empty `DISK_LAYOUT` means `single-disk-ext4` for a client or `btrfs-worker-luks` for a server. During manual preparation, resolve this value and import the corresponding recipe together with `common/config/disko.nix`. Both defaults use UEFI; GRUB requires an explicitly selected BIOS recipe. Explicit `none` requires a real hardware declaration containing the destination filesystems; the generic hardware template is insufficient. Selecting a recipe does not execute partitioning or formatting.
+
+## Server Btrfs/LUKS layout
+
+[`btrfs/btrfs-worker-luks.nix`](btrfs/btrfs-worker-luks.nix) is a separate recipe for servers:
+
+- 1 GiB EFI system partition mounted at `/boot`.
+- `SWAP_SIZE` swap partition (default `16G`) with a fresh random encryption key each boot.
+- Remaining space protected by LUKS2 with an interactive passphrase; no host-specific key file is embedded.
+- Btrfs subvolumes mounted at `/`, `/home`, `/nix` and `WORK_ROOT`, using `compress=zstd` and `noatime`.
+
+Random-key swap cannot resume a previous boot's hibernation image; the server host disables hibernation and resume. The work directory's permissions and optional snapshot policy are declared by the worker account and server host modules, not by the disk recipe.
+
+Replace `${DISK_DEVICE}`, `${SWAP_SIZE}` and `${WORK_ROOT}` with the selected public values. Recipes with `device = "/dev/${DISK_DEVICE}"` require the part after `/dev/`, for example `disk/by-id/REPLACE_WITH_TARGET_DISK`. Verify the actual disk with `lsblk`. A prepared recipe may be imported from `../../disk_configurations/btrfs/btrfs-worker-luks.nix` by a host under `hosts/server/<name>/`, or copied locally and imported as `./disk-config.nix`. Import the pinned Disko module too.
 
 ## Usage
 
@@ -67,7 +86,7 @@ For complete usage instructions, read the [Disko Quickstart Guide](https://githu
    - **Warning**: this destroys existing data on the disk.  
    ```bash
    sudo nix --experimental-features "nix-command flakes" \
-        run github:nix-community/disko/latest -- \
+        run github:nix-community/disko/v1.13.0 -- \
         --mode destroy,format,mount /tmp/disk-config.nix
    ```
    Replace `/tmp/disk-config.nix` with the path to your edited template.  
@@ -89,7 +108,7 @@ For complete usage instructions, read the [Disko Quickstart Guide](https://githu
         ```nix
         imports = [
           ./hardware-configuration.nix
-          "${builtins.fetchTarball "https://github.com/nix-community/disko/archive/master.tar.gz"}/module.nix"
+          "${builtins.fetchTarball "https://github.com/nix-community/disko/archive/refs/tags/v1.13.0.tar.gz"}/module.nix"
           ./disk-config.nix
         ];
         ```
@@ -153,27 +172,38 @@ For more details, refer to the [NixOS installation manual](https://nixos.org/man
 
 ## LUKS Encryption
 
-Templates containing “luks” in their name indicate **disk encryption** with LUKS. For example:
+All five LUKS layouts in this folder use **`askPassword = true;` by default**. Disko asks for the passphrase interactively for its volume creation/opening operations during installation. At later boots, enter the same passphrase unless you have explicitly configured USB-key or TPM2 unlocking.
+
 ```nix
 type = "luks";
 name = "crypted";
-passwordFile = "/tmp/secret.key";
+askPassword = true;
 settings = {
   allowDiscards = true;
 };
 ```
-You can generate `/tmp/secret.key` via:
-```bash
-echo -n "yourpassword" > /tmp/secret.key
+
+The default requires no `/tmp/secret.key` or other primary passphrase file.
+
+`passwordFile` is an optional alternative for supplying the passphrase from a file during Disko’s creation/opening operations. To use it, replace the interactive setting with:
+
+```nix
+askPassword = false;
+passwordFile = "/tmp/secret.key";
 ```
+
+Prepare that file only for this alternative. Remove or disable `askPassword` when choosing `passwordFile`. If `askPassword = true;` remains configured, it takes precedence and the file is ignored. Disko does not delete your passphrase file automatically. `passwordFile` alone does not configure automatic unlocking at boot.
+
 Use `cryptsetup` to open the partition manually if needed:
+
 ```bash
-cryptsetup luksOpen /dev/nvme0n1p2 data
+cryptsetup luksOpen /dev/disk/by-id/REPLACE_WITH_LUKS_PARTITION data
 mount /dev/mapper/data /mnt
 ```
+
 This makes the encrypted volume available at `/dev/mapper/data`.
 
-For a complete guide to key management - multiple keyslots, unlocking with one or more USB key sticks (enrolled at format time or added later), automatic unlock via TPM2 (with optional PIN), and the boot-time options (`keyFile`, `keyFileTimeout`, …) - see [LUKS_KEYS.md](LUKS_KEYS.md).
+For the optional file-based setup, multiple keyslots, USB keys and TPM2 unlocking, see [LUKS_KEYS.md](LUKS_KEYS.md). That guide distinguishes passphrase input for Disko operations from boot-time options such as `keyFile` and `keyFileTimeout`.
 
 ---
 

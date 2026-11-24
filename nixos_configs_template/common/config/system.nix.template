@@ -1,12 +1,5 @@
 { config, ... }:
 {
-  imports =
-    [
-      ./os_compatibility.nix
-      ./os_optimization.nix
-      ./sudo.nix
-    ];
-
   # Set your time zone.
   time.timeZone = "${TIMEZONE}";
 
@@ -36,6 +29,6 @@
     earlySetup = true;
   };
 
-  # Note: system.stateVersion is set PER HOST in hosts/<name>/configuration.nix,
+  # Note: system.stateVersion is set PER HOST in hosts/<category>/<name>/configuration.nix,
   # because it must record the NixOS release each host was first installed with.
 }

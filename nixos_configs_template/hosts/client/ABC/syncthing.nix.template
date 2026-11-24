@@ -1,0 +1,77 @@
+{ config, lib, ... }:
+let
+  remoteDeviceId = "${SYNCTHING_DEVICE_ID}";
+  remoteReady = remoteDeviceId != "";
+in
+{
+  # The client user module defines the service's user and group.
+  services.syncthing = {
+    enable = ${ENABLE_SYNCTHING};
+    systemService = true;
+    dataDir = "/home/${ADMIN_USER}/Sync";
+    configDir = "/home/${ADMIN_USER}/.config/syncthing";
+    databaseDir = config.services.syncthing.configDir;
+    guiAddress = "https://127.0.0.1:8843";
+    openDefaultPorts = false;
+    overrideDevices = true;
+    overrideFolders = true;
+
+    settings = {
+      gui = {
+        enabled = true;
+        tls = true;
+        theme = "black";
+      };
+      options = {
+        listenAddresses = [ "tcp4://:22222" ];
+        globalAnnounceEnabled = false;
+        localAnnounceEnabled = false;
+        natEnabled = false;
+        relaysEnabled = false;
+        startBrowser = false;
+        urAccepted = -1;
+      };
+      devices = lib.optionalAttrs remoteReady {
+        storage = {
+          id = remoteDeviceId;
+          name = "Storage peer";
+          addresses = [ "${SYNCTHING_ADDRESS}" ];
+          compression = "metadata";
+          autoAcceptFolders = false;
+        };
+      };
+      folders = lib.optionalAttrs remoteReady {
+        work_data = {
+          id = "${SYNCTHING_FOLDER_ID}";
+          label = "Work data";
+          path = "${SYNCTHING_FOLDER_PATH}";
+          devices = [ "storage" ];
+          type = "sendreceive";
+          ignorePerms = false;
+          ignorePatterns = [
+            "node_modules"
+            ".venv"
+            "__pycache__"
+            ".cache"
+            ".direnv"
+            ".pytest_cache"
+            ".mypy_cache"
+            ".ruff_cache"
+          ];
+        };
+      };
+    };
+  };
+
+  systemd.services.syncthing = lib.mkIf
+    (config.services.syncthing.enable && config.services.syncthing.systemService) {
+    environment.STNODEFAULTFOLDER = "true";
+    serviceConfig.UMask = "0007";
+  };
+
+  # Create the selected client folder only when a remote peer is configured.
+  systemd.tmpfiles.rules = lib.optionals
+    (config.services.syncthing.enable && remoteReady) [
+      "d ${SYNCTHING_FOLDER_PATH} 0700 ${ADMIN_USER} ${ADMIN_USER} -"
+    ];
+}

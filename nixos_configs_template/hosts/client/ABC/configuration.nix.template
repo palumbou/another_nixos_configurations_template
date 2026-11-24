@@ -1,0 +1,68 @@
+{ config, lib, ... }:
+{
+  imports = [
+    ./hardware-configuration.nix
+    ./nm_configurations.nix
+    ./syncthing.nix
+    ../../../roles/client.nix
+    ../../../users/ADMIN/client.nix
+    ../../../common/config/secrets.nix
+    ../../../common/config/boot_luks.nix
+    ../../../common/network/default_network.nix
+    ../../../common/packages/default_packages_services.nix
+${HOST_IMPORTS}
+  ];
+
+  networking.hostName = "${HOSTNAME}";
+  system.stateVersion = "${NIXOS_VERSION}";
+  sops.defaultSopsFile = ../../../secrets/${HOSTNAME}.yaml;
+
+  sops.secrets.admin_ssh_publicKey.sopsFile = ../../../secrets/common.yaml;
+  sops.templates."ssh-authorized-keys/${ADMIN_USER}" = {
+    owner = "${ADMIN_USER}";
+    mode = "0400";
+    content = ''
+      ${config.sops.placeholder.admin_ssh_publicKey}
+    '';
+  };
+
+  services.openssh.authorizedKeysFiles = [
+    "/run/secrets/rendered/ssh-authorized-keys/%u"
+  ];
+
+  # Host limits override role defaults while keeping the standard client values.
+  nix.settings = {
+    max-jobs = lib.mkForce ${MAX_JOBS};
+    cores = lib.mkForce ${BUILD_CORES};
+  };
+
+  zramSwap = {
+    enable = lib.mkForce ${ENABLE_ZRAM};
+    memoryPercent = lib.mkForce ${ZRAM_PERCENT};
+    algorithm = lib.mkForce "${ZRAM_ALGORITHM}";
+    priority = lib.mkForce 100;
+  };
+
+${HOST_EXTRA_CONFIG}
+
+  services.openssh.settings.AllowUsers = [ "${ADMIN_USER}" ];
+  services.xrdp.port = ${RDP_PORT};
+
+  # Charge limits are selected per host according to its TLP hardware plugin.
+  services.tlp.settings = lib.mkIf
+    (${ENABLE_BATTERY} && "${CHARGE_LIMIT_MODE}" == "thresholds")
+    {
+      START_CHARGE_THRESH_BAT0 = lib.mkForce ${CHARGE_START_THRESHOLD};
+      STOP_CHARGE_THRESH_BAT0 = lib.mkForce ${CHARGE_STOP_THRESHOLD};
+      START_CHARGE_THRESH_BAT1 = lib.mkForce ${CHARGE_START_THRESHOLD};
+      STOP_CHARGE_THRESH_BAT1 = lib.mkForce ${CHARGE_STOP_THRESHOLD};
+    };
+
+  # Preserve non-root access to home snapshots on Btrfs clients.
+  services.snapper.configs = lib.mkIf
+    (${ENABLE_SNAPSHOTS} && (config.fileSystems."/home".fsType or "") == "btrfs")
+    {
+      home.ALLOW_USERS = [ "${ADMIN_USER}" ];
+      home.SYNC_ACL = true;
+    };
+}

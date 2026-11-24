@@ -1,0 +1,117 @@
+{ config, lib, ... }:
+{
+  imports = [
+    ./hardware-configuration.nix
+    ./nm_configurations.nix
+    ./syncthing.nix
+    ../../../roles/server.nix
+    ../../../users/ADMIN/admin.nix
+    ../../../users/WORKER/worker.nix
+    ../../../common/config/secrets.nix
+${HOST_IMPORTS}
+  ];
+
+  networking.hostName = "${HOSTNAME}";
+  system.stateVersion = "${NIXOS_VERSION}";
+  sops.defaultSopsFile = ../../../secrets/${HOSTNAME}.yaml;
+
+  sops.secrets.admin_ssh_publicKey.sopsFile = ../../../secrets/common.yaml;
+  sops.templates."ssh-authorized-keys/${ADMIN_USER}" = {
+    owner = "${ADMIN_USER}";
+    mode = "0400";
+    content = ''
+      ${config.sops.placeholder.admin_ssh_publicKey}
+    '';
+  };
+
+  services.openssh.authorizedKeysFiles = [
+    "/run/secrets/rendered/ssh-authorized-keys/%u"
+  ];
+
+  # Host limits override role defaults while keeping the standard client values.
+  nix.settings = {
+    max-jobs = lib.mkForce ${MAX_JOBS};
+    cores = lib.mkForce ${BUILD_CORES};
+  };
+
+  zramSwap = {
+    enable = lib.mkForce ${ENABLE_ZRAM};
+    memoryPercent = lib.mkForce ${ZRAM_PERCENT};
+    algorithm = lib.mkForce "${ZRAM_ALGORITHM}";
+    priority = lib.mkForce 100;
+  };
+
+${HOST_EXTRA_CONFIG}
+
+  sops.secrets.worker_ssh_publicKey.sopsFile = ../../../secrets/${HOSTNAME}.yaml;
+  sops.templates."ssh-authorized-keys/${WORKER_USER}" = {
+    owner = "${WORKER_USER}";
+    mode = "0400";
+    content = ''
+      ${config.sops.placeholder.admin_ssh_publicKey}
+      ${config.sops.placeholder.worker_ssh_publicKey}
+    '';
+  };
+  services.openssh.settings.AllowUsers = [ "${ADMIN_USER}" "${WORKER_USER}" ];
+  services.xrdp.port = ${RDP_PORT};
+
+  # Keep work running with the lid closed and without a graphical session.
+  services.logind.settings.Login = {
+    HandleLidSwitch = "ignore";
+    HandleLidSwitchExternalPower = "ignore";
+    HandleLidSwitchDocked = "ignore";
+    IdleAction = "ignore";
+  };
+  systemd.sleep.settings.Sleep = {
+    AllowSuspend = false;
+    AllowHibernation = false;
+    AllowHybridSleep = false;
+    AllowSuspendThenHibernate = false;
+  };
+  boot.resumeDevice = lib.mkForce "";
+
+  services.power-profiles-daemon.enable = false;
+  services.upower = {
+    enable = lib.mkForce ${ENABLE_BATTERY};
+    usePercentageForPolicy = true;
+    percentageLow = 20;
+    percentageCritical = 15;
+    percentageAction = 10;
+    criticalPowerAction = "PowerOff";
+  };
+  systemd.services = lib.mkIf ${ENABLE_BATTERY} {
+    upower.wantedBy = [ "multi-user.target" ];
+  };
+
+  # Charge limits must match the target device's TLP plugin.
+  services.tlp = lib.mkIf
+    (${ENABLE_BATTERY} && "${CHARGE_LIMIT_MODE}" == "thresholds")
+    {
+      enable = true;
+      settings = {
+        TLP_DISABLE_DEFAULTS = 1;
+        START_CHARGE_THRESH_BAT0 = ${CHARGE_START_THRESHOLD};
+        STOP_CHARGE_THRESH_BAT0 = ${CHARGE_STOP_THRESHOLD};
+      };
+    };
+
+  # A separate work-data subvolume gets its own administrative snapshot policy.
+  services.snapper.configs = lib.mkIf
+    (${ENABLE_SNAPSHOTS} && (config.fileSystems."${WORK_ROOT}".fsType or "") == "btrfs")
+    {
+      work = {
+        SUBVOLUME = "${WORK_ROOT}";
+        FSTYPE = "btrfs";
+        ALLOW_USERS = [];
+        ALLOW_GROUPS = [];
+        SYNC_ACL = false;
+        TIMELINE_CREATE = true;
+        TIMELINE_CLEANUP = true;
+        TIMELINE_LIMIT_HOURLY = 6;
+        TIMELINE_LIMIT_DAILY = 7;
+        TIMELINE_LIMIT_WEEKLY = 4;
+        TIMELINE_LIMIT_MONTHLY = 2;
+        TIMELINE_LIMIT_YEARLY = 0;
+      };
+    };
+}

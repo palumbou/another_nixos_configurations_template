@@ -4,17 +4,22 @@
 
 This guide explains the LUKS-related options used by the Disko templates in this folder, and how to combine **multiple passphrases**, one or more **USB key sticks** and/or the **TPM2 chip** (with an optional PIN) to unlock the encrypted disk - enrolling them either **at installation (format) time** or **later, on an already-installed system**.
 
+All five supplied LUKS layouts use `askPassword = true;` by default: the passphrase is requested for Disko’s creation/opening operations during installation and at each boot unless USB or TPM2 unlocking is explicitly configured. The default requires no `/tmp/secret.key`. The `passwordFile` variant below is optional and requires removing or disabling `askPassword`.
+
 ---
+
+
+The server layout `btrfs-worker-luks.nix` uses a separate random key for swap, which is not unlocked through the LUKS partition keyslots. In commands, replace `/dev/disk/by-id/REPLACE_WITH_LUKS_PARTITION` with the actual LUKS partition verified with `lsblk`.
 
 ## How LUKS keys work
 
 A LUKS2 volume has up to **32 independent keyslots**. Each slot holds one key (a passphrase or the content of a key file); **any single one of them unlocks the disk**, and each can be added or revoked without touching the others. This is what makes the scenario "passphrase + two USB sticks with different keys" possible: three slots, three independent ways in. If you lose one stick, you revoke only its slot.
 
-With the templates in this folder the slot layout is deterministic:
+The initial passphrase and optional extra keys occupy independent keyslots:
 
 | Slot | Key                          | Where it comes from                                      |
 |------|------------------------------|----------------------------------------------------------|
-| 0    | your passphrase              | `passwordFile` at format time                             |
+| 0    | your passphrase              | `askPassword` by default, or optional `passwordFile` at format time                             |
 | 1…n  | extra keys (e.g. USB sticks) | `additionalKeyFiles` at format time, or `luksAddKey` later |
 | 1…n  | TPM2 (key held by the chip, optional PIN) | `systemd-cryptenroll` on the running system |
 
@@ -22,15 +27,32 @@ With the templates in this folder the slot layout is deterministic:
 
 ## Options reference
 
-### `passwordFile`
+### `askPassword` — interactive default
 
-Used **only while formatting**: when Disko runs `cryptsetup luksFormat`, the content of this file becomes the passphrase stored in keyslot 0. After installation the file is gone and irrelevant - at every boot you type that passphrase at the prompt. Create it right before running Disko:
+All five supplied LUKS layouts set `askPassword = true;`. Disko prompts for the passphrase for volume creation/opening during installation, so the default needs no primary passphrase file:
+
+```nix
+askPassword = true;
+```
+
+Without optional USB-key or TPM2 boot configuration, the initrd asks for that passphrase at each boot. `askPassword` selects the input method for Disko operations; the installed initrd receives the device and `settings` separately for boot-time unlocking.
+
+### `passwordFile` — optional alternative
+
+Use this only when deliberately supplying the initial passphrase from a file. Replace `askPassword = true;` with `askPassword = false;`, or remove the enabled interactive setting, before adding `passwordFile`. These are alternatives: if `askPassword = true;` remains configured, it takes precedence and `passwordFile` is ignored:
+
+```nix
+askPassword = false;
+passwordFile = "/tmp/secret.key";
+```
+
+Disko uses the file for its **volume creation/opening operations during installation**. During creation, the file supplies the initial passphrase; during opening, it supplies the passphrase to unlock the volume. The installed initrd does not use this file automatically: its device and `settings` determine boot-time unlocking. The default interactive workflow requires no primary passphrase file; prepare one immediately before Disko only for this file-based alternative:
 
 ```bash
 echo -n "yourpassphrase" > /tmp/secret.key
 ```
 
-`echo -n` matters: cryptsetup compares **exact bytes**, and a trailing newline would become part of the passphrase. On the NixOS installer `/tmp` lives in RAM, so the file disappears at reboot.
+The example uses `echo -n` to write a text passphrase without a trailing newline. The same string can be typed at the boot prompt. Disko does not automatically delete the file; remove it yourself when its operations no longer need it. A path under `/tmp` in these examples belongs to the live installer environment.
 
 ### `settings.*` - boot-time behavior
 
@@ -51,13 +73,13 @@ A list of files that Disko enrolls as **extra keyslots right after `luksFormat`*
 
 ## Scenarios
 
-The building blocks are always the same - `passwordFile` (slot 0), `additionalKeyFiles` (extra slots at format time), `cryptsetup luksAddKey` (extra slots later), `settings.keyFile` (automatic unlock at boot). What changes between scenarios is how you combine them.
+The building blocks are `askPassword` (interactive default) or `passwordFile` (optional file-based alternative) for the initial passphrase, `additionalKeyFiles` (extra slots at format time), `cryptsetup luksAddKey` (extra slots later), `settings.keyFile` (automatic unlock at boot). What changes between scenarios is how you combine them.
 
 ### 1. Multiple passphrases, no USB key
 
 Useful for an emergency/backup passphrase (kept in a password manager or printed and stored somewhere safe), or for two people using the same machine with different passphrases. No extra NixOS options are needed: the boot prompt tries whatever you type against **every** keyslot, so any enrolled passphrase unlocks the disk.
 
-**At installation time** - write the extra passphrase in a file and enroll it with `additionalKeyFiles`:
+**At installation time, optional file-based variant** — this example replaces the interactive default with `askPassword = false;` and `passwordFile`. Write the initial and extra passphrases in temporary files and enroll the latter with `additionalKeyFiles`:
 
 ```bash
 echo -n "yourpassphrase"     > /tmp/secret.key   # slot 0
@@ -65,6 +87,7 @@ echo -n "recoverypassphrase" > /tmp/second.key   # slot 1
 ```
 
 ```nix
+askPassword = false;
 passwordFile = "/tmp/secret.key";
 additionalKeyFiles = [ "/tmp/second.key" ];
 ```
@@ -74,7 +97,7 @@ Since the file is created with `echo -n` (no trailing newline), the very same st
 **On an already-installed system** - fully interactive, nothing to configure or rebuild:
 
 ```bash
-sudo cryptsetup luksAddKey /dev/nvme0n1p2
+sudo cryptsetup luksAddKey /dev/disk/by-id/REPLACE_WITH_LUKS_PARTITION
 ```
 
 It asks for an existing passphrase to authorize, then for the new passphrase twice.
@@ -113,6 +136,8 @@ The simplest robust setup stores the key as the **first 4096 raw bytes of the st
 
 #### A. Enrolling the USB keys at installation time
 
+This is the optional file-based variant. To keep the interactive default without a primary passphrase file, install normally and enroll the sticks afterwards as in section B.
+
 1. Identify the sticks and write a random key on each (can be done beforehand, on any machine):
 
    ```bash
@@ -121,7 +146,7 @@ The simplest robust setup stores the key as the **first 4096 raw bytes of the st
    sudo dd if=/dev/urandom of=/dev/disk/by-id/usb-STICK2-0:0 bs=4096 count=1
    ```
 
-2. From the installer, right before running Disko, create the passphrase file and dump each stick's key bytes to a temporary file:
+2. For this optional file-based variant, create the primary passphrase file from the installer right before Disko, and dump each stick's key bytes to a temporary file:
 
    ```bash
    echo -n "yourpassphrase" > /tmp/secret.key
@@ -129,9 +154,10 @@ The simplest robust setup stores the key as the **first 4096 raw bytes of the st
    dd if=/dev/disk/by-id/usb-STICK2-0:0 of=/tmp/usbkey2.key bs=4096 count=1
    ```
 
-3. In your host's copy of the template, uncomment/set:
+3. In your host's copy, replace `askPassword = true;` with the file-based configuration below; do not leave both input methods active:
 
    ```nix
+   askPassword = false;
    passwordFile = "/tmp/secret.key";
    additionalKeyFiles = [ "/tmp/usbkey1.key" "/tmp/usbkey2.key" ];
    settings = {
@@ -150,10 +176,10 @@ The simplest robust setup stores the key as the **first 4096 raw bytes of the st
 
    ```bash
    sudo dd if=/dev/urandom of=/dev/disk/by-id/usb-STICK1-0:0 bs=4096 count=1
-   sudo cryptsetup luksAddKey /dev/nvme0n1p2 /dev/disk/by-id/usb-STICK1-0:0 --new-keyfile-size 4096
+   sudo cryptsetup luksAddKey /dev/disk/by-id/REPLACE_WITH_LUKS_PARTITION /dev/disk/by-id/usb-STICK1-0:0 --new-keyfile-size 4096
    ```
 
-   (`/dev/nvme0n1p2` is the LUKS partition - find yours with `lsblk -f | grep crypto_LUKS`.)
+   (`/dev/disk/by-id/REPLACE_WITH_LUKS_PARTITION` is the LUKS partition - find yours with `lsblk -f | grep crypto_LUKS`.)
 
 2. Add the same `settings` lines shown above to the host's Disko file. On an installed host this is **safe**: `settings` only changes the generated boot configuration, Disko never re-formats anything on rebuild.
 
@@ -178,25 +204,25 @@ The TPM2 chip on the motherboard can hold a key and release it **only if the mea
 
 Unlike passphrases and USB keys, the TPM **cannot be enrolled at format time**. This is not a Disko limitation but the nature of the TPM: enrollment seals the key against the PCR values of the *current* boot, and during installation those reflect the USB installer - after the first reboot they would not match and you would land on the passphrase anyway. The complete flow is:
 
-1. **Format and install normally** with the passphrase (the templates as they are).
+1. **Format and install normally** with the interactive `askPassword = true;` default; no primary passphrase file is needed.
 2. **First boot**, typing the passphrase.
 3. **Enroll from the running system** - it asks an existing passphrase to authorize and, with `--tpm2-with-pin=yes`, you also set the PIN right here, interactively. This occupies an extra keyslot next to the passphrase:
 
    ```bash
    # bind the unlock to the Secure Boot state (PCR 7)
-   sudo systemd-cryptenroll /dev/nvme0n1p2 --tpm2-device=auto --tpm2-pcrs=7
+   sudo systemd-cryptenroll /dev/disk/by-id/REPLACE_WITH_LUKS_PARTITION --tpm2-device=auto --tpm2-pcrs=7
 
    # stronger: additionally require a PIN typed at boot
-   sudo systemd-cryptenroll /dev/nvme0n1p2 --tpm2-device=auto --tpm2-pcrs=7 --tpm2-with-pin=yes
+   sudo systemd-cryptenroll /dev/disk/by-id/REPLACE_WITH_LUKS_PARTITION --tpm2-device=auto --tpm2-pcrs=7 --tpm2-with-pin=yes
    ```
 
-4. **Uncomment the ready-made line in the host's Disko file** and rebuild (`nixos-rebuild switch`):
+4. **Add or uncomment the following line inside the LUKS `settings` in the host's Disko file**, then rebuild (`nixos-rebuild switch`):
 
    ```nix
    crypttabExtraOpts = [ "tpm2-device=auto" ];
    ```
 
-   Nothing else to configure: `common/config/boot_luks.nix` enables the TPM2 userspace stack (`security.tpm2.enable`) automatically as soon as it sees a LUKS device with a `tpm2-*` option, so the Disko file stays the single source of truth. It is set with `lib.mkDefault`, so a host can still override it explicitly if ever needed.
+   When imported by the host, `common/config/boot_luks.nix` enables the TPM2 userspace stack (`security.tpm2.enable`) automatically as soon as it sees a LUKS device with a `tpm2-*` option, so the Disko file stays the single source of truth. It is set with `lib.mkDefault`, so a host can still override it explicitly if ever needed.
 
 5. **From the next reboot** the TPM unlocks the disk (asking the PIN, if enrolled with one) instead of the long passphrase - which stays in its keyslot as recovery.
 
@@ -218,16 +244,16 @@ Notes:
 
 ```bash
 # test a key without touching anything
-sudo cryptsetup open --test-passphrase /dev/nvme0n1p2 --key-file /dev/disk/by-id/usb-STICK1-0:0 --keyfile-size 4096 && echo OK
+sudo cryptsetup open --test-passphrase /dev/disk/by-id/REPLACE_WITH_LUKS_PARTITION --key-file /dev/disk/by-id/usb-STICK1-0:0 --keyfile-size 4096 && echo OK
 
 # see which keyslots are occupied
-sudo cryptsetup luksDump /dev/nvme0n1p2
+sudo cryptsetup luksDump /dev/disk/by-id/REPLACE_WITH_LUKS_PARTITION
 
 # lost a stick? revoke only its slot (test which slot is which with --test-passphrase --key-slot N)
-sudo cryptsetup luksKillSlot /dev/nvme0n1p2 2
+sudo cryptsetup luksKillSlot /dev/disk/by-id/REPLACE_WITH_LUKS_PARTITION 2
 
 # header backup - store it OUTSIDE this disk
-sudo cryptsetup luksHeaderBackup /dev/nvme0n1p2 --header-backup-file luks-header.img
+sudo cryptsetup luksHeaderBackup /dev/disk/by-id/REPLACE_WITH_LUKS_PARTITION --header-backup-file luks-header.img
 ```
 
 ---
@@ -236,4 +262,4 @@ sudo cryptsetup luksHeaderBackup /dev/nvme0n1p2 --header-backup-file luks-header
 
 - **Never** store a boot key file on an unencrypted partition of the same disk (e.g. `/boot`): that is the key taped on top of the safe. Removable media only.
 - cryptsetup key files are compared **byte-for-byte**: create text passphrases with `echo -n`, and keep the enrolled size and the boot-time `keyFileSize` consistent (4096 in the examples).
-- The `/tmp/*.key` files used during installation live in the installer's RAM and vanish at reboot.
+- The optional `/tmp/*.key` files in file-based installation examples belong to the live installer environment; Disko does not automatically delete files you supply. Remove them when no longer needed. The default `askPassword` workflow needs no primary passphrase file.

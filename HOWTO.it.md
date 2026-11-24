@@ -1,136 +1,109 @@
-# Guida
+# Come usare i template
 
 > **Lingue disponibili**: [English](HOWTO.md) | [Italiano (corrente)](HOWTO.it.md)
 
-## Guida all'utilizzo dei file di configurazione
+Usa i template per ricostruire un sistema NixOS già installato oppure per una nuova installazione con Disko. In entrambi i casi prepara prima l'host nello stesso modo.
 
-Puoi usare questi file di configurazione in due modi:
+## Preparazione manuale della configurazione
 
-- **Build dopo l'installazione**
-- **Installazione diretta** di NixOS con i tuoi file di configurazione personalizzati
+1. Leggi [`env.conf`](env.conf) e copia `nixos_configs_template/` in una directory che controlli, per esempio `/etc/nixos/nixos_configs/`. Mantieni la struttura interna.
+2. Scegli `hosts/client/ABC/` per un client oppure `hosts/server/ABC/` per un server. Copia l'esempio nella stessa categoria e dai alla directory il nome dell'host.
+3. Copia i file `.nix.template` selezionati nei corrispondenti file `.nix`. Prepara anche i template condivisi, tra cui `common/config/system.nix.template`, i moduli account e la base SSH del ruolo.
+4. Sostituisci i segnaposto pubblici documentati con i valori dell'host. `env.conf` è un riferimento per tali valori; modificarlo da solo non aggiorna alcun file Nix.
+5. Ottieni `hardware-configuration.nix` della macchina reale, scegli storage e avvio e prepara i segreti cifrati seguendo [SECRETS.it.md](nixos_configs_template/common/config/SECRETS.it.md).
 
-Esploriamo entrambi i metodi.
+La [guida host](nixos_configs_template/hosts/README.it.md), la [guida ai ruoli](nixos_configs_template/roles/README.it.md) e la [guida account](nixos_configs_template/users/README.it.md) spiegano la composizione. Un host in `hosts/client/<nome>/` o `hosts/server/<nome>/` usa `../../../common/`, `../../../roles/` e `../../../users/`; i moduli condivisi dei dischi e di Secure Boot usano `../../disk_configurations/` e `../../secure_boot/`.
 
----
+### Parametri pubblici e sintassi Nix
 
-## Build dopo l'installazione
+`HOST_ROLE` è `client` o `server`. `DESKTOP` è `none`, `kde`, `gnome` o `hyprland`. Scegli applicazioni e demoni separatamente; `FEATURES` elenca nomi di moduli opzionali separati da virgole. La [guida ai pacchetti](nixos_configs_template/common/packages/README.it.md) e la [guida ai servizi](nixos_configs_template/common/services/README.it.md) descrivono i 14 gruppi applicativi/demoni. Le altre quattro selezioni sono `audio`, `audio_airplay`, `audio_chromecast` ([configurazione audio](nixos_configs_template/common/config/README.it.md)) e `bluetooth`, che corrisponde a `common/network/default_bluetooth.nix` ([rete](nixos_configs_template/common/network/README.it.md)). `ENABLE_RDP` controlla Xfce remoto indipendentemente dal desktop locale.
 
-È possibile effettuare prima un'installazione grafica e, dopo il primo avvio, ricompilare il sistema con i propri file di configurazione.
+Sostituisci i segnaposto secondo la sintassi della posizione in cui compaiono:
 
-Ricapitolando, dovresti:
+| Tipo di segnaposto | Esempio risultante |
+| --- | --- |
+| Numeri, come `${SSH_PORT}` | `22`, senza virgolette. |
+| Booleani, come `${ENABLE_WIFI}` | `true` o `false`, senza virgolette. |
+| Testo già dentro una stringa Nix, come `"${HOSTNAME}"` | Contenuto della stringa con escape appropriati; conserva le virgolette esterne. |
+| Token stringa completo `${WIFI_SSID_NIX}` | `"Example WiFi"`, virgolette incluse; usa `""` se disabilitato. |
+| Token CIDR `${SSH_ALLOWED_IPV4_NIX}`, `${SSH_ALLOWED_IPV6_NIX}` e corrispondenti `RDP_` | Liste di reti tra virgolette divise per famiglia IP, per esempio `[ "192.0.2.0/24" ]`, oppure `[]`. |
+| `${HOST_IMPORTS}` | Solo voci di import opzionali, oppure un blocco vuoto. |
+| `${HOST_EXTRA_CONFIG}` | Solo dichiarazioni di avvio coerenti con disco e bootloader scelti. |
 
-1. **Installare NixOS** normalmente.
-2. **Modificare** i file di configurazione secondo le tue esigenze.
-3. **Compilare** quei file sul tuo host NixOS.
+Conserva l'interpolazione Nix nativa, per esempio `${pkgs.libvirt}` e `${config.sops.placeholder.admin_ssh_publicKey}`. Non applicare una sostituzione globale delle variabili di shell all'intero albero. Esegui correttamente l'escape dei contenuti delle stringhe Nix, comprese virgolette, barre inverse e sequenze letterali di interpolazione.
 
-### Installazione di NixOS
+`HOST_IMPORTS` può contenere desktop locale, RDP, gruppi di pacchetti, demoni, manutenzione dello storage e altri moduli opzionali. Gli import obbligatori di ruolo, utenti, rete, SOPS e Syncthing dell'host sono già nei template host. Per esempio, questo blocco opzionale sceglie KDE, strumenti fotografici e un demone Docker locale separato:
 
-Scarica la ISO desiderata (Gnome o KDE-Plasma) dalla [pagina ufficiale del progetto NixOS](https://nixos.org/download/) nella sezione "NixOS: the Linux distribution". Avvia questa ISO sulla tua macchina host.
-
-Durante l'installazione:
-
-- **Partizionamento del disco**  
-  Dopo l'installazione, verrà generato un file di configurazione in `/etc/nixos/configuration.nix`. Al suo interno troverai una riga che specifica il dispositivo GRUB, ad esempio:
-
-  ```nix
-  boot.loader.grub.device = "/dev/disk/by-id/wwn-0x500001234567890a";
-  ```
-  
-  **Salva** questo valore (`/dev/disk/by-id/...`) per utilizzarlo successivamente nella tua configurazione personalizzata.
-
-- **Utente**  
-  Scegli lo stesso nome utente che intendi utilizzare nei file di configurazione oppure copia la configurazione di un utente esistente generato dall'installer.
-
-> **Importante:** queste impostazioni verranno sovrascritte dalla tua configurazione personalizzata dopo la prima build, quindi presta molta attenzione al partizionamento del disco e alla denominazione degli utenti.
-
-### Modifica dei file di configurazione
-
-Puoi utilizzare questi file in due modi:
-
-> **Nota:** prima di modificare qualsiasi file di configurazione, **leggi il file `env.conf`**.
-> Contiene variabili di ambiente e riferimenti ai file dove vengono utilizzate.
-> Sentiti libero di modificare `env.conf` secondo le tue necessità, sia che tu copi i file manualmente o utilizzi lo script fornito.
-
-1. **Copia manuale**
-   - Copia la cartella `nixos_configs_template`.
-   - Rimuovi il suffisso `template` da ogni estensione del file (cambiando `.nix.template` in `.nix`).
-   - Sostituisci le variabili elencate in `env.conf` con i valori specifici della tua configurazione.
-
-2. **Utilizzo dello script**
-   - Esegui lo script `nixos_configs_generator.sh` (vedi il [repository nixos_configurations_generator](https://github.com/palumbou/nixos_configurations_generator)) per automatizzare i passaggi descritti sopra.
-
-### Compilazione
-
-Quando sei pronto per **compilare** la configurazione, esegui:
-
-```bash
-nixos-rebuild switch -I nixos-config=PERCORSO_CARTELLA_CONF_NIXOS/configuration.nix
+```nix
+    ../../../common/gui/kde.nix
+    ../../../common/packages/photo_editing.nix
+    ../../../common/services/docker.nix
 ```
 
-Sostituisci `PERCORSO_CARTELLA_CONF_NIXOS` con il percorso assoluto o relativo del tuo `configuration.nix`.
+Per AirPlay o Chromecast senza desktop locale, includi anche `../../../common/config/audio.nix` negli import opzionali insieme al modulo di streaming scelto. I moduli desktop locali importano già la base audio. La selezione `bluetooth` resta indipendente dal desktop.
 
-> **Suggerimento:** per ottenere maggiori dettagli durante il processo di build, aggiungi l'opzione `--show-trace`:
-> ```bash
-> nixos-rebuild switch -I nixos-config=./configuration.nix --show-trace
-> ```
+Per `BOOT_LOADER=systemd-boot`, un blocco `HOST_EXTRA_CONFIG` minimo è:
 
----
+```nix
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+```
+
+Per GRUB o Lanzaboote usa impostazioni coerenti con il layout di storage scelto e con la [guida Secure Boot](nixos_configs_template/hosts/secure_boot/README.it.md). Risolvi `DISK_LAYOUT` vuoto a `single-disk-ext4` per i client oppure `btrfs-worker-luks` per i server; entrambi i layout predefiniti usano UEFI. Per GRUB scegli esplicitamente una ricetta BIOS. Con un layout selezionato importa sia il modulo Disko fissato alla revisione prevista sia la ricetta preparata. `DISK_LAYOUT=none` esplicito richiede un vero `hardware-configuration.nix` con le dichiarazioni dei filesystem della destinazione; il template hardware generico non le fornisce. `DISK_DEVICE` è la parte successiva a `/dev/` nelle ricette contenenti `"/dev/${DISK_DEVICE}"`; quando opportuno usa un valore stabile `disk/by-id/...`.
+
+Risolvi i valori derivati vuoti prima di preparare i file: `MAX_JOBS`/`BUILD_CORES` usano `4`/`0` sui client e `2`/`4` sui server; i valori zram predefiniti sono `30`/`lz4` per i client e `50`/`zstd` per i server; un percorso Syncthing vuoto si risolve in `/home/<admin>/Sync/work-data` su un client o `<WORK_ROOT>/data` su un server. Mantieni UID/GID espliciti e distinti. Imposta `NIXOS_VERSION` alla versione della prima installazione, non a quella verso cui stai aggiornando. I campi CPU/piattaforma devono corrispondere alla dichiarazione hardware reale.
+
+### Servizi opzionali e segreti
+
+Imposta SSID WiFi e CIDR consentiti soltanto per l’host di destinazione. Se `RDP_ALLOWED_CIDRS` è vuoto, usa i CIDR SSH come valori effettivi RDP prima di dividere le famiglie IP. Le PSK WiFi appartengono a `wifi_env` cifrato con la variabile `WIFI_PSK`; i dati delle chiavi SSH pubbliche e le credenziali seguono la [guida SOPS](nixos_configs_template/common/config/SECRETS.it.md). Non mettere password, hash, PSK o chiavi private in `env.conf`.
+
+Un server non apre porte SSH o RDP finché non imposti i CIDR consentiti. Il client mantiene la policy SSH esistente salvo configurazione di una restrizione per subnet. RDP richiede inoltre un account non root con una password PAM utilizzabile; le sole chiavi SSH non forniscono una password RDP.
+
+Syncthing si configura nel file `syncthing.nix` di ogni host. Con ID del dispositivo remoto vuoto non viene dichiarato alcun dispositivo remoto o cartella. Per abilitare la sincronizzazione fornisci ID reale del peer, ID condiviso della cartella, percorso e un endpoint TCP fisso raggiungibile. Discovery, relay, NAT traversal e aperture firewall automatiche sono disabilitati. Vedi la [guida host](nixos_configs_template/hosts/README.it.md).
+
+## Ricostruzione di un sistema installato
+
+Installa NixOS da una [ISO ufficiale](https://nixos.org/download/), conserva hardware rilevato e dichiarazioni esistenti di filesystem/avvio e prepara la configurazione sopra. Su un host installato non rieseguire la formattazione Disko.
+
+Controlla la valutazione prima dell'attivazione, usando il percorso dell'host reale:
+
+```bash
+sudo nixos-rebuild dry-build -I nixos-config=/etc/nixos/nixos_configs/hosts/client/example/configuration.nix
+sudo nixos-rebuild switch -I nixos-config=/etc/nixos/nixos_configs/hosts/client/example/configuration.nix
+```
+
+Per un server usa `hosts/server/example/configuration.nix`. Aggiungi `--show-trace` per analizzare un errore di valutazione. Mantieni una sessione di accesso esistente finché non hai verificato l'accesso remoto.
 
 ## Installazione diretta
 
-Grazie al modulo Disko, è possibile effettuare direttamente l'installazione di NixOS partendo dalla formattazione del disco.
+Segui la [guida Disko](nixos_configs_template/hosts/disk_configurations/README.it.md) per la ricetta scelta. I comandi seguenti assumono un albero completo preparato in `/tmp/nixos_configs` e la ricetta scelta in `/tmp/disk-config.nix`.
 
-Fai riferimento al [README Disko](./nixos_configs_template/hosts/disk_configurations/README.md) [sezione Usage](./nixos_configs_template/hosts/disk_configurations/README.md#usage) per i dettagli iniziali. Qui ci concentriamo sull'uso dei file personalizzati generati dalla cartella "nixos_configs".
+**L'operazione destroy/format di Disko cancella il disco di destinazione selezionato. Controlla dispositivo e backup prima di eseguirla.**
 
-Seguendo le istruzioni nella sezione [Modifica dei file di configurazione](#modifica-dei-file-di-configurazione), personalizza e salva la tua copia su una penna USB, disco condiviso in rete, repository Git privato, o altro storage.
+1. Avvia l'installer NixOS ufficiale e copia i file preparati nel suo ambiente.
+2. Applica la ricetta preparata:
 
-Fai particolare attenzione ai percorsi dei file che copierai, specialmente i dotfiles utenti (nella cartella `users`). La variabile rilevante è `BASEPATHUSER`, definita come `/home` nel file `env.conf`. Le credenziali WiFi e l'hash della password utente sono gestiti a parte, cifrati con sops in `secrets/common.yaml` - vedi [SECRETS.it.md](nixos_configs_template/common/config/SECRETS.it.md).
+```bash
+sudo nix --experimental-features "nix-command flakes" run github:nix-community/disko/v1.13.0 -- --mode destroy,format,mount /tmp/disk-config.nix
+```
 
-### Perché `/home`?
+3. Copia l'albero di configurazione sul sistema montato e rileva l'hardware senza duplicare le dichiarazioni dei filesystem Disko:
 
-Per ragioni di sicurezza, la cartella "nixos_config" dovrebbe trovarsi sotto `/home` con proprietà root, così solo gli amministratori possono modificare o utilizzare questi file (il rebuild richiede privilegi amministrativi). Durante l'installazione, dopo la formattazione, il disco verrà montato sotto `/mnt`. Potrai quindi creare la directory `/home` (se non già partizionata) e copiare la cartella "nixos_config" lì, preservandola post-installazione.
+```bash
+sudo mkdir -p /mnt/etc/nixos
+sudo cp -a /tmp/nixos_configs /mnt/etc/nixos/
+sudo nixos-generate-config --no-filesystems --root /mnt
+sudo cp /mnt/etc/nixos/hardware-configuration.nix /mnt/etc/nixos/nixos_configs/hosts/server/example/
+```
 
-### Passaggi dell'installazione
+4. Mantieni la ricetta disco preparata nell'albero e importala insieme al modulo Disko corrispondente fissato alla stessa revisione. Controlla la coerenza di EFI/BIOS e bootloader.
+5. Prepara la chiave SSH dell'host e aggiungi il destinatario age prima della prima build, seguendo [SECRETS.it.md](nixos_configs_template/common/config/SECRETS.it.md). La chiave host deve poter accedere al file cifrato dell'host e ai valori cifrati condivisi.
+6. Installa usando l'host selezionato:
 
-Assumendo che la cartella "nixos_config" modificata e personalizzata sia pronta:
+```bash
+sudo nixos-install -I nixos-config=/mnt/etc/nixos/nixos_configs/hosts/server/example/configuration.nix
+```
 
-1. **Avvia la ISO ufficiale** scaricata dalla [pagina ufficiale di NixOS](https://nixos.org/download/) sulla tua macchina.
+7. Riavvia dopo l'installazione e verifica accesso utente, storage, rete ed eventuali servizi selezionati.
 
-2. Copia la cartella "nixos_config" in `/home/nixos`:
-   ```bash
-   /home/nixos/nixos_config
-   ```
-
-3. Formatta il disco con il template scelto, nella cartella host:
-   ```bash
-   sudo nix --experimental-features "nix-command flakes" run github:nix-community/disko/latest -- --mode destroy,format,mount /home/nixos/nixos_config/hosts/ABC/single-disk-ext4-bios.nix
-   ```
-
-4. Dopo la formattazione, il disco sarà montato sotto `/mnt`. Crea `/home` e copia la configurazione:
-   ```bash
-   sudo mkdir -p /mnt/home && sudo cp -r /home/nixos/nixos_config /mnt/home/
-   ```
-
-5. *(Opzionale)* Genera `hardware-configuration.nix` se necessario e copialo nella cartella host:
-   ```bash
-   sudo nixos-generate-config --no-filesystems --root /mnt && sudo cp /mnt/etc/nixos/hardware-configuration.nix /mnt/home/nixos_config/hosts/ABC/
-   ```
-
-6. **Bootstrap della chiave host per i segreti** (richiesto da sops-nix - vedi [SECRETS.it.md](nixos_configs_template/common/config/SECRETS.it.md)): genera in anticipo la chiave SSH host, così il primo avvio può già decifrare i segreti:
-   ```bash
-   sudo mkdir -p /mnt/etc/ssh && sudo ssh-keygen -t ed25519 -N "" -f /mnt/etc/ssh/ssh_host_ed25519_key
-   sudo nix-shell -p ssh-to-age --run 'ssh-to-age < /mnt/etc/ssh/ssh_host_ed25519_key.pub'
-   ```
-   Aggiungi la chiave `age1...` stampata a `.sops.yaml` ed esegui `sops updatekeys secrets/common.yaml`.
-
-7. Procedi con l'installazione:
-   ```bash
-   sudo NIXOS_CONFIG=/mnt/home/nixos_config/hosts/ABC/configuration.nix nixos-install
-   ```
-
-8. Riavvia il sistema:
-   ```bash
-   reboot
-   ```
-
-Se tutti i comandi hanno avuto successo, al riavvio avrai il tuo ambiente già configurato.
+Mantieni la configurazione di proprietà di root e scrivibile solo dagli amministratori. La copia opzionale dei dotfile usa `BASEPATHUSER`; imposta esplicitamente la posizione sorgente nel modulo account client. Vedi [UPGRADE_SYSTEM.it.md](UPGRADE_SYSTEM.it.md) per gli aggiornamenti successivi.

@@ -32,7 +32,8 @@
                 type = "luks";
                 name = "crypted"; # Name used for the mapped device
                 # A key file can be used instead of an interactive password
-                passwordFile = "/tmp/secret.key"; # Currently points to a file, but can be replaced with interactive entry
+                askPassword = true;
+                extraFormatArgs = [ "--type" "luks2" ];
                 settings = {
                   allowDiscards = true; # Allows TRIM operations on the encrypted partition
                   # Unlock at boot with a USB key instead of typing the passphrase (see LUKS_KEYS.md):
